@@ -1,6 +1,6 @@
 # Protobuffer Steps:
 
-## Installation
+## Installation (for Linux or macOS)
 
 1. Installed the protobuf compiler on my Mac from here: https://github.com/google/protobuf/releases
 
@@ -21,4 +21,15 @@
 ## Creating a Proto File
 
 1. Create a protobuf package (a .proto file)
-2. Compile the proto file u
+
+2. Compile the proto file into a source file
+
+	* Use the makefile from the example directory by copying it into the current directory
+
+	$ make python or $ make cpp
+
+	or use the following commands:
+	
+	* Python: $ protoc -I=. --python_out=. <proto-file>
+	* C++: $ protoc -I=. --cpp_out=. <proto-file>
+

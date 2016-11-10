@@ -204,3 +204,6 @@ octave-workspace
 # Metadata
 *.aliases
 *.lvlps
+
+# Other
+.DS_Store

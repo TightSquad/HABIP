@@ -1,0 +1,22 @@
+// Data Aquisition and Control Systems Raspberry Pi
+
+syntax = "proto3";
+
+package daqcs_pi;
+
+message Data {
+	int32 id = 1;
+
+	repeated TempSensor tempSensors = 2;
+	repeated PressureSensor pressureSensors = 3;
+};
+
+message TempSensor {
+	int32 id = 1;
+	float value = 2;
+};
+
+message PressureSensor {
+	int32 id = 1;
+	float value = 2;
+};
