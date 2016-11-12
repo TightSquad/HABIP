@@ -70,6 +70,8 @@ static FIL fil;        /* File object */
 static char filename[31];
 static FRESULT rc;
 
+Calendar currTime;
+
 void sdcardLog()
 {
     //Initialize the ADC12B Module
@@ -226,6 +228,11 @@ void sdcardLog()
 
     // Log Bat (SuperCap) Voltage ADC conversion results to SDCard
     f_puts(voltage, &fil);
+
+//    f_putc(' ', &fil);
+//    currTime = RTC_C_getCalendarTime(RTC_C_BASE);
+//    f_putc(currTime.Minutes, &fil);
+
     f_puts("\r\n", &fil);
     rc = f_close(&fil);
 
@@ -283,6 +290,47 @@ void sdcardLog()
         __bis_SR_register(LPM3_bits + GIE);
         __no_operation();
     }
+}
+
+//write a character array to a new line in current open txt file
+void writeData(char * data){
+
+	//Plugin SDcard interface to SDCard lib
+	SDCardLib_init(&sdCardLib, &sdIntf_MSP430FR5994LP);
+
+	//Detect SD card
+	SDCardLib_Status st = SDCardLib_detectCard(&sdCardLib);
+	if (st == SDCARDLIB_STATUS_NOT_PRESENT) {
+		SDCardLib_unInit(&sdCardLib);
+		mode = '0';
+		noSDCard = 1;
+		return;
+	}
+
+	rc = f_open(&fil, filename, FA_WRITE | FA_OPEN_EXISTING);
+	if (rc) {
+		f_close(&fil);
+		SDCardLib_unInit(&sdCardLib);
+		return;
+	}
+
+	rc = f_lseek(&fil, f_size(&fil));
+
+	// Log Temperature ADC conversion results to SDCard
+	f_puts(data, &fil);
+
+	f_puts("\r\n", &fil);
+	rc = f_close(&fil);
+
+	SDCardLib_unInit(&sdCardLib);
+
+	//Enable SPI module
+	EUSCI_B_SPI_disable(EUSCI_B0_BASE);
+
+	GPIO_setOutputLowOnPin(
+		GPIO_PORT_P2,
+		GPIO_PIN2
+	);
 }
 
 /*
