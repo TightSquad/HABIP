@@ -7,18 +7,21 @@ RMFILES += $(wildcard $(OUT)/*.pb.cc) $(wildcard $(OUT)/*.pb.h) $(wildcard $(OUT
 
 all:
 	mkdir -p $(OUT)
+	protoc $(INCLUDE) --python_out=$(OUT) --cpp_out=$(OUT) common/common.proto
 	protoc $(INCLUDE) --python_out=$(OUT) --cpp_out=$(OUT) daqcs_pi/daqcs_pi.proto
 	protoc $(INCLUDE) --python_out=$(OUT) --cpp_out=$(OUT) daqcs_msp/daqcs_msp.proto
 	protoc $(INCLUDE) --python_out=$(OUT) --cpp_out=$(OUT) comms_pi/comms_pi.proto
 
 python:
 	mkdir -p $(OUT)
+	protoc $(INCLUDE) --python_out=$(OUT) common/common.proto
 	protoc $(INCLUDE) --python_out=$(OUT) daqcs_pi/daqcs_pi.proto
 	protoc $(INCLUDE) --python_out=$(OUT) daqcs_msp/daqcs_msp.proto
 	protoc $(INCLUDE) --python_out=$(OUT) comms_pi/comms_pi.proto
 
 cpp:
 	mkdir -p $(OUT)
+	protoc $(INCLUDE) --cpp_out=$(OUT) common/common.proto
 	protoc $(INCLUDE) --cpp_out=$(OUT) daqcs_pi/daqcs_pi.proto
 	protoc $(INCLUDE) --cpp_out=$(OUT) daqcs_msp/daqcs_msp.proto
 	protoc $(INCLUDE) --cpp_out=$(OUT) comms_pi/comms_pi.proto

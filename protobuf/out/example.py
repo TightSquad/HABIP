@@ -1,7 +1,6 @@
 import daqcs_pi_pb2 as daqcs_pi
 
 device = daqcs_pi.Data(id=0)
-device.id = 0
 
 # Initialize the temperature sensors
 tempSensor1 = device.tempSensors.add(id=0)
@@ -20,6 +19,9 @@ pressureSensor.value = 0.1875
 # Serialize the data
 serialized = device.SerializeToString()
 
+# Show the data
+print len(serialized)
+print [c for c in serialized]
 
 # Read in serialized data
 newDevice = daqcs_pi.Data()
