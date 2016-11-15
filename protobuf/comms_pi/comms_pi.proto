@@ -1,0 +1,16 @@
+// Communications Team Raspberry Pi Controller
+
+syntax = "proto3";
+
+import "common.proto";
+import "daqcs_msp.proto";
+
+package comms_pi;
+
+message Data {
+	int32 id = 1;
+
+	daqcs_msp.Data msp = 2;
+
+	common.TempSensor commsTemp = 3;
+};

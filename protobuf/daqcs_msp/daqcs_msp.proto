@@ -1,0 +1,13 @@
+// Data Aquisition and Control Systems MSP Controller
+
+syntax = "proto3";
+
+import "daqcs_pi.proto";
+
+package daqcs_msp;
+
+message Data {
+	int32 id = 1;
+
+	repeated daqcs_pi.Data raspberryPis = 2;
+};

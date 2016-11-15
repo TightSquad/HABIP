@@ -1,0 +1,15 @@
+// Common messages for all protobufs
+
+syntax = "proto3";
+
+package common;
+
+message TempSensor {
+	int32 id = 1;
+	float value = 2;
+};
+
+message PressureSensor {
+	int32 id = 1;
+	float value = 2;
+};
