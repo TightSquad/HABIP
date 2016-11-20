@@ -3,12 +3,37 @@
 import time
 import csv
 
-#import w1
+# import function for single wire interface temperature sensor. 
 from w1 import grab_temp
+# import function for i2c temperature sensor. 
 from i2ctemp import i2cgrabTemp 
+
+# Some helpful information for working with csv files. 
 # 'a' ---- Append
 # 'wb' ---- Write
 # 'r' ---- Read
+
+"""
+setupCSV 
+Function to create the individual CSV file
+
+=== Inputs ===
+--- sensor_index --- 
+	An integer that will coordinate to the user-defined sensor number
+	Ex: The first w1 sensor could have sensor_index = 0
+
+--- sensor_type ---
+	A string coordinating to the type of sensor that the csv file will grab data for. 
+	Currently supports
+		w1-temp
+		i2c-temp
+=== Outputs ===
+--- File ---
+	Creates file with name sensor_type+sensor_index+.csv
+	Creates Header:
+		Temperature(C) | Temperature(F) | Timestamp
+	Grabs info from corresponding sensor and writes one row.
+"""
 def setupCSV(sensor_index,sensor_type='w1-temp'):
 	if sensor_type == 'w1-temp':
 		filename = 'w1Sensor'+repr(sensor_index)+'.csv'
@@ -24,6 +49,25 @@ def setupCSV(sensor_index,sensor_type='w1-temp'):
 		logWritingHandle.writerow(['Temperature(C)'] + ['Temperature(F)'] + ['Timestamp'])
 		logWritingHandle.writerow([temp_c] + [temp_f] + [timestamp])
 
+"""
+appendCSV 
+Function to append to an already created CSV file
+
+=== Inputs ===
+--- sensor_index --- 
+	An integer that will coordinate to the user-defined sensor number
+	Ex: The first w1 sensor could have sensor_index = 0
+
+--- sensor_type ---
+	A string coordinating to the type of sensor that the csv file will grab data for. 
+	Currently supports
+		w1-temp
+		i2c-temp
+=== Outputs ===
+--- File ---
+	Appends to file with name sensor_type+sensor_index+.csv
+	Grabs info from corresponding sensor and writes one row. 
+"""
 def appendCSV(sensor_index,sensor_type='w1-temp'):
 	if sensor_type == 'w1-temp':
 		filename = 'w1Sensor'+repr(sensor_index)+'.csv'
