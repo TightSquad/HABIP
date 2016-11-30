@@ -13,4 +13,19 @@ message Data {
 	daqcs_msp.Data msp = 2;
 
 	common.TempSensor commsTemp = 3;
+	common.PressureSensor commsPressure = 4;
+	GPS gpsSensor = 5;
+	GPS aprs = 6;
+};
+
+message GPS {
+	int32 id = 1;
+	Coordinate north = 2;
+	Coordinate west = 3;
+	float elevation = 4;
+};
+
+message Coordinate {
+	float degrees = 1;
+	float minutes = 2;
 };

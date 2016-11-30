@@ -39,7 +39,9 @@ void protobuf_InitDefaults_comms_5fpi_2eproto();
 void protobuf_AssignDesc_comms_5fpi_2eproto();
 void protobuf_ShutdownFile_comms_5fpi_2eproto();
 
+class Coordinate;
 class Data;
+class GPS;
 
 // ===================================================================
 
@@ -130,12 +132,42 @@ class Data : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
   ::common::TempSensor* release_commstemp();
   void set_allocated_commstemp(::common::TempSensor* commstemp);
 
+  // optional .common.PressureSensor commsPressure = 4;
+  bool has_commspressure() const;
+  void clear_commspressure();
+  static const int kCommsPressureFieldNumber = 4;
+  const ::common::PressureSensor& commspressure() const;
+  ::common::PressureSensor* mutable_commspressure();
+  ::common::PressureSensor* release_commspressure();
+  void set_allocated_commspressure(::common::PressureSensor* commspressure);
+
+  // optional .comms_pi.GPS gpsSensor = 5;
+  bool has_gpssensor() const;
+  void clear_gpssensor();
+  static const int kGpsSensorFieldNumber = 5;
+  const ::comms_pi::GPS& gpssensor() const;
+  ::comms_pi::GPS* mutable_gpssensor();
+  ::comms_pi::GPS* release_gpssensor();
+  void set_allocated_gpssensor(::comms_pi::GPS* gpssensor);
+
+  // optional .comms_pi.GPS aprs = 6;
+  bool has_aprs() const;
+  void clear_aprs();
+  static const int kAprsFieldNumber = 6;
+  const ::comms_pi::GPS& aprs() const;
+  ::comms_pi::GPS* mutable_aprs();
+  ::comms_pi::GPS* release_aprs();
+  void set_allocated_aprs(::comms_pi::GPS* aprs);
+
   // @@protoc_insertion_point(class_scope:comms_pi.Data)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::daqcs_msp::Data* msp_;
   ::common::TempSensor* commstemp_;
+  ::common::PressureSensor* commspressure_;
+  ::comms_pi::GPS* gpssensor_;
+  ::comms_pi::GPS* aprs_;
   ::google::protobuf::int32 id_;
   mutable int _cached_size_;
   friend void  protobuf_InitDefaults_comms_5fpi_2eproto_impl();
@@ -146,6 +178,212 @@ class Data : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
   void InitAsDefaultInstance();
 };
 extern ::google::protobuf::internal::ExplicitlyConstructed<Data> Data_default_instance_;
+
+// -------------------------------------------------------------------
+
+class GPS : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:comms_pi.GPS) */ {
+ public:
+  GPS();
+  virtual ~GPS();
+
+  GPS(const GPS& from);
+
+  inline GPS& operator=(const GPS& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const GPS& default_instance();
+
+  static const GPS* internal_default_instance();
+
+  void Swap(GPS* other);
+
+  // implements Message ----------------------------------------------
+
+  inline GPS* New() const { return New(NULL); }
+
+  GPS* New(::google::protobuf::Arena* arena) const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const GPS& from);
+  void MergeFrom(const GPS& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  size_t ByteSizeLong() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
+    return InternalSerializeWithCachedSizesToArray(false, output);
+  }
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  void InternalSwap(GPS* other);
+  void UnsafeMergeFrom(const GPS& from);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return _internal_metadata_.arena();
+  }
+  inline void* MaybeArenaPtr() const {
+    return _internal_metadata_.raw_arena_ptr();
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional int32 id = 1;
+  void clear_id();
+  static const int kIdFieldNumber = 1;
+  ::google::protobuf::int32 id() const;
+  void set_id(::google::protobuf::int32 value);
+
+  // optional .comms_pi.Coordinate north = 2;
+  bool has_north() const;
+  void clear_north();
+  static const int kNorthFieldNumber = 2;
+  const ::comms_pi::Coordinate& north() const;
+  ::comms_pi::Coordinate* mutable_north();
+  ::comms_pi::Coordinate* release_north();
+  void set_allocated_north(::comms_pi::Coordinate* north);
+
+  // optional .comms_pi.Coordinate west = 3;
+  bool has_west() const;
+  void clear_west();
+  static const int kWestFieldNumber = 3;
+  const ::comms_pi::Coordinate& west() const;
+  ::comms_pi::Coordinate* mutable_west();
+  ::comms_pi::Coordinate* release_west();
+  void set_allocated_west(::comms_pi::Coordinate* west);
+
+  // optional float elevation = 4;
+  void clear_elevation();
+  static const int kElevationFieldNumber = 4;
+  float elevation() const;
+  void set_elevation(float value);
+
+  // @@protoc_insertion_point(class_scope:comms_pi.GPS)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::comms_pi::Coordinate* north_;
+  ::comms_pi::Coordinate* west_;
+  ::google::protobuf::int32 id_;
+  float elevation_;
+  mutable int _cached_size_;
+  friend void  protobuf_InitDefaults_comms_5fpi_2eproto_impl();
+  friend void  protobuf_AddDesc_comms_5fpi_2eproto_impl();
+  friend void protobuf_AssignDesc_comms_5fpi_2eproto();
+  friend void protobuf_ShutdownFile_comms_5fpi_2eproto();
+
+  void InitAsDefaultInstance();
+};
+extern ::google::protobuf::internal::ExplicitlyConstructed<GPS> GPS_default_instance_;
+
+// -------------------------------------------------------------------
+
+class Coordinate : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:comms_pi.Coordinate) */ {
+ public:
+  Coordinate();
+  virtual ~Coordinate();
+
+  Coordinate(const Coordinate& from);
+
+  inline Coordinate& operator=(const Coordinate& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Coordinate& default_instance();
+
+  static const Coordinate* internal_default_instance();
+
+  void Swap(Coordinate* other);
+
+  // implements Message ----------------------------------------------
+
+  inline Coordinate* New() const { return New(NULL); }
+
+  Coordinate* New(::google::protobuf::Arena* arena) const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Coordinate& from);
+  void MergeFrom(const Coordinate& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  size_t ByteSizeLong() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const {
+    return InternalSerializeWithCachedSizesToArray(false, output);
+  }
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  void InternalSwap(Coordinate* other);
+  void UnsafeMergeFrom(const Coordinate& from);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return _internal_metadata_.arena();
+  }
+  inline void* MaybeArenaPtr() const {
+    return _internal_metadata_.raw_arena_ptr();
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional float degrees = 1;
+  void clear_degrees();
+  static const int kDegreesFieldNumber = 1;
+  float degrees() const;
+  void set_degrees(float value);
+
+  // optional float minutes = 2;
+  void clear_minutes();
+  static const int kMinutesFieldNumber = 2;
+  float minutes() const;
+  void set_minutes(float value);
+
+  // @@protoc_insertion_point(class_scope:comms_pi.Coordinate)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  float degrees_;
+  float minutes_;
+  mutable int _cached_size_;
+  friend void  protobuf_InitDefaults_comms_5fpi_2eproto_impl();
+  friend void  protobuf_AddDesc_comms_5fpi_2eproto_impl();
+  friend void protobuf_AssignDesc_comms_5fpi_2eproto();
+  friend void protobuf_ShutdownFile_comms_5fpi_2eproto();
+
+  void InitAsDefaultInstance();
+};
+extern ::google::protobuf::internal::ExplicitlyConstructed<Coordinate> Coordinate_default_instance_;
 
 // ===================================================================
 
@@ -247,10 +485,279 @@ inline void Data::set_allocated_commstemp(::common::TempSensor* commstemp) {
   // @@protoc_insertion_point(field_set_allocated:comms_pi.Data.commsTemp)
 }
 
+// optional .common.PressureSensor commsPressure = 4;
+inline bool Data::has_commspressure() const {
+  return this != internal_default_instance() && commspressure_ != NULL;
+}
+inline void Data::clear_commspressure() {
+  if (GetArenaNoVirtual() == NULL && commspressure_ != NULL) delete commspressure_;
+  commspressure_ = NULL;
+}
+inline const ::common::PressureSensor& Data::commspressure() const {
+  // @@protoc_insertion_point(field_get:comms_pi.Data.commsPressure)
+  return commspressure_ != NULL ? *commspressure_
+                         : *::common::PressureSensor::internal_default_instance();
+}
+inline ::common::PressureSensor* Data::mutable_commspressure() {
+  
+  if (commspressure_ == NULL) {
+    commspressure_ = new ::common::PressureSensor;
+  }
+  // @@protoc_insertion_point(field_mutable:comms_pi.Data.commsPressure)
+  return commspressure_;
+}
+inline ::common::PressureSensor* Data::release_commspressure() {
+  // @@protoc_insertion_point(field_release:comms_pi.Data.commsPressure)
+  
+  ::common::PressureSensor* temp = commspressure_;
+  commspressure_ = NULL;
+  return temp;
+}
+inline void Data::set_allocated_commspressure(::common::PressureSensor* commspressure) {
+  delete commspressure_;
+  commspressure_ = commspressure;
+  if (commspressure) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:comms_pi.Data.commsPressure)
+}
+
+// optional .comms_pi.GPS gpsSensor = 5;
+inline bool Data::has_gpssensor() const {
+  return this != internal_default_instance() && gpssensor_ != NULL;
+}
+inline void Data::clear_gpssensor() {
+  if (GetArenaNoVirtual() == NULL && gpssensor_ != NULL) delete gpssensor_;
+  gpssensor_ = NULL;
+}
+inline const ::comms_pi::GPS& Data::gpssensor() const {
+  // @@protoc_insertion_point(field_get:comms_pi.Data.gpsSensor)
+  return gpssensor_ != NULL ? *gpssensor_
+                         : *::comms_pi::GPS::internal_default_instance();
+}
+inline ::comms_pi::GPS* Data::mutable_gpssensor() {
+  
+  if (gpssensor_ == NULL) {
+    gpssensor_ = new ::comms_pi::GPS;
+  }
+  // @@protoc_insertion_point(field_mutable:comms_pi.Data.gpsSensor)
+  return gpssensor_;
+}
+inline ::comms_pi::GPS* Data::release_gpssensor() {
+  // @@protoc_insertion_point(field_release:comms_pi.Data.gpsSensor)
+  
+  ::comms_pi::GPS* temp = gpssensor_;
+  gpssensor_ = NULL;
+  return temp;
+}
+inline void Data::set_allocated_gpssensor(::comms_pi::GPS* gpssensor) {
+  delete gpssensor_;
+  gpssensor_ = gpssensor;
+  if (gpssensor) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:comms_pi.Data.gpsSensor)
+}
+
+// optional .comms_pi.GPS aprs = 6;
+inline bool Data::has_aprs() const {
+  return this != internal_default_instance() && aprs_ != NULL;
+}
+inline void Data::clear_aprs() {
+  if (GetArenaNoVirtual() == NULL && aprs_ != NULL) delete aprs_;
+  aprs_ = NULL;
+}
+inline const ::comms_pi::GPS& Data::aprs() const {
+  // @@protoc_insertion_point(field_get:comms_pi.Data.aprs)
+  return aprs_ != NULL ? *aprs_
+                         : *::comms_pi::GPS::internal_default_instance();
+}
+inline ::comms_pi::GPS* Data::mutable_aprs() {
+  
+  if (aprs_ == NULL) {
+    aprs_ = new ::comms_pi::GPS;
+  }
+  // @@protoc_insertion_point(field_mutable:comms_pi.Data.aprs)
+  return aprs_;
+}
+inline ::comms_pi::GPS* Data::release_aprs() {
+  // @@protoc_insertion_point(field_release:comms_pi.Data.aprs)
+  
+  ::comms_pi::GPS* temp = aprs_;
+  aprs_ = NULL;
+  return temp;
+}
+inline void Data::set_allocated_aprs(::comms_pi::GPS* aprs) {
+  delete aprs_;
+  aprs_ = aprs;
+  if (aprs) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:comms_pi.Data.aprs)
+}
+
 inline const Data* Data::internal_default_instance() {
   return &Data_default_instance_.get();
 }
+// -------------------------------------------------------------------
+
+// GPS
+
+// optional int32 id = 1;
+inline void GPS::clear_id() {
+  id_ = 0;
+}
+inline ::google::protobuf::int32 GPS::id() const {
+  // @@protoc_insertion_point(field_get:comms_pi.GPS.id)
+  return id_;
+}
+inline void GPS::set_id(::google::protobuf::int32 value) {
+  
+  id_ = value;
+  // @@protoc_insertion_point(field_set:comms_pi.GPS.id)
+}
+
+// optional .comms_pi.Coordinate north = 2;
+inline bool GPS::has_north() const {
+  return this != internal_default_instance() && north_ != NULL;
+}
+inline void GPS::clear_north() {
+  if (GetArenaNoVirtual() == NULL && north_ != NULL) delete north_;
+  north_ = NULL;
+}
+inline const ::comms_pi::Coordinate& GPS::north() const {
+  // @@protoc_insertion_point(field_get:comms_pi.GPS.north)
+  return north_ != NULL ? *north_
+                         : *::comms_pi::Coordinate::internal_default_instance();
+}
+inline ::comms_pi::Coordinate* GPS::mutable_north() {
+  
+  if (north_ == NULL) {
+    north_ = new ::comms_pi::Coordinate;
+  }
+  // @@protoc_insertion_point(field_mutable:comms_pi.GPS.north)
+  return north_;
+}
+inline ::comms_pi::Coordinate* GPS::release_north() {
+  // @@protoc_insertion_point(field_release:comms_pi.GPS.north)
+  
+  ::comms_pi::Coordinate* temp = north_;
+  north_ = NULL;
+  return temp;
+}
+inline void GPS::set_allocated_north(::comms_pi::Coordinate* north) {
+  delete north_;
+  north_ = north;
+  if (north) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:comms_pi.GPS.north)
+}
+
+// optional .comms_pi.Coordinate west = 3;
+inline bool GPS::has_west() const {
+  return this != internal_default_instance() && west_ != NULL;
+}
+inline void GPS::clear_west() {
+  if (GetArenaNoVirtual() == NULL && west_ != NULL) delete west_;
+  west_ = NULL;
+}
+inline const ::comms_pi::Coordinate& GPS::west() const {
+  // @@protoc_insertion_point(field_get:comms_pi.GPS.west)
+  return west_ != NULL ? *west_
+                         : *::comms_pi::Coordinate::internal_default_instance();
+}
+inline ::comms_pi::Coordinate* GPS::mutable_west() {
+  
+  if (west_ == NULL) {
+    west_ = new ::comms_pi::Coordinate;
+  }
+  // @@protoc_insertion_point(field_mutable:comms_pi.GPS.west)
+  return west_;
+}
+inline ::comms_pi::Coordinate* GPS::release_west() {
+  // @@protoc_insertion_point(field_release:comms_pi.GPS.west)
+  
+  ::comms_pi::Coordinate* temp = west_;
+  west_ = NULL;
+  return temp;
+}
+inline void GPS::set_allocated_west(::comms_pi::Coordinate* west) {
+  delete west_;
+  west_ = west;
+  if (west) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_set_allocated:comms_pi.GPS.west)
+}
+
+// optional float elevation = 4;
+inline void GPS::clear_elevation() {
+  elevation_ = 0;
+}
+inline float GPS::elevation() const {
+  // @@protoc_insertion_point(field_get:comms_pi.GPS.elevation)
+  return elevation_;
+}
+inline void GPS::set_elevation(float value) {
+  
+  elevation_ = value;
+  // @@protoc_insertion_point(field_set:comms_pi.GPS.elevation)
+}
+
+inline const GPS* GPS::internal_default_instance() {
+  return &GPS_default_instance_.get();
+}
+// -------------------------------------------------------------------
+
+// Coordinate
+
+// optional float degrees = 1;
+inline void Coordinate::clear_degrees() {
+  degrees_ = 0;
+}
+inline float Coordinate::degrees() const {
+  // @@protoc_insertion_point(field_get:comms_pi.Coordinate.degrees)
+  return degrees_;
+}
+inline void Coordinate::set_degrees(float value) {
+  
+  degrees_ = value;
+  // @@protoc_insertion_point(field_set:comms_pi.Coordinate.degrees)
+}
+
+// optional float minutes = 2;
+inline void Coordinate::clear_minutes() {
+  minutes_ = 0;
+}
+inline float Coordinate::minutes() const {
+  // @@protoc_insertion_point(field_get:comms_pi.Coordinate.minutes)
+  return minutes_;
+}
+inline void Coordinate::set_minutes(float value) {
+  
+  minutes_ = value;
+  // @@protoc_insertion_point(field_set:comms_pi.Coordinate.minutes)
+}
+
+inline const Coordinate* Coordinate::internal_default_instance() {
+  return &Coordinate_default_instance_.get();
+}
 #endif  // !PROTOBUF_INLINE_NOT_IN_HEADERS
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 
 // @@protoc_insertion_point(namespace_scope)
 
