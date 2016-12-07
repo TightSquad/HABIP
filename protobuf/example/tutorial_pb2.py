@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='tutorial.proto',
   package='tutorial',
   syntax='proto3',
-  serialized_pb=_b('\n\x0etutorial.proto\x12\x08tutorial\"\xd4\x01\n\x06Person\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\x05\x12\r\n\x05\x65mail\x18\x03 \x01(\t\x12+\n\x05phone\x18\x04 \x03(\x0b\x32\x1c.tutorial.Person.PhoneNumber\x1aG\n\x0bPhoneNumber\x12\x0e\n\x06number\x18\x01 \x01(\t\x12(\n\x04type\x18\x02 \x01(\x0e\x32\x1a.tutorial.Person.PhoneType\"+\n\tPhoneType\x12\n\n\x06MOBILE\x10\x00\x12\x08\n\x04HOME\x10\x01\x12\x08\n\x04WORK\x10\x02\"/\n\x0b\x41\x64\x64ressBook\x12 \n\x06person\x18\x01 \x03(\x0b\x32\x10.tutorial.Personb\x06proto3')
+  serialized_pb=_b('\n\x0etutorial.proto\x12\x08tutorial\"\xca\x01\n\x06Person\x12\n\n\x02id\x18\x01 \x01(\x05\x12+\n\x05phone\x18\x04 \x03(\x0b\x32\x1c.tutorial.Person.PhoneNumber\x1aZ\n\x0bPhoneNumber\x12\x11\n\tarea_code\x18\x01 \x01(\x05\x12\x0e\n\x06number\x18\x02 \x01(\x05\x12(\n\x04type\x18\x03 \x01(\x0e\x32\x1a.tutorial.Person.PhoneType\"+\n\tPhoneType\x12\n\n\x06MOBILE\x10\x00\x12\x08\n\x04HOME\x10\x01\x12\x08\n\x04WORK\x10\x02\"/\n\x0b\x41\x64\x64ressBook\x12 \n\x06person\x18\x01 \x03(\x0b\x32\x10.tutorial.Personb\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -46,8 +46,8 @@ _PERSON_PHONETYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=198,
-  serialized_end=241,
+  serialized_start=188,
+  serialized_end=231,
 )
 _sym_db.RegisterEnumDescriptor(_PERSON_PHONETYPE)
 
@@ -60,15 +60,22 @@ _PERSON_PHONENUMBER = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='number', full_name='tutorial.Person.PhoneNumber.number', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
+      name='area_code', full_name='tutorial.Person.PhoneNumber.area_code', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='type', full_name='tutorial.Person.PhoneNumber.type', index=1,
-      number=2, type=14, cpp_type=8, label=1,
+      name='number', full_name='tutorial.Person.PhoneNumber.number', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='type', full_name='tutorial.Person.PhoneNumber.type', index=2,
+      number=3, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -85,8 +92,8 @@ _PERSON_PHONENUMBER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=125,
-  serialized_end=196,
+  serialized_start=96,
+  serialized_end=186,
 )
 
 _PERSON = _descriptor.Descriptor(
@@ -97,28 +104,14 @@ _PERSON = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='name', full_name='tutorial.Person.name', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='id', full_name='tutorial.Person.id', index=1,
-      number=2, type=5, cpp_type=1, label=1,
+      name='id', full_name='tutorial.Person.id', index=0,
+      number=1, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='email', full_name='tutorial.Person.email', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='phone', full_name='tutorial.Person.phone', index=3,
+      name='phone', full_name='tutorial.Person.phone', index=1,
       number=4, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -138,7 +131,7 @@ _PERSON = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=29,
-  serialized_end=241,
+  serialized_end=231,
 )
 
 
@@ -168,8 +161,8 @@ _ADDRESSBOOK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=243,
-  serialized_end=290,
+  serialized_start=233,
+  serialized_end=280,
 )
 
 _PERSON_PHONENUMBER.fields_by_name['type'].enum_type = _PERSON_PHONETYPE

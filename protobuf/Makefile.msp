@@ -1,0 +1,23 @@
+WORKING_DIR = /Users/$(USER)/GitHub/HABIP_Code/protobuf
+
+OBJECTS = $(WORKING_DIR)/example/Accessor.c $(WORKING_DIR)/example/tutorial.pb-c.c
+OUT_DIR = $(WORKING_DIR)/example
+
+GCC_DIR =  /Users/$(USER)/ti/msp430_gcc/bin
+SUPPORT_FILE_DIRECTORY = /Users/$(USER)/ti/msp430_gcc/include
+
+DEVICE  = msp430fr5994
+CC      = $(GCC_DIR)/msp430-elf-gcc
+GDB     = $(GCC_DIR)/msp430-elf-gdb
+
+CFLAGS = -I $(SUPPORT_FILE_DIRECTORY) -mmcu=$(DEVICE) -O2 -g
+LFLAGS = -L $(SUPPORT_FILE_DIRECTORY)
+
+POST_CFLAGS = -I $(WORKING_DIR)/protobuf-c-1.2.1-msp/out_strip/include/
+POST_LFLAGS = -L $(WORKING_DIR)/protobuf-c-1.2.1-msp/out_strip/lib/ -lprotobuf-c
+
+all: ${OBJECTS}
+	$(CC) $(CFLAGS) $(LFLAGS) $? -o $(OUT_DIR)/$(DEVICE).out $(POST_CFLAGS) $(POST_LFLAGS)
+
+debug: all
+	$(GDB) $(OUT_DIR)/$(DEVICE).out
