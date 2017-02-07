@@ -11,8 +11,9 @@ import sys
 
 import OSD232
 
+# PORT = "/dev/ttyAMA0"
 PORT = "/dev/tty.usbserial"
-#PORT = "/dev/tty.usbserial-FTF83XB6"
+# PORT = "/dev/tty.usbserial-FTF83XB6"
 
 BAUDRATE = 4800
 osd = OSD232.OSD232(port=PORT,baudrate=BAUDRATE)
