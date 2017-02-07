@@ -7,55 +7,68 @@ project: High Altitude Balloon Instrumentation Platform
 description: Tests the OSD API
 """
 
+import sys
+
 import OSD232
 
-PORT = "/dev/tty.usbserial-FTF83XB6"
+PORT = "/dev/tty.usbserial"
+#PORT = "/dev/tty.usbserial-FTF83XB6"
+
 BAUDRATE = 4800
-
 osd = OSD232.OSD232(port=PORT,baudrate=BAUDRATE)
-osd.open()
 
-osd.clearScreen()
-osd.resetSettings()
+if not osd.open():
+	sys.exit(1)
 
-osd.setPosition(row=1, column=8)
-osd.sendRaw("{} The HABIP {}".format(osd.symbol["satellite"], osd.symbol["heart"]))
+def main():
 
-osd.setPosition(row=11)
-osd.sendRaw("KC3HUO")
+	osd.clearScreen()
+	osd.resetSettings()
 
-# temp = 35.0
-# alt = 10000
-# pressure = 1.0
-# north = 43.0848
-# west = 77.6793
+	osd.setPosition(row=1, column=8)
+	osd.sendRaw("{} The HABIP {}".format(osd.symbol["satellite"], osd.symbol["heart"]))
 
-# OSD232.msleep(10000)
+	osd.setPosition(row=11)
+	osd.sendRaw("KC3HUO")
 
-# for x in range(0,8):
-# 	counter = 8
+	#fakeData()
 
-# 	osd.setPosition(row=counter)
-# 	osd.sendRaw("Temp: {}C".format(str(temp)))
-# 	temp-=3
-# 	counter+=1
+	osd.close()
 
-# 	osd.setPosition(row=counter)
-# 	osd.sendRaw("Alt: {}ft".format(str(alt)))
-# 	alt+=10000
-# 	counter+=1
+def fakeData():
+	temp = 35.0
+	alt = 10000
+	pressure = 1.0
+	north = 43.0848
+	west = 77.6793
 
-# 	osd.setPosition(row=counter)
-# 	osd.sendRaw("Pressure: {}B".format(str(pressure)))
-# 	pressure -= 0.1
-# 	counter+=1
+	OSD232.msleep(10000)
 
-# 	osd.setPosition(row=counter)
-# 	osd.sendRaw("GPS: N{} W{}".format(north,west))
-# 	north += 0.034
-# 	west += 0.219
-# 	counter+=1
+	for x in range(0,8):
+		counter = 8
 
-# 	OSD232.msleep(5000)
+		osd.setPosition(row=counter)
+		osd.sendRaw("Temp: {}C".format(str(temp)))
+		temp-=3
+		counter+=1
 
-osd.close()
+		osd.setPosition(row=counter)
+		osd.sendRaw("Alt: {}ft".format(str(alt)))
+		alt+=10000
+		counter+=1
+
+		osd.setPosition(row=counter)
+		osd.sendRaw("Pressure: {}B".format(str(pressure)))
+		pressure -= 0.1
+		counter+=1
+
+		osd.setPosition(row=counter)
+		osd.sendRaw("GPS: N{} W{}".format(north,west))
+		north += 0.034
+		west += 0.219
+		counter+=1
+
+		OSD232.msleep(5000)
+
+if __name__ == "__main__":
+	main()

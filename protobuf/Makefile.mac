@@ -26,5 +26,12 @@ cpp:
 	protoc $(INCLUDE) --cpp_out=$(OUT) daqcs_msp/daqcs_msp.proto
 	protoc $(INCLUDE) --cpp_out=$(OUT) comms_pi/comms_pi.proto
 
+c:
+	mkdir -p $(OUT)
+	protoc-c $(INCLUDE) --c_out=$(OUT) common/common.proto
+	protoc-c $(INCLUDE) --c_out=$(OUT) daqcs_pi/daqcs_pi.proto
+	protoc-c $(INCLUDE) --c_out=$(OUT) daqcs_msp/daqcs_msp.proto
+	protoc-c $(INCLUDE) --c_out=$(OUT) comms_pi/comms_pi.proto
+
 clean:
 		rm -f $(RMFILES)

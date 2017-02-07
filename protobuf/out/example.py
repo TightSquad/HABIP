@@ -39,3 +39,5 @@ assert len(device.pressureSensors) == len(newDevice.pressureSensors)
 for i in range(0,len(newDevice.pressureSensors)):
 	assert device.pressureSensors[i].id == newDevice.pressureSensors[i].id
 	assert device.pressureSensors[i].value == newDevice.pressureSensors[i].value
+
+print "Test Completed Successfully"
