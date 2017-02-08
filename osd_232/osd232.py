@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 file: OSD232.py
 author: Connor Goldberg
