@@ -7,7 +7,9 @@ project: High Altitude Balloon Instrumentation Platform
 description: API for the digi-pot that controls the ATV transmit power
 """
 
+# sudo apt-get install python-smbus
 import smbus
+
 import sys
 
 # Custom i2c class
@@ -22,7 +24,7 @@ class digitalPotentiometer(i2c):
 	"""
 
 	# Physical constants
-	maxResistance = 9300
+	maxResistance = 9380
 	minResistance = 125
 
 	def __init__(self, address=0x2f, busID=None, interface=None):
@@ -30,6 +32,10 @@ class digitalPotentiometer(i2c):
 		super(self.__class__, self).__init__(address, busID, interface)
 
 		self._writeProtection = True
+
+		# Make a device logger
+		self.deviceLogger = self.baseLogger.getLogger("digi-pot")
+		self.deviceLogger.log.info("Instantiated the digi-pot")
 
 
 	def __disableWriteProtection__(self):
@@ -78,13 +84,19 @@ class digitalPotentiometer(i2c):
 		The digipot's specific protocol for reading a register
 		See datasheet page 61, Figure 7-5
 		"""
-		regAddress = ((regAddress & 0xF) << 4) | 0xC
-		data = self.readWord(regAddress)
+		newAddress = ((regAddress & 0xF) << 4) | 0xC
+		data = self.readWord(newAddress)
 
-		# Swap nibbles
-		data = ((data & 0xFF) << 8) | ((data & 0xFF00) >> 8)
 		if data is None:
-			print "Failed to read!"
+			self.deviceLogger.log.error("Could not read register: {}".format(
+				hex(regAddress)))
+		else:
+			self.deviceLogger.log.debug("Read {} from register: {}".format(
+				hex(data), hex(regAddress)))
+
+			# Swap nibbles
+			data = ((data & 0xFF) << 8) | ((data & 0xFF00) >> 8)
+		
 		return data
 
 
@@ -93,19 +105,34 @@ class digitalPotentiometer(i2c):
 		The digipot's specific protocol for writing a register
 		See datasheet page 59, Figure 7-2
 		"""
-		regAddress = ((regAddress & 0xF) << 4) | ((data & 0x100) >> 8)
+		newAddress = ((regAddress & 0xF) << 4) | ((data & 0x100) >> 8)
 		data = data & 0xff
-		if not self.writeWord(regAddress, data):
-			print "Failed to write!"
+		if not self.writeWord(newAddress, data):
+			self.deviceLogger.log.error("Could not write {} to register: {}"
+				.format(hex(data), hex(regAddress)))
+			return False
+		else:
+			self.deviceLogger.log.debug("Wrote {} to register: {}"
+				.format(hex(data), hex(regAddress)))
+			return True
 
 
 	@staticmethod
 	def valueForResistance(resistance):
 		"""
-		Get the value we want to write in order to set the resistance in ohms
+		Calculate the value to write in order to set the resistance in ohms
 		Datasheet page 44, Figure 5-2 (7-bit Device)
 		"""
 		return int(round((resistance-30.0)*(128.0/9380.0)))-1
+
+
+	@staticmethod
+	def resistanceFromValue(value):
+		"""
+		Calculate the resistance from the value set
+		Datasheet page 44, Figure 5-2 (7-bit Device)
+		"""
+		return int(round(((value+1)*(9380.0/128.0))+30))
 
 
 	def setResistance(self, resistance):
@@ -117,6 +144,8 @@ class digitalPotentiometer(i2c):
 			data = 0x0 # Min value
 		elif data > 0x80:
 			data = 0x80 # Max value
+		self.deviceLogger.log.info("Setting resistance to {} (~{})".format(
+			resistance, digitalPotentiometer.resistanceFromValue(data)))
 		pot.writeRegister(regAddress=0x0, data=data)
 
 
@@ -124,6 +153,7 @@ class digitalPotentiometer(i2c):
 
 # Just some testing
 if __name__ == "__main__":
+	
 	pot = digitalPotentiometer(busID=1)
 	if pot.interface is None:
 		print "Fail"
@@ -135,5 +165,7 @@ if __name__ == "__main__":
 	# pot.writeRegister(0x0, 0x40)
 
 	## Set resistance
-	pot.setResistance(7777)
-	print "Wiper 0 = {}".format(hex(pot.readRegister(0x0)))
+	pot.setResistance(7778)
+	wiper0 = pot.readRegister(0x0)
+	if wiper0:
+		print "Wiper 0 = {}".format(hex(wiper0))

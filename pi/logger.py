@@ -13,12 +13,13 @@ DEFAULT_DATEFMT = "%Y-%m-%d_%H:%M:%S"
 
 class logger(object):
 
-	def __init__(self, loggerName, logFileName=None, logFormat=None, dateFormat=None, logFileHandler=None):
+	def __init__(self, loggerName, logFileName=None, logFormat=None, dateFormat=None, logFileHandler=None, baseLogger=True):
 		self.loggerName = loggerName
 		self.logFileName = None
 		self.logFormat = None
 		self.dateFormat = None
 		self.logFileHandler = None
+		self.log = None
 
 		if logFileName is not None:
 			self.logFileName = logFileName
@@ -38,7 +39,10 @@ class logger(object):
 		if logFileHandler is not None:
 			self.logFileHandler = logFileHandler
 
-		self.log = self.__create__()
+		if baseLogger:
+			self.log = self.__create__()
+		else:
+			self.log = logging.getLogger(self.loggerName)
 
 
 	def __create__(self):
@@ -70,28 +74,15 @@ class logger(object):
 		return logger
 
 
+	def getLogger(self, name):
+		newName = "{}.{}".format(self.loggerName, name)
+		c = logger(newName, logFileName=self.logFileName,
+			logFormat=self.logFormat, dateFormat=self.dateFormat,
+			logFileHandler=self.logFileHandler, baseLogger=False)
+		return c
+
 # Testing
 if __name__ == "__main__":
-	# logger = logging.getLogger("loggerName")
-	# logger.setLevel(logging.DEBUG)
-
-	# # Set format
-	# formatter = logging.Formatter(fmt="%(asctime)s.%(msecs)d : %(name)s : %(levelname)s : %(message)s", datefmt="%Y-%m-%d_%H:%M:%S")
-	# formatter.converter = time.gmtime
-
-	# # Console Handler
-	# ch = logging.StreamHandler()
-	# ch.setLevel(logging.ERROR)
-	# ch.setFormatter(formatter)
-
-	# # File Handler
-	# fh = logging.FileHandler(filename="testLog.log")
-	# fh.setLevel(logging.DEBUG)
-	# fh.setFormatter(formatter)	
-
-	# # Add the handles to the logger
-	# logger.addHandler(ch)
-	# logger.addHandler(fh)
 
 	myLogger = logger("myLogger")
 

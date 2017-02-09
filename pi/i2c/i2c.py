@@ -5,7 +5,10 @@ project: High Altitude Balloon Instrumentation Platform
 description: Abstracts some functionality of the i2c interface
 """
 
-# Add the pi directory to $PYTHONPATH then export it
+import sys
+
+# Add the pi directory to path
+sys.path.append("..")
 import logger
 
 # sudo apt-get install python-smbus
@@ -24,6 +27,9 @@ class i2c(object):
 		interface - An SMBus interface to use instead of initializing one
 		"""
 		
+		# Create the logger
+		self.baseLogger = logger.logger("i2c")
+
 		if address is not None:
 			self.address = address
 		else:
@@ -54,22 +60,36 @@ class i2c(object):
 		attempts = 0
 		while attempts < self.maxReadAttempts:
 			try:
-				return self.interface.read_byte_data(self.address, regAddress)
+				byte = self.interface.read_byte_data(self.address, regAddress)
+				self.baseLogger.log.debug(
+					"Received byte: {}, from device: {}, register: {}".format(
+						hex(byte), hex(self.address), hex(regAddress)))
+				return byte
 			except IOError as e:
-				print "IOError: {}".format(e)
+				self.baseLogger.log.warning("IOError: {}".format(e))
 				attempts += 1
 
+		self.baseLogger.log.error("Failed to read byte from device: \
+			{}, register: {} after {} attempts".format(
+				hex(self.address), hex(regAddress), attempts))
 		return None
 
 	def readWord(self, regAddress):
 		attempts = 0
 		while attempts < self.maxReadAttempts:
 			try:
-				return self.interface.read_word_data(self.address, regAddress)
+				word = self.interface.read_word_data(self.address, regAddress)
+				self.baseLogger.log.debug(
+					"Received word: {}, from device: {}, register: {}".format(
+						hex(word), hex(self.address), hex(regAddress)))
+				return word
 			except IOError as e:
-				print "IOError: {}".format(e)
+				self.baseLogger.log.warning("IOError: {}".format(e))
 				attempts += 1
 
+		self.baseLogger.log.error("Failed to read word from device: \
+			{}, register: {} after {} attempts".format(
+				hex(self.address), hex(regAddress), attempts))
 		return None
 
 	def writeByte(self, regAddress, data=0):
@@ -77,11 +97,17 @@ class i2c(object):
 		while attempts < self.maxWriteAttempts:
 			try:
 				self.interface.write_byte_data(self.address, regAddress, data)
+				self.baseLogger.log.debug(
+					"Sent byte: {}, to device: {}, register: {}".format(
+						hex(data), hex(self.address), hex(regAddress)))
 				return True
 			except IOError as e:
-				print "IOError: {}".format(e)
+				self.baseLogger.log.warning("IOError: {}".format(e))
 				attempts += 1
 
+		self.baseLogger.log.error("Failed to write byte: {} to device: \
+			{}, register: {} after {} attempts".format(
+				hex(data), hex(self.address), hex(regAddress), attempts))
 		return False
 
 
@@ -90,9 +116,15 @@ class i2c(object):
 		while attempts < self.maxWriteAttempts:
 			try:
 				self.interface.write_word_data(self.address, regAddress, data)
+				self.baseLogger.log.debug(
+					"Sent word: {}, to device: {}, register: {}".format(
+						hex(data), hex(self.address), hex(regAddress)))
 				return True
 			except IOError as e:
-				print "IOError: {}".format(e)
+				self.baseLogger.log.warning("IOError: {}".format(e))
 				attempts += 1
 
+		self.baseLogger.log.error("Failed to write word: {} to device: \
+			{}, register: {} after {} attempts".format(
+				hex(data), hex(self.address), hex(regAddress), attempts))
 		return False
