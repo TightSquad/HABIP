@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 
+"""
+file: pot.py
+author: Connor Goldberg
+project: High Altitude Balloon Instrumentation Platform
+description: API for the digi-pot that controls the ATV transmit power
+"""
+
 import smbus
 import sys
 
@@ -10,7 +17,8 @@ from i2c import i2c
 class digitalPotentiometer(i2c):
 	"""
 	Abstract the digital potentiometer (MCP454X, 7-bit)
-	DataSheet found here: http://ww1.microchip.com/downloads/en/DeviceDoc/22107B.pdf
+	DataSheet found here:
+		http://ww1.microchip.com/downloads/en/DeviceDoc/22107B.pdf
 	"""
 
 	# Physical constants

@@ -5,18 +5,21 @@ project: High Altitude Balloon Instrumentation Platform
 description: Abstracts some functionality of the i2c interface
 """
 
+# Add the pi directory to $PYTHONPATH then export it
+import logger
+
 # sudo apt-get install python-smbus
 import smbus
 
 class i2c(object):
 	"""
 	Abstract some basic i2c functionality using the smbus module to provide
-	consistencey
+	consistency
 	"""
 
 	def __init__(self, address=None, busID=None, interface=None):
 		"""
-		address - The I2C addres of the device you want to communicate with
+		address - The I2C address of the device you want to communicate with
 		busID - The I2C bus ID to use if not providing an interface
 		interface - An SMBus interface to use instead of initializing one
 		"""
