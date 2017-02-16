@@ -5,11 +5,12 @@ project: High Altitude Balloon Instrumentation Platform
 description: Abstracts the serial interface for the OSD-232 analog video
     overlay board
 """
+import sys
+sys.path.append("..")
 
+import common
+import logger
 import serial
-import time
-
-msleep = lambda t: time.sleep(t/1000.0)
 
 class OSD232(object):
 
@@ -28,14 +29,14 @@ class OSD232(object):
                 "setVerticalOffset" : chr(138),
                 "setHorizontalOffset" : chr(139)
                 }
-    command_name = {v: k for k, v in command.iteritems()}
+    commandName = {v: k for k, v in command.iteritems()}
     
     # Screen mode to char lookup
     screenMode = { 
                     "overlay" : chr(0),
                     "fullScreen" : chr(1)
                     }
-    screenMode_name = {v: k for k, v in screenMode.iteritems()}
+    screenModeName = {v: k for k, v in screenMode.iteritems()}
 
     # Color to char lookup
     color = { 
@@ -76,7 +77,6 @@ class OSD232(object):
                 "pipe4" : chr(15+112)
                 }
 
-    # Class members
     def __init__(self, port, baudrate=4800):
         """
         inputs:
@@ -93,6 +93,9 @@ class OSD232(object):
         self.connection = serial.Serial(baudrate=baudrate)
         self.connection.port = port
 
+        # Create the logger
+        self.logger = logger.logger("osd232")
+
     def open(self):
         """
         inputs:
@@ -102,17 +105,17 @@ class OSD232(object):
         """
         try:
             self.connection.open()
-            print("INFO:", "Successfully opened serial connection port: {}". \
+            self.logger.log.info("Successfully opened serial connection port: {}". \
                 format(self.connection.port))
             return True
         except serial.SerialException as e:
-            print("ERROR:", e)
+            self.logger.log.error(e)
             return False
 
     def close(self):
-        msleep(1000) # Wait for a second to make sure all the data is out
+        common.msleep(1000) # Wait for a second to make sure all the data is out
         self.connection.close()
-        print("INFO:", "Successfully closed serial port: {}". \
+        self.logger.log.info("Successfully closed serial port: {}". \
             format(self.connection.port))
 
     def sendRaw(self, *data):
@@ -127,29 +130,31 @@ class OSD232(object):
         bytesWritten = self.connection.write(byteString)
         self.connection.flush() # Wait for the output to be written
         if byteString and bytesWritten:
-            print("DEBUG:", \
-                "Successfully wrote serial data: {}".format(byteString))
+            self.logger.log.debug("Successfully wrote serial data: {}". \
+                format(byteString))
             return True
         else:
-            print("ERROR:", "Did not write serial data: {}".format(byteString))
+            self.logger.log.error("Did not write serial data: {}". \
+                format(byteString))
             return False
 
     #################### Helper functions ####################
 
     def clearScreen(self):
-        print("INFO: Clearing screen")
+        self.logger.log.info("Clearing screen")
         self.sendRaw(self.command["clearScreen"])
 
         # Sleep for 10 milliseconds as per the documentation
-        msleep(10)
+        # It seems sometimes it takes longer to reset the board, 1 sec is safe
+        common.msleep(1000)
 
     def resetSettings(self):
-        print("INFO: Resetting settings")
+        self.logger.log.info("Resetting settings")
         self.sendRaw(self.command["reset"])
 
         # Sleep for 10 milliseconds as per the documentation
         # It seems sometimes it takes longer to reset the board, 1 sec is safe
-        msleep(1000)
+        common.msleep(1000)
 
     def setBackgroundColor(self, backgroundColor):
         """
@@ -159,12 +164,12 @@ class OSD232(object):
             bool - returns True if the data was sent; False if otherwise
         """
         if backgroundColor in self.color.values():
-            print("INFO: Setting screen color to: {}". \
+            self.logger.log.info("Setting screen color to: {}". \
                 format(self.color_name[backgroundColor]))
             return self.sendRaw(self.command["backgroundColor"], \
                 backgroundColor)
         else:
-            print("ERROR: Color invalid: {}".format(str(backgroundColor)))
+            self.logger.log.error("Color invalid: {}".format(str(backgroundColor)))
             return False
 
     def setCharacterBlink(self, characterShouldBlink):
@@ -175,12 +180,12 @@ class OSD232(object):
             bool - returns True if the data was sent; False if otherwise
         """
         if type(characterShouldBlink) is bool:
-            print("INFO: Setting character blink to: {}". \
+            self.logger.log.info("Setting character blink to: {}". \
                 format(str(characterShouldBlink)))
             return self.sendRaw(self.command["characterBlink"], \
                 chr(characterShouldBlink))
         else:
-            print("ERROR: characterShouldBlink is not bool: {}". \
+            self.logger.log.error("characterShouldBlink is not bool: {}". \
                 format(str(characterShouldBlink)))
             return False
 
@@ -192,12 +197,12 @@ class OSD232(object):
             bool - returns True if the data was sent; False if otherwise
         """
         if characterColor in self.color.values():
-            print("INFO: Setting character color to: {}". \
+            self.logger.log.info("Setting character color to: {}". \
                 format(self.color_name[characterColor]))
             return self.sendRaw(self.command["characterColor"], \
                 characterColor)
         else:
-            print("ERROR: Color invalid: {}".format(str(characterColor)))
+            self.logger.log.error("Color invalid: {}".format(str(characterColor)))
             return False
 
     def setHorizontalOffset(self, horizontalOffset):
@@ -208,11 +213,11 @@ class OSD232(object):
             bool - returns True if the data was sent; False if otherwise
         """
         if horizontalOffset < 1 or horizontalOffset > 63:
-            print("ERROR: Offset must be between 1 and 63, not: {}". \
+            self.logger.log.error("Offset must be between 1 and 63, not: {}". \
                 format(row))
             return False
         else:
-            print("INFO: Setting horizontal offset to: {}". \
+            self.logger.log.info("Setting horizontal offset to: {}". \
                 format(horizontalOffset))
             return self.sendRaw(self.command["setHorizontalOffset"], \
                 chr(horizontalOffset))
@@ -225,11 +230,11 @@ class OSD232(object):
             bool - returns True if the data was sent; False if otherwise
         """
         if screenMode in self.screenMode.values():
-            print("INFO: Setting screen mode to: {}". \
-                format(self.screenMode_name[screenMode]))
+            self.logger.log.info("Setting screen mode to: {}". \
+                format(self.screenModeName[screenMode]))
             return self.sendRaw(self.command["screenMode"], screenMode)
         else:
-            print("ERROR: Screenmode invalid: {}". \
+            self.logger.log.error("Screenmode invalid: {}". \
                 format(str(screenMode)))
             return False
 
@@ -244,7 +249,7 @@ class OSD232(object):
         row = row if row > 0 and row < 29 else 1
         column = column if column > 0 and column < 12 else 1
         
-        print("INFO:", "Moving cursor position to {}, {}".format(row, column))
+        self.logger.log.info("Moving cursor position to {}, {}".format(row, column))
         return self.sendRaw(self.command["position"], chr(column), chr(row))
 
     def showText(self, shouldShowText):
@@ -255,10 +260,10 @@ class OSD232(object):
             bool - returns True if the data was sent; False if otherwise
         """
         if type(shouldShowText) is bool:
-            print("INFO: Setting show text to: {}".format(str(shouldShowText)))
+            self.logger.log.info("Setting show text to: {}".format(str(shouldShowText)))
             return self.sendRaw(self.command["visable"], chr(shouldShowText))
         else:
-            print("ERROR: shouldShowText is not bool: {}". \
+            self.logger.log.error("shouldShowText is not bool: {}". \
                 format(str(shouldShowText)))
             return False
 
@@ -270,12 +275,12 @@ class OSD232(object):
             bool - returns True if the data was sent; False if otherwise
         """
         if type(shouldBeTranslucent) is bool:
-            print("INFO: Setting translucent text to: {}". \
+            self.logger.log.info("Setting translucent text to: {}". \
                 format(str(shouldBeTranslucent)))
             return self.sendRaw(self.command["translucent"], \
                 chr(shouldBeTranslucent))
         else:
-            print("ERROR: shouldBeTranslucent is not bool: {}". \
+            self.logger.log.error("shouldBeTranslucent is not bool: {}". \
                 format(str(shouldBeTranslucent)))
             return False
 
@@ -287,11 +292,11 @@ class OSD232(object):
             bool - returns True if the data was sent; False if otherwise
         """
         if verticalOffset < 1 or verticalOffset > 63:
-            print("ERROR: Offset must be between 1 and 63, not: {}". \
+            self.logger.log.error("Offset must be between 1 and 63, not: {}". \
                 format(row))
             return False
         else:
-            print("INFO: Setting vertical offset to: {}". \
+            self.logger.log.info("Setting vertical offset to: {}". \
                 format(verticalOffset))
             return self.sendRaw(self.command["setVerticalOffset"], \
                 chr(verticalOffset))
@@ -306,19 +311,19 @@ class OSD232(object):
             bool - returns True if the data was sent; False if otherwise
         """
         if row < 1 or row > 11:
-            print("ERROR: Row must be between 1 and 11, not: {}". \
+            self.logger.log.error("Row must be between 1 and 11, not: {}". \
                 format(row))
             return False
         elif horizontalZoom < 1 or horizontalZoom > 4:
-            print("ERROR: Horizontal zoom must be between 1 and 4, not: {}". \
+            self.logger.log.error("Horizontal zoom must be between 1 and 4, not: {}". \
                 format(row))
             return False
         elif verticalZoom < 1 or verticalZoom > 4:
-            print("ERROR: Vertical zoom must be between 1 and 4, not: {}". \
+            self.logger.log.error("Vertical zoom must be between 1 and 4, not: {}". \
                 format(row))
             return False
         else:
-            print("INFO: Setting row {} zoom to be {}, {}". \
+            self.logger.log.info("Setting row {} zoom to be {}, {}". \
                 format(row, horizontalZoom, verticalZoom))
             return self.sendRaw(self.command["zoom"], row, horizontalZoom, \
                 verticalZoom)

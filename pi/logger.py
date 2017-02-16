@@ -1,25 +1,29 @@
 """
-file: logger.py
 author: Connor Goldberg
 project: High Altitude Balloon Instrumentation Platform
-description: Default logger settings
+description: Default logger settings and helper functions
 """
 
+import common
 import logging
 import time
 
-DEFAULT_FMT = "%(asctime)s.%(msecs)d : %(name)s : %(levelname)s : %(message)s"
-DEFAULT_DATEFMT = "%Y-%m-%d_%H:%M:%S"
 
 class logger(object):
 
-	def __init__(self, loggerName, logFileName=None, logFormat=None, dateFormat=None, logFileHandler=None, baseLogger=True):
+	DEFAULT_FMT = "%(asctime)s.%(msecs)d : %(name)s : %(levelname)s : %(message)s"
+	DEFAULT_DATEFMT = "%Y-%m-%d_%H:%M:%S"
+
+	def __init__(self, loggerName, logFileName=None, logFormat=None,
+			dateFormat=None, logFileHandler=None, baseLogger=True,
+			logErrorToConsole=True):
 		self.loggerName = loggerName
 		self.logFileName = None
 		self.logFormat = None
 		self.dateFormat = None
 		self.logFileHandler = None
 		self.log = None
+		self.logErrorToConsole = logErrorToConsole
 
 		if logFileName is not None:
 			self.logFileName = logFileName
@@ -29,12 +33,12 @@ class logger(object):
 		if logFormat is not None:
 			self.logFormat = logFormat
 		else:
-			self.logFormat = DEFAULT_FMT
+			self.logFormat = logger.DEFAULT_FMT
 
 		if dateFormat is not None:
 			self.dateFormat = dateFormat
 		else:
-			self.dateFormat = DEFAULT_DATEFMT
+			self.dateFormat = logger.DEFAULT_DATEFMT
 
 		if logFileHandler is not None:
 			self.logFileHandler = logFileHandler
@@ -51,7 +55,8 @@ class logger(object):
 		logger.setLevel(logging.DEBUG)
 
 		# Create the formatter
-		formatter = logging.Formatter(fmt=self.logFormat, datefmt=self.dateFormat)
+		formatter = logging.Formatter(fmt=self.logFormat,
+			datefmt=self.dateFormat)
 		formatter.converter = time.gmtime # set time to UTC
 
 		# Create the console handler
@@ -78,7 +83,8 @@ class logger(object):
 		newName = "{}.{}".format(self.loggerName, name)
 		c = logger(newName, logFileName=self.logFileName,
 			logFormat=self.logFormat, dateFormat=self.dateFormat,
-			logFileHandler=self.logFileHandler, baseLogger=False)
+			logFileHandler=self.logFileHandler, baseLogger=False,
+			logErrorToConsole=self.logErrorToConsole)
 		return c
 
 # Testing
