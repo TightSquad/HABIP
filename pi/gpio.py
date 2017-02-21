@@ -22,7 +22,7 @@ lookupModeToString = {
 	GPIO.UNKNOWN : "GPIO.UNKNOWN"
 }
 
-def setup():
+def initialize():
 	GPIO.setmode(GPIO.BOARD)
 
 def getMode(pin):

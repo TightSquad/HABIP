@@ -5,14 +5,11 @@ project: High Altitude Balloon Instrumentation Platform
 description: Abstracts some functionality of the i2c interface
 """
 
+import smbus
 import sys
 
-# Add the pi directory to path
-sys.path.append("..")
 import logger
 
-# sudo apt-get install python-smbus
-import smbus
 
 class i2c(object):
 	"""

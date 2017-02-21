@@ -5,14 +5,14 @@ project: High Altitude Balloon Instrumentation Platform
 description: Abstracts the serial interface for the OSD-232 analog video
     overlay board
 """
+import serial
 import sys
-sys.path.append("..")
 
 import common
 import logger
-import serial
+import uart
 
-class OSD232(object):
+class osd232(object):
 
     # Command to char lookup
     command = {
@@ -77,6 +77,7 @@ class OSD232(object):
                 "pipe4" : chr(15+112)
                 }
 
+
     def __init__(self, port, baudrate=4800):
         """
         inputs:
@@ -91,70 +92,35 @@ class OSD232(object):
         # The port is not added as a parameter to the constructor so the port
         # is not opened automatically
         self.connection = serial.Serial(baudrate=baudrate)
-        self.connection.port = port
+        self.connection = uart.uart(port, baudrate)
 
         # Create the logger
         self.logger = logger.logger("osd232")
-
-    def open(self):
-        """
-        inputs:
-            none
-        outputs:
-            bool - returns True if the port is opened, else False
-        """
-        try:
-            self.connection.open()
-            self.logger.log.info("Successfully opened serial connection port: {}". \
-                format(self.connection.port))
-            return True
-        except serial.SerialException as e:
-            self.logger.log.error(e)
-            return False
-
-    def close(self):
-        common.msleep(1000) # Wait for a second to make sure all the data is out
-        self.connection.close()
-        self.logger.log.info("Successfully closed serial port: {}". \
-            format(self.connection.port))
-
-    def sendRaw(self, *data):
-        """
-        inputs:
-            data - characters or strings that get merged and sent over the
-                    serial connection
-        outputs:
-            bool - returns True if the data was written; False otherwise
-        """
-        byteString = "".join([s for s in data])
-        bytesWritten = self.connection.write(byteString)
-        self.connection.flush() # Wait for the output to be written
-        if byteString and bytesWritten:
-            self.logger.log.debug("Successfully wrote serial data: {}". \
-                format(byteString))
-            return True
+        
+        if not self.connection.open():
+        	self.logger.log.error("Could not open uart interface")
+        	sys.exit(1)
         else:
-            self.logger.log.error("Did not write serial data: {}". \
-                format(byteString))
-            return False
+        	self.logger.log.info("Opened uart interface for osd")
 
-    #################### Helper functions ####################
 
     def clearScreen(self):
         self.logger.log.info("Clearing screen")
-        self.sendRaw(self.command["clearScreen"])
+        self.connection.sendRaw(self.command["clearScreen"])
 
         # Sleep for 10 milliseconds as per the documentation
         # It seems sometimes it takes longer to reset the board, 1 sec is safe
         common.msleep(1000)
+
 
     def resetSettings(self):
         self.logger.log.info("Resetting settings")
-        self.sendRaw(self.command["reset"])
+        self.connection.sendRaw(self.command["reset"])
 
         # Sleep for 10 milliseconds as per the documentation
         # It seems sometimes it takes longer to reset the board, 1 sec is safe
         common.msleep(1000)
+
 
     def setBackgroundColor(self, backgroundColor):
         """
@@ -166,11 +132,12 @@ class OSD232(object):
         if backgroundColor in self.color.values():
             self.logger.log.info("Setting screen color to: {}". \
                 format(self.color_name[backgroundColor]))
-            return self.sendRaw(self.command["backgroundColor"], \
+            return self.connection.sendRaw(self.command["backgroundColor"], \
                 backgroundColor)
         else:
             self.logger.log.error("Color invalid: {}".format(str(backgroundColor)))
             return False
+
 
     def setCharacterBlink(self, characterShouldBlink):
         """
@@ -182,12 +149,13 @@ class OSD232(object):
         if type(characterShouldBlink) is bool:
             self.logger.log.info("Setting character blink to: {}". \
                 format(str(characterShouldBlink)))
-            return self.sendRaw(self.command["characterBlink"], \
+            return self.connection.sendRaw(self.command["characterBlink"], \
                 chr(characterShouldBlink))
         else:
             self.logger.log.error("characterShouldBlink is not bool: {}". \
                 format(str(characterShouldBlink)))
             return False
+
 
     def setCharacterColor(self, characterColor):
         """
@@ -199,11 +167,12 @@ class OSD232(object):
         if characterColor in self.color.values():
             self.logger.log.info("Setting character color to: {}". \
                 format(self.color_name[characterColor]))
-            return self.sendRaw(self.command["characterColor"], \
+            return self.connection.sendRaw(self.command["characterColor"], \
                 characterColor)
         else:
             self.logger.log.error("Color invalid: {}".format(str(characterColor)))
             return False
+
 
     def setHorizontalOffset(self, horizontalOffset):
         """
@@ -219,8 +188,9 @@ class OSD232(object):
         else:
             self.logger.log.info("Setting horizontal offset to: {}". \
                 format(horizontalOffset))
-            return self.sendRaw(self.command["setHorizontalOffset"], \
+            return self.connection.sendRaw(self.command["setHorizontalOffset"], \
                 chr(horizontalOffset))
+
 
     def setScreenMode(self, screenMode):
         """
@@ -232,11 +202,12 @@ class OSD232(object):
         if screenMode in self.screenMode.values():
             self.logger.log.info("Setting screen mode to: {}". \
                 format(self.screenModeName[screenMode]))
-            return self.sendRaw(self.command["screenMode"], screenMode)
+            return self.connection.sendRaw(self.command["screenMode"], screenMode)
         else:
             self.logger.log.error("Screenmode invalid: {}". \
                 format(str(screenMode)))
             return False
+
 
     def setPosition(self, row=1, column=1):
         """
@@ -250,7 +221,8 @@ class OSD232(object):
         column = column if column > 0 and column < 12 else 1
         
         self.logger.log.info("Moving cursor position to {}, {}".format(row, column))
-        return self.sendRaw(self.command["position"], chr(column), chr(row))
+        return self.connection.sendRaw(self.command["position"], chr(column), chr(row))
+
 
     def showText(self, shouldShowText):
         """
@@ -261,11 +233,12 @@ class OSD232(object):
         """
         if type(shouldShowText) is bool:
             self.logger.log.info("Setting show text to: {}".format(str(shouldShowText)))
-            return self.sendRaw(self.command["visable"], chr(shouldShowText))
+            return self.connection.sendRaw(self.command["visable"], chr(shouldShowText))
         else:
             self.logger.log.error("shouldShowText is not bool: {}". \
                 format(str(shouldShowText)))
             return False
+
 
     def setTranslucentText(self, shouldBeTranslucent):
         """
@@ -277,12 +250,13 @@ class OSD232(object):
         if type(shouldBeTranslucent) is bool:
             self.logger.log.info("Setting translucent text to: {}". \
                 format(str(shouldBeTranslucent)))
-            return self.sendRaw(self.command["translucent"], \
+            return self.connection.sendRaw(self.command["translucent"], \
                 chr(shouldBeTranslucent))
         else:
             self.logger.log.error("shouldBeTranslucent is not bool: {}". \
                 format(str(shouldBeTranslucent)))
             return False
+
 
     def setVerticalOffset(self, verticalOffset):
         """
@@ -298,8 +272,9 @@ class OSD232(object):
         else:
             self.logger.log.info("Setting vertical offset to: {}". \
                 format(verticalOffset))
-            return self.sendRaw(self.command["setVerticalOffset"], \
+            return self.connection.sendRaw(self.command["setVerticalOffset"], \
                 chr(verticalOffset))
+
 
     def setZoom(self, row=1, horizontalZoom=1, verticalZoom=1):
         """
@@ -325,5 +300,5 @@ class OSD232(object):
         else:
             self.logger.log.info("Setting row {} zoom to be {}, {}". \
                 format(row, horizontalZoom, verticalZoom))
-            return self.sendRaw(self.command["zoom"], row, horizontalZoom, \
+            return self.connection.sendRaw(self.command["zoom"], row, horizontalZoom, \
                 verticalZoom)
