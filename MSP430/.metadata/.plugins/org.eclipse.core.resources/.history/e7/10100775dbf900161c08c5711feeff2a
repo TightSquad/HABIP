@@ -1,0 +1,30 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+# Add inputs and outputs from these tool invocations to the build variables 
+C_SRCS += \
+../src/i2c_driver.c \
+../src/tmp007.c 
+
+OBJS += \
+./src/i2c_driver.obj \
+./src/tmp007.obj 
+
+C_DEPS += \
+./src/i2c_driver.d \
+./src/tmp007.d 
+
+C_DEPS__QUOTED += \
+"src\i2c_driver.d" \
+"src\tmp007.d" 
+
+OBJS__QUOTED += \
+"src\i2c_driver.obj" \
+"src\tmp007.obj" 
+
+C_SRCS__QUOTED += \
+"../src/i2c_driver.c" \
+"../src/tmp007.c" 
+
+
