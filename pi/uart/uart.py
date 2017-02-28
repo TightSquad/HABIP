@@ -11,17 +11,17 @@ import common
 import logger
 
 class uart(object):
-	"""
-	Abstracts some basic uart functionality from the pyserial module
-	"""
+    """
+    Abstracts some basic uart functionality from the pyserial module
+    """
 
-	def __init__(self, port, baudrate):
-			self.interface = serial.Serial(baudrate=baudrate)
-        	self.interface.port = port
-        	self.open = False
+    def __init__(self, port, baudrate):
+        self.interface = serial.Serial(baudrate=baudrate)
+        self.interface.port = port
+        self.isOpen = False
 
-            # Create the logger
-            self.logger = logger.logger("uart")
+        # Create the logger
+        self.logger = logger.logger("uart")
 
     def open(self):
         """
@@ -34,7 +34,7 @@ class uart(object):
             self.interface.open()
             self.logger.log.debug("Successfully opened serial interface port: {}". \
                 format(self.interface.port))
-           	self.open = True
+            self.isOpen = True
             return True
         except serial.SerialException as e:
             self.logger.log.error(e)
@@ -43,7 +43,7 @@ class uart(object):
 
     def close(self):
         self.interface.close()
-        self.open = False
+        self.isOpen = False
         self.logger.log.debug("Successfully closed serial port: {}". \
             format(self.interface.port))
 

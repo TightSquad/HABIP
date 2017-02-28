@@ -122,6 +122,10 @@ class osd232(object):
         common.msleep(1000)
 
 
+    def display(self, data):
+        self.logger.log.info("Displaying on osd: {}".format(data))
+        self.connection.sendRaw(data)
+
     def setBackgroundColor(self, backgroundColor):
         """
         inputs:
