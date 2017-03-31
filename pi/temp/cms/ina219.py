@@ -12,6 +12,7 @@ description: Demo script for the INA219 I2C power monitor chip
 # sudo apt-get install python-smbus
 import smbus
 import time
+import csv
 
 ##############
 # "Constants"
@@ -49,10 +50,10 @@ BUS_VOLTAGE_OVF = 0x0001
 
 reg_power = 0x3			# r  , Power measurement data.
 						# NOTE: reading this register clears the CVNR bit in reg_bus_voltage
-power_precision = 1 	# this is set by solving for power_LSB
+power_precision = 1 	# LSB = 1mA, this is set by solving for power_LSB
 
 reg_current = 0x4		# r  , Contains the value of the current flowing through the shunt resistor.
-current_precision = 50	# this is set by solving for current_LSB
+current_precision = 50	# LSB = 50uA, this is set by solving for current_LSB
 
 reg_calib = 0x5			# r/w, Sets full-scale range and LSB of current and power measurements. Overall system calibration.
 
@@ -91,6 +92,24 @@ def smbus_write_word (interface, device_addr, register_addr, data):
 # "Main"
 ##############
 
+# enable printing
+printing_enabled = 0
+
+# enable csv logging
+logging_enabled = 1
+
+# loop counter
+loop_index = 0
+
+# csv file name
+logfile_name = "power_log.csv"
+logfile_header = ["Sample Index","Elapsed Time (s)","Shunt Voltage (mV)","Bus Voltage (V)","Current (uA)","Power (mW)"]
+
+if (logging_enabled):
+	with open('power_log.csv', 'w+') as f:
+		writer = csv.writer(f)
+		writer.writerow(logfile_header)
+
 # i2c bus object
 bus = smbus.SMBus(1)
 
@@ -98,7 +117,7 @@ bus = smbus.SMBus(1)
 # set CONFIG register
 ######
 print "SETTING CONFIG REG"
-# BRNG=32V, Range = +/- 40mV, shunt/bus ADC = 12bit, shunt/bus continuous mode
+# BRNG=32V, Range = +/- 40mV, shunt/bus ADC = 12bit --> 532us conversion time, shunt/bus continuous mode
 set_value = CONF_BRNG | CONF_BADC2 | CONF_BADC1 | CONF_SADC2 | CONF_SADC1 | CONF_MODE3 | CONF_MODE2 | CONF_MODE1
 # write to CONF reg
 smbus_write_word(bus, pow0_addr, reg_conf, set_value)
@@ -123,14 +142,17 @@ print "Reading back CALIB REG value: " + str(hex(smbus_read_word(bus, pow0_addr,
 # starting time stamp
 t_start = time.time()
 
+print "Beginning continuous power logging..."
+
 while(1):
 
 	# wait for valid conversion
 	while ((smbus_read_word(bus, pow0_addr, reg_bus_voltage) & BUS_VOLTAGE_CNVR) != BUS_VOLTAGE_CNVR):
-		print "CONVERSION IS NOT READY at elapsed time of %f\n" % (time.time() - t_start)
-		print "Reg value: " + str(hex(smbus_read_word(bus, pow0_addr, reg_bus_voltage)))
-		# wait 1 second
-		time.sleep(5)
+		if (printing_enabled):
+			print "CONVERSION IS NOT READY at elapsed time of %f\n" % (time.time() - t_start)
+			print "Reg value: " + str(hex(smbus_read_word(bus, pow0_addr, reg_bus_voltage)))
+		# wait 1ms second
+		time.sleep(0.001)
 
 	# display warning is power or Current calculations are out of range
 	if ((smbus_read_word(bus, pow0_addr, reg_bus_voltage) & BUS_VOLTAGE_OVF) == BUS_VOLTAGE_OVF):
@@ -183,11 +205,17 @@ while(1):
 	# convert bus voltage to mV (voltage is in reg_bus_voltage bits [15:3])
 	power_mw = power * power_precision
 
+	if (printing_enabled):
+		print "Power Sensor 0 --> Shunt Voltage (mV): %f" % (shunt_voltage_uv / 1000.0)
+		print "Power Sensor 0 --> Bus Voltage    (V): %f" % (bus_voltage_mv / 1000.0)
+		print "Power Sensor 0 --> Current       (mA): %f" % (current_ua / 1000.0)
+		print "Power Sensor 0 --> Power         (mW): %f" % power_mw
+		print "elapsed time: %f seconds\n" % (time.time() - t_start)
 
-	print "Power Sensor 0 --> Shunt Voltage (mV): %f" % (shunt_voltage_uv / 1000.0)
-	print "Power Sensor 0 --> Bus Voltage    (V): %f" % (bus_voltage_mv / 1000.0)
-	print "Power Sensor 0 --> Current       (mA): %f" % (current_ua / 1000.0)
-	print "Power Sensor 0 --> Power         (mW): %f" % power_mw
+	if (logging_enabled):
+		with open('power_log.csv', 'a+') as f:
+			writer = csv.writer(f)
+			writer.writerow([loop_index,time.time() - t_start,shunt_voltage_uv / 1000.0, bus_voltage_mv / 1000.0, current_ua / 1000.0, power_mw])
 
-	print "elapsed time: %f seconds\n" % (time.time() - t_start)
-	time.sleep(1)
+	loop_index = loop_index + 1
+	#time.sleep(1)
