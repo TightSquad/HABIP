@@ -19,7 +19,7 @@ import csv
 ##############
 
 # sensor registers and constants
-reg_conf = 0x0			# r/w, All-register reset, settings for bus voltage range, PGA Gain, ADC resolution/averaging.
+reg_conf = 0x0			# W: r/w, All-register reset, settings for bus voltage range, PGA Gain, ADC resolution/averaging.
 CONF_RST   = 0x0800 	# see data sheet for register bit meaning
 CONF_RSVVD = 0x4000
 CONF_BRNG  = 0x2000
@@ -37,38 +37,40 @@ CONF_MODE3 = 0x0004
 CONF_MODE2 = 0x0002
 CONF_MODE1 = 0x0001
 
-reg_shunt_voltage = 0x1	# r  , Shunt voltage measurement data.
+reg_shunt_voltage = 0x1	# W: r  , Shunt voltage measurement data.
 						# [15:12] = sign
 						# [11:0] = shunt voltage
 shunt_voltage_precision = 10	# LSB = 10uV
 
-reg_bus_voltage = 0x2	# r  , Bus voltage measurement data.
+reg_bus_voltage = 0x2	# W: r  , Bus voltage measurement data.
 						# [1] = CNVR = conversion ready, clears only when reg_power is READ
 bus_voltage_precision = 4	# LSB = 4mV
 BUS_VOLTAGE_CNVR = 0x0002
 BUS_VOLTAGE_OVF = 0x0001
 
-reg_power = 0x3			# r  , Power measurement data.
+reg_power = 0x3			# W: r  , Power measurement data.
 						# NOTE: reading this register clears the CVNR bit in reg_bus_voltage
 power_precision = 1 	# LSB = 1mA, this is set by solving for power_LSB
 
-reg_current = 0x4		# r  , Contains the value of the current flowing through the shunt resistor.
+reg_current = 0x4		# W: r  , Contains the value of the current flowing through the shunt resistor.
 current_precision = 50	# LSB = 50uA, this is set by solving for current_LSB
 
-reg_calib = 0x5			# r/w, Sets full-scale range and LSB of current and power measurements. Overall system calibration.
+reg_calib = 0x5			# W: r/w, Sets full-scale range and LSB of current and power measurements. Overall system calibration.
 
 # sensor addresses
-pow0_addr = 0x44	#power monitor
+pow0_addr = 0x44		# power monitor
 
 ##############
 # "functions"
 ##############
 
+# I2C Word Functions
+# 
 # NOTE: smbus transmits and receives WORDS as MSByte first, LSByte second
 # 	Register Bits	Python Integer	MSByte	LSByte 	Tx/Rx SMBus Word
 #	[15..0] 		0xQRST			0xQR 	0xST 	0xSTQR
 #
-# NEED TO TAKE CARE OF THIS by re-arranging rx data and tx data
+# NEED TO TAKE CARE OF THIS by re-arranging rx data and tx data for Words
 # see functions 'smbus_read_word' and 'smbus_write_word' below 
 
 def smbus_read_word (interface, device_addr, register_addr):
@@ -85,7 +87,7 @@ def smbus_write_word (interface, device_addr, register_addr, data):
 	bus_val = bin(data)[2:].zfill(16)
 	# re-arrange so MSByte is lower byte of integer
 	bus_val = bus_val[8:] + bus_val[:8]
-	# write to CONF reg
+	# write to register
 	interface.write_word_data(device_addr, register_addr, int(bus_val, 2))
 
 ##############

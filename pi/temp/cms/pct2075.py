@@ -18,25 +18,27 @@ import time
 ##############
 
 # sensor registers 
-reg_temp  = 0x0	# r/w, Temperature register: contains two 8-bit data bytes; to store the measured Temp data.
-reg_conf  = 0x1	# r  , Configuration register: contains a single 8-bit data byte; to set the device operating condition; default = 0.
-reg_thyst = 0x2	# r/w, Hysteresis register: contains two 8-bit data bytes; to store the hysteresis Thys limit; default = 75 C.
-reg_tos   = 0x3	# r/w, Overtemperature shutdown threshold register: contains two 8-bit data bytes; to store the overtemperature shutdown Tots limit; default = 80 C.
-reg_tidle = 0x4	# r/w, Temperature conversion cycle default to 100 ms.
+reg_temp  = 0x0	# W: r/w, Temperature register: contains two 8-bit data bytes; to store the measured Temp data [15:5].
+reg_conf  = 0x1	# B: r/w, Configuration register: contains a single 8-bit data byte; to set the device operating condition; default = 0.
+reg_thyst = 0x2	# W: r/w, Hysteresis register: contains two 8-bit data bytes; to store the hysteresis Thys limit; default = 75 C.
+reg_tos   = 0x3	# W: r/w, Overtemperature shutdown threshold register: contains two 8-bit data bytes; to store the overtemperature shutdown Tots limit; default = 80 C.
+reg_tidle = 0x4	# B: r/w, Temperature conversion cycle default to 100 ms.
 
 # sensor addresses
-temp0_addr = 0x48	#right-side temp sensor
+temp0_addr = 0x48	# right-side temp sensor
 temp1_addr = 0x4A	# left side temp sensor
 
 ##############
 # "functions"
 ##############
 
+# I2C Word Functions
+# 
 # NOTE: smbus transmits and receives WORDS as MSByte first, LSByte second
 # 	Register Bits	Python Integer	MSByte	LSByte 	Tx/Rx SMBus Word
 #	[15..0] 		0xQRST			0xQR 	0xST 	0xSTQR
 #
-# NEED TO TAKE CARE OF THIS by re-arranging rx data and tx data
+# NEED TO TAKE CARE OF THIS by re-arranging rx data and tx data for Words
 # see functions 'smbus_read_word' and 'smbus_write_word' below 
 
 def smbus_read_word (interface, device_addr, register_addr):
@@ -53,7 +55,7 @@ def smbus_write_word (interface, device_addr, register_addr, data):
 	bus_val = bin(data)[2:].zfill(16)
 	# re-arrange so MSByte is lower byte of integer
 	bus_val = bus_val[8:] + bus_val[:8]
-	# write to CONF reg
+	# write to register
 	interface.write_word_data(device_addr, register_addr, int(bus_val, 2))
 
 
@@ -69,6 +71,10 @@ bus = smbus.SMBus(1)
 
 # starting time stamp
 t_start = time.time()
+
+# send reset command after power on
+
+
 
 # main loop to keep reading the sensor
 while(1):
