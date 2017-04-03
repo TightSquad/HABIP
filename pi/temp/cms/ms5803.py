@@ -42,6 +42,9 @@ reg_prom_crc      = 0xAE 	# W: r  : PROM addr_7, CRC value, bitd [3:0]
 # sensor addresses
 press1_addr = 0x76	# MS5803 altimeter (round sensor)
 
+# p0 is the average pressure at sea level = 101325 Pa
+p0 = 101325
+
 ##############
 # "functions"
 ##############
@@ -82,7 +85,7 @@ def smbus_read_byte (interface, device_addr, register_addr):
 
 def smbus_write_byte (interface, device_addr, register_addr, data):
 	# write to register
-	interface.write_byte_data(device_addr, register_addr, int(bus_val, 2))
+	interface.write_byte_data(device_addr, register_addr, data)
 
 # I2C Burst Functions
 #
@@ -112,6 +115,9 @@ t_start = time.time()
 
 # reset the pressure sensor (ensures PROM is properly loaded to internal registers)
 smbus_write_byte(bus, press1_addr, reg_reset, 0x00)
+
+# wait non-zero amount of time for reset
+time.sleep(0.5)
 
 # read the PROM constant values used to calculate the pressure and temperature
 SENS_T1 = smbus_read_word(bus, press1_addr, reg_prom_c1)
@@ -152,19 +158,35 @@ while(1):
 	d2_pressure = (adc_temperature[0] << 16)|(adc_temperature[1] << 8)|(adc_temperature[2])
 
 	# calculate temperature
-	dT = d2_pressure - T_REF 				# 25bit value, Difference between actual and reference temperature
-	TEMP = 2000 + (dT * TEMPSENS) 			# Actual temperature (-40...85C with 0.01C resolution)
+	dT = d2_pressure - T_REF 			# 25bit value, Difference between actual and reference temperature
+	TEMP = 2000 + (dT * TEMPSENS) 		# Actual temperature (-40...85C with 0.01C resolution)
 
-	TEMP_F = (TEMP / 100.0) * (9.0/5.0) + 32
+	# convert temp to proper sensor units
+	TEMP_C = TEMP / 100.0 				# Temperature in C
+	TEMP_F = TEMP_C * (9.0/5.0) + 32 	# Temperature in F
 
 	# calculate temperature compensated pressure
-	OFF = OFF_T1 + (TCO * dT) 			# Offset at actual temperature
-	SENS = SENS_T1 + (TCS * dT) 		# Sensitivity at actual temperature
+	OFF = OFF_T1 + (TCO * dT) 					# Offset at actual temperature
+	SENS = SENS_T1 + (TCS * dT) 				# Sensitivity at actual temperature
 	P = (d1_pressure * (SENS / (2**21)) - OFF) / (2**15) 	# Temperature compensated pressure (0...6000mbar with 0.03mbar resolution)
 
+	# convert pressure to proper sensor units
+	P_mbar = P / 100.0 			# Pressur in mBar
+	P_pa = P_mbar * 100			# Pressure in Pascals (1Bar = 100,000Pa) --> (1mBar = 100Pa)
+
+	# calculate altitude (in meters) from the pressure reading
+	altitude_m = 44330 * (1 - ((P_pa/p0)**(1/5.255)))
+
+	# convert altitude to feet (1m ~= 3.28084 feet)
+	altitude_ft = altitude_m * 3.28084
+
 	if (printing_enabled):
-		print "Temp (c)    : %f" % (TEMP / 100.0)
-		print "Temp (f)    : %f" % TEMP_F
-		print "Press (mBar): %f" % (P / 100.0)
+		print "Temp (c)     : %f" % TEMP_C
+		print "Temp (f)     : %f" % TEMP_F
+		print "Press (mBar) : %f" % P_mbar
+		print "Altitude (m) : %f" % altitude_m
+		print "Altitude (ft): %f" % altitude_ft
+
+		print "elapsed time: %f seconds\n" % (time.time() - t_start)
 
 	time.sleep(1)
