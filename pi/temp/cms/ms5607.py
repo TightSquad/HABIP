@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 """
-file: ms5803.py
+file: ms5607.py
 author: Chris Schwab
 project: High Altitude Balloon Instrumentation Platform
-description: Demo script for the MS5803-05BA_B I2C pressure sensor
+description: Demo script for the MS5607-02BA03_B I2C pressure sensor
 	
-	data-sheet: http://www.te.com/commerce/DocumentDelivery/DDEController?Action=srchrtrv&DocNm=MS5803-05BA&DocType=Data+Sheet&DocLang=English
+	data-sheet: http://www.te.com/commerce/DocumentDelivery/DDEController?Action=srchrtrv&DocNm=MS5607-02BA03&DocType=Data+Sheet&DocLang=English
 """
 
 # sudo apt-get install python-smbus
@@ -40,7 +40,7 @@ reg_prom_c6       = 0xAC 	# W: r  : PROM addr_6, constant C6 = Temp Coeff of the
 reg_prom_crc      = 0xAE 	# W: r  : PROM addr_7, CRC value, bitd [3:0]
 
 # sensor addresses
-press1_addr = 0x76	# MS5803 altimeter (round sensor)
+press0_addr = 0x77	# MS5607 altimeter (rectangle sensor)
 
 # p0 is the average pressure at sea level = 101325 Pa
 p0 = 101325
@@ -114,44 +114,44 @@ bus = smbus.SMBus(1)
 t_start = time.time()
 
 # reset the pressure sensor (ensures PROM is properly loaded to internal registers)
-smbus_write_byte(bus, press1_addr, reg_reset, 0x00)
+smbus_write_byte(bus, press0_addr, reg_reset, 0x00)
 
 # wait non-zero amount of time for reset
 time.sleep(0.5)
 
 # read the PROM constant values used to calculate the pressure and temperature
-SENS_T1 = smbus_read_word(bus, press1_addr, reg_prom_c1)
-SENS_T1 = SENS_T1 << 17
+SENS_T1 = smbus_read_word(bus, press0_addr, reg_prom_c1)
+SENS_T1 = SENS_T1 << 16
 
-OFF_T1 = smbus_read_word(bus, press1_addr, reg_prom_c2)
-OFF_T1 = OFF_T1 << 18
+OFF_T1 = smbus_read_word(bus, press0_addr, reg_prom_c2)
+OFF_T1 = OFF_T1 << 17
 
-TCS = smbus_read_word(bus, press1_addr, reg_prom_c3)
+TCS = smbus_read_word(bus, press0_addr, reg_prom_c3)
 TCS = TCS >> 7
 
-TCO = smbus_read_word(bus, press1_addr, reg_prom_c4)
-TCO = TCO >> 5
+TCO = smbus_read_word(bus, press0_addr, reg_prom_c4)
+TCO = TCO >> 6
 
-T_REF = smbus_read_word(bus, press1_addr, reg_prom_c5)
+T_REF = smbus_read_word(bus, press0_addr, reg_prom_c5)
 T_REF = T_REF << 8
 
-TEMPSENS = smbus_read_word(bus, press1_addr, reg_prom_c6)
+TEMPSENS = smbus_read_word(bus, press0_addr, reg_prom_c6)
 TEMPSENS = TEMPSENS >> 23
 
 # main loop to keep reading the sensor
 while(1):
 	# trigger D1 (digital pressure value) conversion
-	smbus_write_byte(bus, press1_addr, reg_conv_d1_4096, 0x00)
+	smbus_write_byte(bus, press0_addr, reg_conv_d1_4096, 0x00)
 	# wait longer than the max ADC conversion time (9.04ms for OSR=4096) or data will be corrupt
 	time.sleep(0.01)
 	# read the 24-bit (3 byte) ADC pressure result
-	adc_pressure = smbus_read_burst(bus, press1_addr, reg_adc_read, 3)
+	adc_pressure = smbus_read_burst(bus, press0_addr, reg_adc_read, 3)
 	# trigger D2 (digital temperature value) conversion
-	smbus_write_byte(bus, press1_addr, reg_conv_d2_4096, 0x00)
+	smbus_write_byte(bus, press0_addr, reg_conv_d2_4096, 0x00)
 	# wait longer than the max ADC conversion time (9.04ms for OSR=4096) or data will be corrupt
 	time.sleep(0.01)
 	# read the 24-bit (3 byte) ADC temperature result
-	adc_temperature = smbus_read_burst(bus, press1_addr, reg_adc_read, 3)
+	adc_temperature = smbus_read_burst(bus, press0_addr, reg_adc_read, 3)
 
 	# convert stored ADC value byte list to 24-bit value
 	d1_pressure = (adc_pressure[0] << 16)|(adc_pressure[1] << 8)|(adc_pressure[2])
@@ -168,7 +168,7 @@ while(1):
 	# calculate temperature compensated pressure
 	OFF = OFF_T1 + (TCO * dT) 						# Offset at actual temperature
 	SENS = SENS_T1 + (TCS * dT) 					# Sensitivity at actual temperature
-	P = ((d1_pressure * (SENS >> 21) - OFF) >> 15) 	# Temperature compensated pressure (0...6000mbar with 0.03mbar resolution)
+	P = ((d1_pressure * (SENS >> 21) - OFF)) >> 15 	# Temperature compensated pressure (0...6000mbar with 0.03mbar resolution)
 
 	# convert pressure to proper sensor units
 	P_mbar = P / 100.0 			# Pressur in mBar
