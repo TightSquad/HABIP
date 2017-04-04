@@ -89,6 +89,12 @@ class i2c(object):
 				hex(self.address), hex(regAddress), attempts))
 		return None
 
+	def readWordSwapped(self, regAddress):
+		data = self.readWord(regAddress)
+		
+		# Swap nibbles
+		return ((data & 0xFF) << 8) | ((data & 0xFF00) >> 8)
+
 	def writeByte(self, regAddress, data=0):
 		attempts = 0
 		while attempts < self.maxWriteAttempts:
@@ -125,3 +131,8 @@ class i2c(object):
 			{}, register: {} after {} attempts".format(
 				hex(data), hex(self.address), hex(regAddress), attempts))
 		return False
+
+	def writeWordSwapped(self, regAddress, data=0):
+		# Swap nibbles
+		data = ((data & 0xFF) << 8) | ((data & 0xFF00) >> 8)
+		self.writeWord(regAddress, data)
