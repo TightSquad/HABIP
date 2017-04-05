@@ -91,7 +91,7 @@ class osd232(object):
 
         # The port is not added as a parameter to the constructor so the port
         # is not opened automatically
-        self.connection = serial.Serial(baudrate=baudrate)
+        # self.connection = serial.Serial(baudrate=baudrate)
         self.connection = uart.uart(port, baudrate)
 
         # Create the logger

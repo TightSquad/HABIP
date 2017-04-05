@@ -15,14 +15,14 @@ import osd232
 # PORT = "/dev/ttyAMA0"
 # PORT = "/dev/tty.usbserial"
 PORT = "/dev/tty.usbserial-FTF83XB6"
-
 BAUDRATE = 4800
-osd = osd232.osd232(port=PORT, baudrate=BAUDRATE)
+
 
 # if not osd.open():
 # 	sys.exit(1)
 
 def main():
+	osd = osd232.osd232(port=PORT, baudrate=BAUDRATE)
 
 	osd.clearScreen()
 	osd.resetSettings()

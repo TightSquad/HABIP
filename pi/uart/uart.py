@@ -23,6 +23,7 @@ class uart(object):
         # Create the logger
         self.logger = logger.logger("uart")
 
+
     def open(self):
         """
         inputs:
