@@ -15,6 +15,11 @@ class uart(object):
     Abstracts some basic uart functionality from the pyserial module
     """
 
+    EOT = chr(4) # ASCII End of Transmission character
+    CR = '\r'
+    LF = '\n'
+    CRLF = CR+LF
+
     def __init__(self, port, baudrate):
         self.interface = serial.Serial(baudrate=baudrate)
         self.interface.port = port
@@ -49,6 +54,43 @@ class uart(object):
             format(self.interface.port))
 
 
+    def readUntil(self, seq):
+        """
+        Reads from the uart until it sees the sequence specified by seq
+        inputs:
+            seq - if seq is a string, it will keep reading until it sees the seq
+                    at the end at which point it will return the data without
+                    the seq attached
+        outputs:
+            data - the characters that are read in over the interface
+        """
+        run = True
+        data = ""
+        
+        if type(seq) is list:
+            pass
+        elif type(seq) is str:
+            seq = [seq]
+        else:
+            self.logger.log.error("seq parameter is of an invalid type: {}". \
+                format(type(seq)))
+
+        while run:
+            try:
+                data += self.interface.read()
+                for item in seq:
+                    if data.endswith(item):
+                        data = data.strip(item)
+                        run = False
+            except Exception as e:
+                run = False
+                self.logger.log.error(e)
+                return ""
+
+        self.logger.log.debug("Successfully read serial data: {}". \
+            format(data))
+        return data
+
     def sendRaw(self, *data):
         """
         inputs:
@@ -58,13 +100,20 @@ class uart(object):
             bool - returns True if the data was written; False otherwise
         """
         byteString = "".join(common.flatten(data))
-        bytesWritten = self.interface.write(byteString)
-        self.interface.flush() # Wait for the output to be written
-        if byteString and bytesWritten:
-            self.logger.log.debug("Successfully wrote serial data: {}". \
-                format(byteString))
-            return True
-        else:
+        try:
+            bytesWritten = self.interface.write(byteString)
+            self.interface.flush() # Wait for the output to be written
+            if byteString and bytesWritten:
+                self.logger.log.debug("Successfully wrote serial data: {}". \
+                    format(byteString))
+                return True
+            else:
+                self.logger.log.error("Did not write serial data: {}". \
+                    format(byteString))
+                return False
+        except Exception as e:
+            self.logger.log.error("Got exception: {}". \
+                    format(e))
             self.logger.log.error("Did not write serial data: {}". \
-                format(byteString))
+                    format(byteString))
             return False
