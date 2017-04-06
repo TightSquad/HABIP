@@ -13,6 +13,7 @@ class logger(object):
 
 	DEFAULT_FMT = "%(asctime)s.%(msecs)d : %(name)s : %(levelname)s : %(message)s"
 	DEFAULT_DATEFMT = "%Y-%m-%d_%H:%M:%S"
+	DEFAULT_FILENAME_FORMAT = "{logFileName}_%Y-%m-%d.log"
 
 	def __init__(self, loggerName, logFileName=None, logFormat=None,
 			dateFormat=None, logFileHandler=None, baseLogger=True,
@@ -28,7 +29,7 @@ class logger(object):
 		if logFileName is not None:
 			self.logFileName = logFileName
 		else:
-			self.logFileName = "{}.log".format(loggerName)
+			self.logFileName = time.strftime(logger.DEFAULT_FILENAME_FORMAT.format(logFileName=loggerName))
 
 		if logFormat is not None:
 			self.logFormat = logFormat
