@@ -154,13 +154,13 @@ while(1):
 	# trigger D1 (digital pressure value) conversion
 	smbus_send_write(bus, press1_addr, reg_conv_d1_4096)
 	# wait longer than the max ADC conversion time (9.04ms for OSR=4096) or data will be corrupt
-	time.sleep(0.1)
+	time.sleep(0.01)
 	# read the 24-bit (3 byte) ADC pressure result
 	adc_pressure = smbus_read_burst(bus, press1_addr, reg_adc_read, 3)
 	# trigger D2 (digital temperature value) conversion
 	smbus_send_write(bus, press1_addr, reg_conv_d2_4096)
 	# wait longer than the max ADC conversion time (9.04ms for OSR=4096) or data will be corrupt
-	time.sleep(0.1)
+	time.sleep(0.01)
 	# read the 24-bit (3 byte) ADC temperature result
 	adc_temperature = smbus_read_burst(bus, press1_addr, reg_adc_read, 3)
 

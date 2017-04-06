@@ -72,10 +72,6 @@ bus = smbus.SMBus(1)
 # starting time stamp
 t_start = time.time()
 
-# send reset command after power on
-
-
-
 # main loop to keep reading the sensor
 while(1):
 	# varaibles for temperature data

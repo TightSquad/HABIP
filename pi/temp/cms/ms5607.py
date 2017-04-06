@@ -99,6 +99,13 @@ def smbus_write_burst (interface, device_addr, register_addr, data_list):
 	# write list of bytes to register
 	interface.write_byte_data(device_addr, register_addr, data_list)
 
+def smbus_send_read (interface, device_addr):
+	# initiate byte read from i2c device
+	return interface.read_byte(device_addr)
+
+def smbus_send_write (interface, device_addr, register_addr):
+	# initiate byte write to i2c device
+	interface.write_byte(device_addr, register_addr)
 
 ##############
 # "Main"
@@ -114,7 +121,7 @@ bus = smbus.SMBus(1)
 t_start = time.time()
 
 # reset the pressure sensor (ensures PROM is properly loaded to internal registers)
-smbus_write_byte(bus, press0_addr, reg_reset, 0x00)
+smbus_send_write(bus, press0_addr, reg_reset)
 
 # wait non-zero amount of time for reset
 time.sleep(0.5)
@@ -127,27 +134,27 @@ OFF_T1   = smbus_read_word(bus, press0_addr, reg_prom_c2)
 OFF_T1   = OFF_T1 << 17
 
 TCS      = smbus_read_word(bus, press0_addr, reg_prom_c3)
-TCS      = TCS >> 7
+#TCS      = TCS >> 7 			NO! shift by 7 AFTER multiplying with dT (see below)
 
 TCO      = smbus_read_word(bus, press0_addr, reg_prom_c4)
-TCO      = TCO >> 6
+#TCO      = TCO >> 6   			NO! shift by 6 AFTER multiplying with dT (see below)
 
 T_REF    = smbus_read_word(bus, press0_addr, reg_prom_c5)
 T_REF    = T_REF << 8
 
 TEMPSENS = smbus_read_word(bus, press0_addr, reg_prom_c6)
-TEMPSENS = TEMPSENS >> 23
+#TEMPSENS = TEMPSENS >> 23 		NO! shift by 23 AFTER multiplying with dT (see below)
 
 # main loop to keep reading the sensor
 while(1):
 	# trigger D1 (digital pressure value) conversion
-	smbus_write_byte(bus, press0_addr, reg_conv_d1_4096, 0x00)
+	smbus_send_write(bus, press0_addr, reg_conv_d1_4096)
 	# wait longer than the max ADC conversion time (9.04ms for OSR=4096) or data will be corrupt
 	time.sleep(0.01)
 	# read the 24-bit (3 byte) ADC pressure result
 	adc_pressure = smbus_read_burst(bus, press0_addr, reg_adc_read, 3)
 	# trigger D2 (digital temperature value) conversion
-	smbus_write_byte(bus, press0_addr, reg_conv_d2_4096, 0x00)
+	smbus_send_write(bus, press0_addr, reg_conv_d2_4096)
 	# wait longer than the max ADC conversion time (9.04ms for OSR=4096) or data will be corrupt
 	time.sleep(0.01)
 	# read the 24-bit (3 byte) ADC temperature result
@@ -155,20 +162,20 @@ while(1):
 
 	# convert stored ADC value byte list to 24-bit value
 	d1_pressure = (adc_pressure[0] << 16)|(adc_pressure[1] << 8)|(adc_pressure[2])
-	d2_pressure = (adc_temperature[0] << 16)|(adc_temperature[1] << 8)|(adc_temperature[2])
+	d2_temp = (adc_temperature[0] << 16)|(adc_temperature[1] << 8)|(adc_temperature[2])
 
 	# calculate temperature
-	dT   = d2_pressure - T_REF 			# 25bit value, Difference between actual and reference temperature
-	TEMP = 2000 + (dT * TEMPSENS) 		# Actual temperature (-40...85C with 0.01C resolution)
+	dT   = d2_temp - T_REF 						# 25bit value, Difference between actual and reference temperature
+	TEMP = 2000 + ((dT * TEMPSENS) >> 23) 		# Actual temperature (-40...85C with 0.01C resolution)
 
 	# convert temp to proper sensor units
 	TEMP_C = TEMP / 100.0 				# Temperature in C
 	TEMP_F = TEMP_C * (9.0/5.0) + 32 	# Temperature in F
 
 	# calculate temperature compensated pressure
-	OFF  = OFF_T1 + (TCO * dT) 							# Offset at actual temperature
-	SENS = SENS_T1 + (TCS * dT) 						# Sensitivity at actual temperature
-	P    = ((d1_pressure * (SENS >> 21) - OFF)) >> 15 	# Temperature compensated pressure (0...6000mbar with 0.03mbar resolution)
+	OFF  = OFF_T1 + ((TCO * dT) >> 6) 					# Offset at actual temperature
+	SENS = SENS_T1 + ((TCS * dT) >> 7) 					# Sensitivity at actual temperature
+	P    = (((d1_pressure * SENS) >> 21) - OFF) >> 15 	# Temperature compensated pressure (0...6000mbar with 0.03mbar resolution)
 
 	# convert pressure to proper sensor units
 	P_mbar = P / 100.0 			# Pressur in mBar
