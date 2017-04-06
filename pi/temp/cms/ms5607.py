@@ -120,20 +120,20 @@ smbus_write_byte(bus, press0_addr, reg_reset, 0x00)
 time.sleep(0.5)
 
 # read the PROM constant values used to calculate the pressure and temperature
-SENS_T1 = smbus_read_word(bus, press0_addr, reg_prom_c1)
-SENS_T1 = SENS_T1 << 16
+SENS_T1  = smbus_read_word(bus, press0_addr, reg_prom_c1)
+SENS_T1  = SENS_T1 << 16
 
-OFF_T1 = smbus_read_word(bus, press0_addr, reg_prom_c2)
-OFF_T1 = OFF_T1 << 17
+OFF_T1   = smbus_read_word(bus, press0_addr, reg_prom_c2)
+OFF_T1   = OFF_T1 << 17
 
-TCS = smbus_read_word(bus, press0_addr, reg_prom_c3)
-TCS = TCS >> 7
+TCS      = smbus_read_word(bus, press0_addr, reg_prom_c3)
+TCS      = TCS >> 7
 
-TCO = smbus_read_word(bus, press0_addr, reg_prom_c4)
-TCO = TCO >> 6
+TCO      = smbus_read_word(bus, press0_addr, reg_prom_c4)
+TCO      = TCO >> 6
 
-T_REF = smbus_read_word(bus, press0_addr, reg_prom_c5)
-T_REF = T_REF << 8
+T_REF    = smbus_read_word(bus, press0_addr, reg_prom_c5)
+T_REF    = T_REF << 8
 
 TEMPSENS = smbus_read_word(bus, press0_addr, reg_prom_c6)
 TEMPSENS = TEMPSENS >> 23
@@ -158,7 +158,7 @@ while(1):
 	d2_pressure = (adc_temperature[0] << 16)|(adc_temperature[1] << 8)|(adc_temperature[2])
 
 	# calculate temperature
-	dT = d2_pressure - T_REF 			# 25bit value, Difference between actual and reference temperature
+	dT   = d2_pressure - T_REF 			# 25bit value, Difference between actual and reference temperature
 	TEMP = 2000 + (dT * TEMPSENS) 		# Actual temperature (-40...85C with 0.01C resolution)
 
 	# convert temp to proper sensor units
@@ -166,13 +166,13 @@ while(1):
 	TEMP_F = TEMP_C * (9.0/5.0) + 32 	# Temperature in F
 
 	# calculate temperature compensated pressure
-	OFF = OFF_T1 + (TCO * dT) 						# Offset at actual temperature
-	SENS = SENS_T1 + (TCS * dT) 					# Sensitivity at actual temperature
-	P = ((d1_pressure * (SENS >> 21) - OFF)) >> 15 	# Temperature compensated pressure (0...6000mbar with 0.03mbar resolution)
+	OFF  = OFF_T1 + (TCO * dT) 							# Offset at actual temperature
+	SENS = SENS_T1 + (TCS * dT) 						# Sensitivity at actual temperature
+	P    = ((d1_pressure * (SENS >> 21) - OFF)) >> 15 	# Temperature compensated pressure (0...6000mbar with 0.03mbar resolution)
 
 	# convert pressure to proper sensor units
 	P_mbar = P / 100.0 			# Pressur in mBar
-	P_pa = P_mbar * 100			# Pressure in Pascals (1Bar = 100,000Pa) --> (1mBar = 100Pa)
+	P_pa   = P_mbar * 100			# Pressure in Pascals (1Bar = 100,000Pa) --> (1mBar = 100Pa)
 
 	# calculate altitude (in meters) from the pressure reading
 	altitude_m = 44330 * (1 - ((P_pa/p0)**(1/5.255)))
