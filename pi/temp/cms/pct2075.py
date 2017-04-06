@@ -125,8 +125,8 @@ while(1):
 		temperature_f = temperature_c * (9.0/5.0) + 32
 
 	if (printing_enabled):
-		print "Temp Sensor 0 --> Temp (c): %f" % temperature_c
-		print "Temp Sensor 0 --> Temp (f): %f" % temperature_f
+		print "Temp Sensor 1 --> Temp (c): %f" % temperature_c
+		print "Temp Sensor 1 --> Temp (f): %f" % temperature_f
 
 	print "elapsed time: %f seconds\n" % (time.time() - t_start)
 	time.sleep(1)

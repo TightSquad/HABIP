@@ -104,9 +104,9 @@ def smbus_send_read (interface, device_addr):
 	# initiate byte read from i2c device
 	return interface.read_byte(device_addr)
 
-def smbus_send_write (interface, device_addr, data):
+def smbus_send_write (interface, device_addr, register_addr):
 	# initiate byte write to i2c device
-	interface.write_byte(device_addr, data)
+	interface.write_byte(device_addr, register_addr)
 
 
 ##############
@@ -139,7 +139,7 @@ while(1):
 	# trigger humidity/temperature measurement with manual delay for conversion time (NHMM)
 	smbus_send_write(bus, humid0_addr, reg_meas_rel_humid_nhmm)
 	# wait for conversion time --> max t_conv = 22.8ms
-	time.sleep(0.03)
+	time.sleep(0.3)
 	# read back humidity MSByte
 	rh_byte1 = smbus_send_read(bus, humid0_addr)
 	# read back humidity LSByte
@@ -158,7 +158,7 @@ while(1):
 	# trigger stand alone temperature reading
 	smbus_send_write(bus, humid0_addr, reg_meas_temp_nhmm)
 	# wait for conversion time --> max t_conv = 10.8ms
-	time.sleep(0.015)
+	time.sleep(0.3)
 	# read back tmep MSByte
 	temp_sa_byte1 = smbus_send_read(bus, humid0_addr)
 	# read back humidity LSByte
