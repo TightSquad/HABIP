@@ -12,6 +12,8 @@ import smbus
 
 import sys
 
+import time
+
 # Custom i2c class
 from i2c import i2c
 
@@ -23,6 +25,13 @@ class tempSensorPCT2075(i2c):
 		http://www.nxp.com/documents/data_sheet/PCT2075.pdf
 	"""
 
+	# Register Addresses
+	REG_TEMP  = 0x0	# W: r/w, Temperature register: contains two 8-bit data bytes; to store the measured Temp data [15:5].
+	REG_CONF  = 0x1	# B: r/w, Configuration register: contains a single 8-bit data byte; to set the device operating condition; default = 0.
+	REG_THYST = 0x2	# W: r/w, Hysteresis register: contains two 8-bit data bytes; to store the hysteresis Thys limit; default = 75 C.
+	REG_TOS   = 0x3	# W: r/w, Overtemperature shutdown threshold register: contains two 8-bit data bytes; to store the overtemperature shutdown Tots limit; default = 80 C.
+	REG_TIDLE = 0x4	# B: r/w, Temperature conversion cycle default to 100 ms.
+
 	def __init__(self, address=None, busID=None, interface=None):
 		# Call super init
 		super(self.__class__, self).__init__(address, busID, interface)
@@ -30,13 +39,6 @@ class tempSensorPCT2075(i2c):
 		# Make a device logger
 		self.deviceLogger = self.baseLogger.getLogger(("tempSensorPCT2075@"+str(hex(address))))
 		self.deviceLogger.log.info("Instantiated tempSensorPCT2075@"+str(hex(address)))
-
-		# sensor registers 
-		self.reg_temp  = 0x0	# W: r/w, Temperature register: contains two 8-bit data bytes; to store the measured Temp data [15:5].
-		self.reg_conf  = 0x1	# B: r/w, Configuration register: contains a single 8-bit data byte; to set the device operating condition; default = 0.
-		self.reg_thyst = 0x2	# W: r/w, Hysteresis register: contains two 8-bit data bytes; to store the hysteresis Thys limit; default = 75 C.
-		self.reg_tos   = 0x3	# W: r/w, Overtemperature shutdown threshold register: contains two 8-bit data bytes; to store the overtemperature shutdown Tots limit; default = 80 C.
-		self.reg_tidle = 0x4	# B: r/w, Temperature conversion cycle default to 100 ms.
 
 
 	def readTempCF(self):
@@ -49,16 +51,16 @@ class tempSensorPCT2075(i2c):
 		temperature_c = None
 		temperature_f = None
 		# read temp value from sensor
-		temperature = self.readWordSwapped(self.reg_temp)
+		temperature = self.readWordSwapped(tempSensorPCT2075.REG_TEMP)
 		# check to make sure data is valid
 		if (temperature == None):
 			self.deviceLogger.log.error("Could not read temp register: {}".format(
-				hex(self.reg_temp)))
+				hex(tempSensorPCT2075.REG_TEMP)))
 			# return None
 			return [None, None]
 		else:
 			self.deviceLogger.log.debug("Read {} from register: {}".format(
-				hex(temperature), self.reg_temp))
+				hex(temperature), tempSensorPCT2075.REG_TEMP))
 			# shift value since temp is the most significant 11 bits
 			temperature_shifted = temperature >> 5
 			# if MSB == 1 (11bit value) then result is negative (convert from 2's comp)
@@ -92,7 +94,9 @@ if __name__ == "__main__":
 	temp0 = tempSensorPCT2075(temp0_addr, None, bus)
 	temp1 = tempSensorPCT2075(temp1_addr, None, bus)
 
-	print temp0.readTempCF()
-	print temp1.readTempCF()
+	while(1):
+		print temp0.readTempCF()
+		print temp1.readTempCF()
+		time.sleep(1)
 
 	sys.exit(1)

@@ -110,7 +110,7 @@ class i2c(object):
 	#
 	#	Read block from I2C bus (returns list = [first_byte_received, second byte_received, ...]
 	#
-	def readBlock (self, regAddress, numBytes):
+	def readBlock(self, regAddress, numBytes):
 		attempts = 0
 		while attempts < self.maxReadAttempts:
 			try:
@@ -228,20 +228,20 @@ class i2c(object):
 				hex(self.address), attempts))
 		return None
 
-	def sendWrite(self, data=0):
+	def sendWrite(self, regAddress):
 		attempts = 0
 		while attempts < self.maxWriteAttempts:
 			try:
-				self.interface.write_byte(self.address, data)
+				self.interface.write_byte(self.address, regAddress)
 				self.baseLogger.log.debug(
-					"Sent byte: {}, from device: {}, register: N/A (stretched write packet only)".format(
-						hex(byte), hex(self.address)))
+					"Sent byte: N/A (slave addr + command only), to device: {}, register: {}".format(
+						hex(self.address), regAddress))
 				return True
 			except IOError as e:
 				self.baseLogger.log.warning("IOError: {}".format(e))
 				attempts += 1
 
-		self.baseLogger.log.error("Failed to write byte: {} to device: \
+		self.baseLogger.log.error("Failed to write byte: N/A (slave addr + command only) to device: \
 			{}, register: N/A (stretched write packet only) after {} attempts".format(
-				hex(data), attempts))
+				self.address, attempts))
 		return False
