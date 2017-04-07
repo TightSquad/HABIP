@@ -302,6 +302,9 @@ void pttsetptt(struct pttio *state, int pttx)
 {
 	unsigned char reg;
 
+	printf("turning ptt: %s\n", pttx ? "ON" : "OFF");
+	// Add code for controlling ptt manually
+
 	if (!state)
 		return;
 	state->ptt = !!pttx;
