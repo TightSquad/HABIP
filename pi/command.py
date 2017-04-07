@@ -68,6 +68,9 @@ class command(object):
 
         self.executed = False
 
+    def ack(self):
+        print "ACK:{0:04d}".format(self.index)
+
     def execute(self):
         raise NotImplementedError
 

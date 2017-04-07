@@ -27,16 +27,21 @@ class comms(object):
             if parsedCommand is None or not parsedCommand.valid:
                 self.logger.log.error("Could not parse command: {}".format(commandString))
             else:
-                self.logger.log.debug("Parsed command: {}".format(commandString))
                 print "Parsed: {}".format(commandString)
+                parsedCommand.ack()
+                self.logger.log.debug("Parsed command: {}".format(commandString))
                 if parsedCommand.executed is False:
-                    self.commandQueue
+                    self.commandQueue.put(parsedCommand)
 
+    def executeCommands(self):
+        while not self.commandQueue.empty():
+            command = self.commandQueue.get()
+            command.execute()
+            print command.commandString
 
 ################################# Unit Testing #################################
 if __name__ == "__main__":
     c = comms()
-
 
     # commandString = "0001:CAM:1;0002:CAM:2;0003:CAM:3;0004:CAM:"
     # commandString = "0001:OSD:ON;0002:OSD:OFF;0003:OSD:RST;0004:OSD:HUM:B0;0005:OSD:TEMP:B5:TD0;0006:OSD:TEMP:B1:TD;"
@@ -45,4 +50,6 @@ if __name__ == "__main__":
     # commandString = "0001:ATV:PWR,1.0;0002:ATV:PWR,5.0;0003:ATV:PWR"
     # commandString = "0001:TIME:1234567890;0002:TIME:asd"
     commandString = "0001:CUTDOWN;0002:CUTDOWN"
+
     c.parseCommands(commandString)
+    c.executeCommands()
