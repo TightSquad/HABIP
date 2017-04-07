@@ -17,15 +17,18 @@ class command(object):
         "CAM"       : 0x0,  # camera
         "OSD"       : 0x1,  # OSD
         "RW"        : 0x2,  # reaction wheel
-        "PI"        : 0x3,  # raspberry pi
+        "RST"       : 0x3,  # raspberry pi
         "ATV"       : 0x4,  # analog tv
         "TIME"      : 0x5,  # time
-
 
         "CUTDOWN"   : 0xFF  # Cutdown
     }
 
-    def __init__(self, logger, commandString, index, main):
+    def __init__(self, logger, commandString, fields):
+        
+        # Fields follows the following format:
+        # [index, mainCommand, subCommand, boardID, sensorID]
+
         # The logger instance for the command
         self.logger = logger
 
@@ -34,25 +37,36 @@ class command(object):
 
         # the command index number which is acked back
         try:
-            self.index = int(index)
+            self.index = int(fields[0])
         except Exception as e:
-            self.logger("Error converting index to int: {}".format(index))
+            self.logger("Error converting index to int: {}".format(fields[0]))
             self.index = 0
 
         # If the command was decoded and valid
         self.valid = False
 
         # the main command destination/objective identifier
-        self.main = main
+        self.main = fields[1]
 
         # the subsequent command or destination/objective identifier
-        self.sub = None
+        if len(fields) > 2:
+            self.sub = fields[2]
+        else:
+            self.sub = None
 
         # a board identifier for the command
-        self.board = None
+        if len(fields) > 3:
+            self.board = fields[3]
+        else:
+            self.board = None
 
         # a sensor idenfifier
-        self.sensor = None
+        if len(fields) > 4:
+            self.sensor = fields[4]
+        else:
+            self.sensor = None
+
+        self.executed = False
 
     def execute(self):
         raise NotImplementedError
@@ -63,13 +77,25 @@ class command(object):
 
         if len(fields) < 2:
             commsLogger.log.error("Command is of an invalid length: {}".format(commandString))
+            return None
         elif fields[1] not in command.mainCommand.keys():
             commsLogger.log.error("Could not find main command for: {} in command: {}".format(fields[1], commandString))
+            return None
         else:
             if command.mainCommand[fields[1]] == command.mainCommand["CAM"]:
                 return camCommand(commandString=commandString, fields=fields, commsLogger=commsLogger)
             elif command.mainCommand[fields[1]] == command.mainCommand["OSD"]:
                 return osdCommand(commandString=commandString, fields=fields, commsLogger=commsLogger)
+            elif command.mainCommand[fields[1]] == command.mainCommand["RW"]:
+                return reactionWheelCommand(commandString=commandString, fields=fields, commsLogger=commsLogger)
+            elif command.mainCommand[fields[1]] == command.mainCommand["RST"]:
+                return resetCommand(commandString=commandString, fields=fields, commsLogger=commsLogger)
+            elif command.mainCommand[fields[1]] == command.mainCommand["ATV"]:
+                return atvCommand(commandString=commandString, fields=fields, commsLogger=commsLogger)
+            elif command.mainCommand[fields[1]] == command.mainCommand["TIME"]:
+                return timeCommand(commandString=commandString, fields=fields, commsLogger=commsLogger)
+            elif command.mainCommand[fields[1]] == command.mainCommand["CUTDOWN"]:
+                return cutdownCommand(commandString=commandString, fields=fields, commsLogger=commsLogger)
 
 class camCommand(command):
     """
@@ -85,14 +111,13 @@ class camCommand(command):
 
     def __init__(self, commandString, fields, commsLogger):
         # Call super constructor
-        super(self.__class__, self).__init__(logger=commsLogger, commandString=commandString, index=fields[0], main=fields[1])
+        super(self.__class__, self).__init__(logger=commsLogger, commandString=commandString, fields=fields)
 
-        if len(fields) < 3:
-            commsLogger.log.error("Could not find sub command for CAM command")
-        elif fields[2] not in camCommand.subCommand.keys():
-            commsLogger.log.error("Found invalid sub command: {}".format(fields[2]))
+        if self.sub is None:
+            self.logger.log.error("Could not find sub command for CAM command")
+        elif self.sub not in camCommand.subCommand.keys():
+            self.logger.log.error("Found invalid sub command: {}".format(fields[2]))
         else:
-            self.sub = subCommand[fields[2]]
             self.valid = True
     
     def execute(self):
@@ -116,33 +141,36 @@ class osdCommand(command):
 
     def __init__(self, commandString, fields, commsLogger):
         # Call super constructor
-        super(self.__class__, self).__init__(logger=commsLogger, commandString=commandString, index=fields[0], main=fields[1])
+        super(self.__class__, self).__init__(logger=commsLogger, commandString=commandString, fields=fields)
 
-        if len(fields) < 3:
-            commsLogger.log.error("Could not find sub command for OSD command")
-        elif fields[2] not in osdCommand.subCommand.keys():
-            commsLogger.log.error("Found invalid sub command: {}".format(fields[2]))
-        else:
-            self.sub = osdCommand.subCommand[fields[2]]
-
-            if self.sub < 3:
+        if self.sub is None:
+            self.logger.log.error("Could not find sub command for OSD command")
+        
+        elif self.sub not in osdCommand.subCommand.keys():
+            self.logger.log.error("Found invalid OSD sub command: {}".format(fields[2]))
+        
+        elif osdCommand.subCommand[self.sub] == osdCommand.subCommand["OFF"] or \
+            osdCommand.subCommand[self.sub] == osdCommand.subCommand["ON"] or \
+            osdCommand.subCommand[self.sub] == osdCommand.subCommand["RST"]:
                 self.valid = True
-            elif len(fields) < 4:
-                self.valid = False # Not enough fields in the command
-            elif fields[3] not in board.board.boardID.keys():
-                commsLogger.log.error("Found invalid board ID: {}".format(fields[3]))
+        
+        elif self.board is None:
+            self.logger.log.error("Could not find board field in command")
+        
+        elif self.board not in board.board.boardID.keys():
+            self.logger.log.error("Found invalid board ID: {}".format(fields[3]))
+            
+        elif osdCommand.subCommand[self.sub] == osdCommand.subCommand["HUM"]:
+                self.valid = True
+        
+        elif self.sensor is None:
+            self.logger.log.error("Could not find sensor field in command")
+        else:
+            targetBoard = board.board.getBoard(board.board.boardID[self.board])
+            if self.sensor not in targetBoard.sensors.keys():
+                self.logger.log.error("Could not find sensor: {} on board: {}".format(self.sensor, self.board))
             else:
-                self.board = board.board.boardID[fields[3]]
-                if self.sub == osdCommand.subCommand["HUM"]:
-                    self.valid = True
-                else:
-                    if len(fields) < 5:
-                        self.valid = False # Not enough fields in the command
-                    else:
-                        targetBoard = board.board.getBoard(self.board)
-                        print targetBoard
-                        ####### LEFT OFF HERE
-
+                self.valid = True
         
     def execute(self):
         # Execute osd command
@@ -163,7 +191,33 @@ class reactionWheelCommand(command):
 
     def __init__(self, commandString, fields, commsLogger):
         # Call super constructor
-        super(self.__class__, self).__init__(logger=commsLogger, commandString=commandString, index=fields[0], main=fields[1])
+        super(self.__class__, self).__init__(logger=commsLogger, commandString=commandString, fields=fields)
+
+        # Degrees of rotation
+        self.degrees = None
+
+        if self.sub is None:
+            self.logger.log.error("Could not find sub command for RW command")
+        elif self.sub == "ON" or self.sub == "OFF":
+            self.valid = True
+        elif not self.sub.startswith("CW") and not self.sub.startswith("CCW"):
+            self.logger.log.error("Found invalid RW sub command: {}".format(self.sub))
+        else:
+            split = self.sub.split(",")
+            if len(split) != 2:
+                self.logger.log.error("Found invalid RW sub command: {}".format(self.sub))
+            else:
+                self.sub = split[0]
+
+                try:
+                    self.degrees = int(split[1])
+                    if self.degrees < 0 or self.degrees > 180:
+                        self.logger.log.error("Degrees out of valid range: {}".format(self.degrees))
+                    else:
+                        self.valid = True
+                except Exception as e:
+                    self.logger.log.error("Could not convert {} to degrees".format(split[1]))
+
 
     def execute(self):
         # Execute reaction wheel command
@@ -179,7 +233,14 @@ class resetCommand(command):
 
     def __init__(self, commandString, fields, commsLogger):
         # Call super constructor
-        super(self.__class__, self).__init__(logger=commsLogger, commandString=commandString, index=fields[0], main=fields[1])
+        super(self.__class__, self).__init__(logger=commsLogger, commandString=commandString, fields=fields)
+
+        if self.sub is None:
+            self.logger.log.error("Could not find sub command for RST command")
+        elif self.sub not in resetCommand.subCommand.keys():
+            self.logger.log.error("Found invalid RST sub command: {}".format(self.sub))
+        else:
+            self.valid = True
 
     def execute(self):
         # Execute reset command
@@ -197,24 +258,33 @@ class atvCommand(command):
 
     def __init__(self, commandString, fields, commsLogger):
         # Call super constructor
-        super(self.__class__, self).__init__(logger=commsLogger, commandString=commandString, index=fields[0], main=fields[1])
+        super(self.__class__, self).__init__(logger=commsLogger, commandString=commandString, fields=fields)
+
+        self.power = None
+
+        if self.sub is None:
+            self.logger.log.error("Could not find sub command for ATV command")
+        elif not self.sub.startswith("PWR"):
+            self.logger.log.error("Found invalid ATV sub command: {}".format(self.sub))
+        else:
+            split = self.sub.split(',')
+            if len(split) != 2:
+                self.logger.log.error("Found invalid ATV sub command: {}".format(self.sub))
+            else:
+                self.sub = split[0]
+
+                try:
+                    self.power = float(split[1])
+
+                    if self.power < 0.0 or self.power > 5.5:
+                        self.logger.log.error("Output power out of valid range: {}".format(self.power))
+                    else:
+                        self.valid = True
+                except Exception as e:
+                    self.logger.log.error("Could not convert power of {} to float".format(split[1]))
 
     def execute(self):
         # Execute ATV command
-        pass
-
-
-class cutdownCommand(command):
-    """
-    Class for cutdown commands
-    """
-
-    def __init__(self, commandString, fields, commsLogger):
-        # Call super constructor
-        super(self.__class__, self).__init__(logger=commsLogger, commandString=commandString, index=fields[0], main=fields[1])
-
-    def execute(self):
-        # Execute cutdown command
         pass
 
 
@@ -225,8 +295,34 @@ class timeCommand(command):
 
     def __init__(self, commandString, fields, commsLogger):
         # Call super constructor
-        super(self.__class__, self).__init__(logger=commsLogger, commandString=commandString, index=fields[0], main=fields[1])
+        super(self.__class__, self).__init__(logger=commsLogger, commandString=commandString, fields=fields)
+
+        self.seconds = None
+
+        if self.sub is None:
+            self.logger.log.error("Could not find valid time parameter")
+        else:
+            try:
+                self.seconds = int(self.sub)
+                self.valid = True
+            except Exception as e:
+                self.logger.log.error("Could not convert time to an int: {}".format(self.sub))
 
     def execute(self):
         # Execute time command
+        pass
+
+
+class cutdownCommand(command):
+    """
+    Class for cutdown commands
+    """
+
+    def __init__(self, commandString, fields, commsLogger):
+        # Call super constructor
+        super(self.__class__, self).__init__(logger=commsLogger, commandString=commandString, fields=fields)
+        self.valid = True
+
+    def execute(self):
+        # Execute cutdown command
         pass

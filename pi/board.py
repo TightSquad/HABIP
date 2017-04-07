@@ -26,11 +26,11 @@ class board(object):
     @staticmethod
     def getBoard(num):
         if num in range(0,4):
-            return piHat(num)
+            return piHat
         elif num == board.boardID["B4"]:
-            return daqcsHost(num)
+            return daqcsHost
         elif num == board.boardID["B5"]:
-            return commsHost(num)
+            return commsHost
         else:
             return None
 
