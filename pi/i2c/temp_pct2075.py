@@ -54,8 +54,7 @@ class tempSensorPCT2075(i2c):
 		temperature = self.readWordSwapped(tempSensorPCT2075.REG_TEMP)
 		# check to make sure data is valid
 		if (temperature == None):
-			self.deviceLogger.log.error("Could not read temp register: {}".format(
-				hex(tempSensorPCT2075.REG_TEMP)))
+			self.deviceLogger.log.error("Could not read temp register: {}".format(hex(tempSensorPCT2075.REG_TEMP)))
 			# return None
 			return [None, None]
 		else:
