@@ -13,6 +13,7 @@ import smbus
 import sys
 
 import time
+import logger
 
 # Custom i2c class
 from i2c import i2c
@@ -32,13 +33,13 @@ class tempSensorPCT2075(i2c):
 	REG_TOS   = 0x3	# W: r/w, Overtemperature shutdown threshold register: contains two 8-bit data bytes; to store the overtemperature shutdown Tots limit; default = 80 C.
 	REG_TIDLE = 0x4	# B: r/w, Temperature conversion cycle default to 100 ms.
 
-	def __init__(self, address=None, busID=None, interface=None):
+	def __init__(self, address=None, busID=None, interface=None, busLogger=None):
 		# Call super init
-		super(self.__class__, self).__init__(address, busID, interface)
+		super(self.__class__, self).__init__(address, busID, interface, busLogger)
 
 		# Make a device logger
-		self.deviceLogger = self.baseLogger.getLogger(("tempSensorPCT2075@"+str(hex(address))))
-		self.deviceLogger.log.info("Instantiated tempSensorPCT2075@"+str(hex(address)))
+		self.deviceLogger = self.baseLogger.getLogger(("tempSensorPCT2075_addr"+str(hex(address))))
+		self.deviceLogger.log.info("Instantiated tempSensorPCT2075_addr"+str(hex(address)))
 
 
 	def readTempCF(self):
@@ -54,16 +55,15 @@ class tempSensorPCT2075(i2c):
 		temperature = self.readWordSwapped(tempSensorPCT2075.REG_TEMP)
 		# check to make sure data is valid
 		if (temperature == None):
-			self.deviceLogger.log.error("Could not read temp register: {}".format(hex(tempSensorPCT2075.REG_TEMP)))
 			# return None
 			return [None, None]
 		else:
-			self.deviceLogger.log.debug("Read {} from register: {}".format(
-				hex(temperature), tempSensorPCT2075.REG_TEMP))
+			self.deviceLogger.log.debug("Read {} from register: {}".format(hex(temperature), tempSensorPCT2075.REG_TEMP))
 			# shift value since temp is the most significant 11 bits
 			temperature_shifted = temperature >> 5
 			# if MSB == 1 (11bit value) then result is negative (convert from 2's comp)
 			if (temperature_shifted & 0x400):
+				self.deviceLogger.log.debug("Read temperature value is negative (converting from 2's comp)")
 				# convert from 2s comp --> invert (aka XOR with all 1s) then add 1. and make sure to mask for only 11 bits
 				temperature_shifted_2s_comp = ((temperature_shifted ^ 0xFFFF) & 0x7FF) + 1
 				# convert to celcius and throw on a minus sign
@@ -84,15 +84,22 @@ class tempSensorPCT2075(i2c):
 # Just some testing
 if __name__ == "__main__":
 	
-	# i2c bus object
-	bus = smbus.SMBus(1)
+	header = ["temp_c", "temp_f"]
 
 	# sensor addresses
 	temp0_addr = 0x48	# right-side temp sensor
 	temp1_addr = 0x4A	# left side temp sensor
 
-	temp0 = tempSensorPCT2075(temp0_addr, None, bus)
-	temp1 = tempSensorPCT2075(temp1_addr, None, bus)
+	# i2c bus object
+	bus = smbus.SMBus(1)
+
+	# i2c logger object
+	temp_logger = logger.logger("tempSensorPCT2075_logger")
+
+	temp0 = tempSensorPCT2075(temp0_addr, None, bus, temp_logger)
+	temp1 = tempSensorPCT2075(temp1_addr, None, bus, temp_logger)
+
+	print header
 
 	while(1):
 		print temp0.readTempCF()

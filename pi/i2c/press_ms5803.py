@@ -13,6 +13,7 @@ import smbus
 import sys
 
 import time
+import logger
 
 # Custom i2c class
 from i2c import i2c
@@ -50,13 +51,13 @@ class pressSensorMS5803(i2c):
 	# Constants
 	PRESSURE0 			= 101325 	# 	average pressure at sea level = 101325 Pa
 
-	def __init__(self, address=None, busID=None, interface=None):
+	def __init__(self, address=None, busID=None, interface=None, busLogger=None):
 		# Call super init
-		super(self.__class__, self).__init__(address, busID, interface)
+		super(self.__class__, self).__init__(address, busID, interface, busLogger)
 
 		# Make a device logger
-		self.deviceLogger = self.baseLogger.getLogger(("pressSensorMS5803@"+str(hex(address))))
-		self.deviceLogger.log.info("Instantiated pressSensorMS5803@"+str(hex(address)))
+		self.deviceLogger = self.baseLogger.getLogger(("pressSensorMS5803_addr"+str(hex(address))))
+		self.deviceLogger.log.info("Instantiated pressSensorMS5803_addr"+str(hex(address)))
 
 		# Sensor PROM Constants
 		self.SENS_T1 	= None 		# constant C1 = Pressure Sensitivity
@@ -73,6 +74,7 @@ class pressSensorMS5803(i2c):
 		"""
 
 		# send reset
+		self.deviceLogger.log.debug("Sending reset to ensure PROM is properly loaded into internal registers...")
 		write_status = self.sendWrite(pressSensorMS5803.REG_RESET)
 		# wait non-zero amount of time for reset
 		time.sleep(0.5)
@@ -92,7 +94,9 @@ class pressSensorMS5803(i2c):
 			return False
 		# else adjust the constant
 		else:
+			self.deviceLogger.log.debug("Read PROM, C1: {} from register: {}".format(hex(self.SENS_T1), pressSensorMS5803.REG_PROM_C1))
 			self.SENS_T1 = self.SENS_T1 << 17
+			self.deviceLogger.log.debug("Modified C1 by << 17bits: {}".format(hex(self.SENS_T1)))
 
 		# read C2
 		self.OFF_T1 = self.readWordSwapped(pressSensorMS5803.REG_PROM_C2)
@@ -101,7 +105,9 @@ class pressSensorMS5803(i2c):
 			return False
 		# else adjust the constant
 		else:
+			self.deviceLogger.log.debug("Read PROM, C2: {} from register: {}".format(hex(self.OFF_T1), pressSensorMS5803.REG_PROM_C2))
 			self.OFF_T1 = self.OFF_T1 << 18
+			self.deviceLogger.log.debug("Modified C2 by << 18bits: {}".format(hex(self.OFF_T1)))
 
 		# read C3
 		self.TCS = self.readWordSwapped(pressSensorMS5803.REG_PROM_C3)
@@ -111,6 +117,7 @@ class pressSensorMS5803(i2c):
 		# else adjust the constant
 		# else:
 		# 	self.TCS = self.TCS >> 7 				#NO! shift by 7 AFTER multiplying with dT (see below)
+		self.deviceLogger.log.debug("Read PROM, C3: {} from register: {}".format(hex(self.TCS), pressSensorMS5803.REG_PROM_C3))
 
 		# read C4
 		self.TCO = self.readWordSwapped(pressSensorMS5803.REG_PROM_C4)
@@ -120,6 +127,7 @@ class pressSensorMS5803(i2c):
 		# else adjust the constant
 		# else:
 		# 	self.TCO = self.TCO >> 5 				#NO! shift by 5 AFTER multiplying with dT (see below)
+		self.deviceLogger.log.debug("Read PROM, C4: {} from register: {}".format(hex(self.TCO), pressSensorMS5803.REG_PROM_C4))
 
 		# read C5
 		self.T_REF = self.readWordSwapped(pressSensorMS5803.REG_PROM_C5)
@@ -128,7 +136,9 @@ class pressSensorMS5803(i2c):
 			return False
 		# else adjust the constant
 		else:
+			self.deviceLogger.log.debug("Read PROM, C5: {} from register: {}".format(hex(self.T_REF), pressSensorMS5803.REG_PROM_C5))
 			self.T_REF = self.T_REF << 8
+			self.deviceLogger.log.debug("Modified C5 by << 8bits: {}".format(hex(self.T_REF)))
 
 		# read C6
 		self.TEMPSENS = self.readWordSwapped(pressSensorMS5803.REG_PROM_C6)
@@ -138,6 +148,7 @@ class pressSensorMS5803(i2c):
 		# else adjust the constant
 		# else:
 		# 	self.TEMPSENS = self.TEMPSENS >> 23      #NO! shift by 23 AFTER multiplying with dT (see below)
+		self.deviceLogger.log.debug("Read PROM, C6: {} from register: {}".format(hex(self.TEMPSENS), pressSensorMS5803.REG_PROM_C6))
 
 		return True
 
@@ -185,9 +196,26 @@ class pressSensorMS5803(i2c):
 		temp_c = TEMP / 100.0 								# Temperature in C
 		temp_f = temp_c * (9.0/5.0) + 32 					# Temperature in F
 
+		# second order temperature compensation
+		T2 		= 0
+		OFF2 	= 0
+		SENS2 	= 0
+		# if TEMP is < 2000 (aka less than 20.00C)
+		if (TEMP < 2000):
+			T2 		= (3 * (dT**2)) >> 33
+			OFF2 	= (3 * ((TEMP - 2000)**2)) >> 3
+			SENS2 	= (7 * ((TEMP - 2000)**2)) >> 3
+			self.deviceLogger.log.debug("Read temperature is less than 20.00C, performing second order temperature compensation: T2 = {}, OFF2 = {}, SENS2 = {}".format(hex(T2), hex(OFF2), hex(SENS2)))
+			if (TEMP < -1500):
+				SENS2 	= SENSE2 + (3 * ((TEMP + 1500)**2))
+				self.deviceLogger.log.debug("Read temperature is ALSO less than -15.00C, modifying SENS2: SENS2 = {}".format(hex(SENS2)))
+		
 		# calculate temperature compensated pressure
+		TEMP = TEMP - T2 									# Adjusting TEMP with second order compensation (if no compensation then TEMP2 = 0)
 		OFF = self.OFF_T1 + ((self.TCO * dT) >> 5) 			# Offset at actual temperature
+		OFF = OFF - OFF2 									# Adjusting OFF with second order compensation (if no compensation then OFF2 = 0)
 		SENS = self.SENS_T1 + ((self.TCS * dT) >> 7) 		# Sensitivity at actual temperature
+		SENS = SENS - SENS2 								# Adjusting SENS with second order compensation (if no compensation then SENS2 = 0)
 		P = (((d1_pressure * SENS) >> 21) - OFF) >> 15 		# Temperature compensated pressure (0...6000mbar with 0.03mbar resolution)
 
 		# convert pressure to proper sensor units
@@ -213,16 +241,22 @@ class pressSensorMS5803(i2c):
 # Just some testing
 if __name__ == "__main__":
 	
-	# i2c bus object
-	bus = smbus.SMBus(1)
+	header = ["temp_c", "temp_f", "press_mbar", "press_pa", "altitude_m", "altitude_ft"]
 
 	# sensor addresses
 	press1_addr = 0x76	# MS5803 altimeter (round sensor)
 
-	press1 = pressSensorMS5803(press1_addr, None, bus)
+	# i2c bus object
+	bus = smbus.SMBus(1)
+
+	# i2c logger object
+	press_logger = logger.logger("pressSensorMS5803_addr_logger")
+
+	press1 = pressSensorMS5803(press1_addr, None, bus, press_logger)
 
 	press1.reset()
 	press1.readSensorPROM()
+	print header
 	while (1):
 		print press1.readAll()
 		time.sleep(1)

@@ -13,6 +13,7 @@ import smbus
 import sys
 
 import time
+import logger
 
 # Custom i2c class
 from i2c import i2c
@@ -72,10 +73,14 @@ class humidSensorSI7021(i2c):
 		time.sleep(0.03)
 
 		# read back humidity MSByte
-		rh_byte1 = self.sendRead(self.address)
+		rh_byte1 = self.sendRead()
+		if (rh_byte1 == None):
+			return [None, None, None]
 
 		# read back humidity LSByte
-		rh_byte0 = self.sendRead(self.address)
+		rh_byte0 = self.sendRead()
+		if (rh_byte0 == None):
+			return [None, None, None]
 
 		# shift to get the rh_code
 		rh_code = (rh_byte1 << 8) | (rh_byte0)
@@ -83,16 +88,23 @@ class humidSensorSI7021(i2c):
 		# convert rh_code to %RH
 		rh_percent = ((125 * rh_code) / 65536.0) - 6
 
+		# clamp RH in range [0,100]
+		if (rh_percent > 100.000):
+			rh_percent = 100.000
+		elif (rh_percent < 000.000):
+			rh_percent = 000.000
+
 		# read the temperture value used in the humidity conversion
 		temp_code = self.readWordSwapped(humidSensorSI7021.REG_PREV_TEMP_VALUE)
+		if (temp_code == None):
+			return [None, None, None]
 
 		# convert temp_code to C
 		temp_c = ((175.72 * temp_code) / 65536.0) - 46.85
 		#convert temp_c to F
 		temp_f = temp_c * (9.0/5.0) + 32
 
-
-		return ["{:07.3f}".format(rh_percent)
+		return ["{:07.3f}".format(rh_percent),
 				"{:+08.3f}".format(temp_c),
 				"{:+08.3f}".format(temp_f)]
 
@@ -107,7 +119,7 @@ if __name__ == "__main__":
 	# sensor addresses
 	humid0_addr = 0x40	# SI7021 humidity sensor
 
-	humid0 = humidSensorSI7021(temp0_addr, None, bus)
+	humid0 = humidSensorSI7021(humid0_addr, None, bus)
 
 	while(1):
 		print humid0.readHumidTemp()
