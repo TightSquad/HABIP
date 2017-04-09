@@ -251,7 +251,7 @@ if __name__ == "__main__":
 	bus = smbus.SMBus(1)
 
 	# i2c logger object
-	press_logger = logger.logger("pressSensorMS5607_addr_logger")
+	press_logger = logger.logger("pressSensorMS5607_logger")
 
 	press0 = pressSensorMS5607(press0_addr, None, bus, press_logger)
 

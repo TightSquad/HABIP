@@ -39,6 +39,9 @@ class humidSensorSI7021(i2c):
 	REG_RESET 				= 0xFE 	# B: w  : Reset
 	REG_WRITE_USER_REG1 	= 0xE6 	# B: w  : Write RH/T User Register 1
 
+	# configure user control registers
+	# 	- as per data sheet, read reg first, change ONLY the bits you want to change, then write back
+	# 	- 12bit RH / 14bit Temp, no heater --> 0x0XXXX0X0 (this is the POR default, and is what we want to use)
 									# 		Set RES[1:0] = 00 for 12bit RH / 14bit Temp conv. Total time = t_convRH + t_convT = 12ms + 10.8ms = 22.8ms MAX
 	USER_REG_RES1 			= 0x80 	# r/w 	: Measurement resolution bit 1
 	USER_REG_RES0 			= 0x01 	# r/w 	: Measurement resolution bit 0
@@ -49,13 +52,13 @@ class humidSensorSI7021(i2c):
 	REG_WRITE_HEAT_CTRL 	= 0x51 	# B: w  : Write Heater Control Register (HEATER[3:0] sets heater power)
 	REG_READ_HEAT_CTRL 		= 0x11 	# B: w  : Read Heater Control Register
 
-	def __init__(self, address=None, busID=None, interface=None):
+	def __init__(self, address=None, busID=None, interface=None, busLogger=None):
 		# Call super init
-		super(self.__class__, self).__init__(address, busID, interface)
+		super(self.__class__, self).__init__(address, busID, interface, busLogger)
 
 		# Make a device logger
-		self.deviceLogger = self.baseLogger.getLogger(("humidSensorSI7021@"+str(hex(address))))
-		self.deviceLogger.log.info("Instantiated humidSensorSI7021@"+str(hex(address)))
+		self.deviceLogger = self.baseLogger.getLogger(("humidSensorSI7021_addr"+str(hex(address))))
+		self.deviceLogger.log.info("Instantiated humidSensorSI7021_addr"+str(hex(address)))
 
 
 	def readHumidTemp(self):
@@ -91,8 +94,10 @@ class humidSensorSI7021(i2c):
 		# clamp RH in range [0,100]
 		if (rh_percent > 100.000):
 			rh_percent = 100.000
+			self.deviceLogger.log.debug("RH measured > 100%. Clamped value to 100%")
 		elif (rh_percent < 000.000):
 			rh_percent = 000.000
+			self.deviceLogger.log.debug("RH measured < 0%. Clamped value to 0%")
 
 		# read the temperture value used in the humidity conversion
 		temp_code = self.readWordSwapped(humidSensorSI7021.REG_PREV_TEMP_VALUE)
@@ -113,13 +118,20 @@ class humidSensorSI7021(i2c):
 # Just some testing
 if __name__ == "__main__":
 	
-	# i2c bus object
-	bus = smbus.SMBus(1)
+	header = ["RH_%", "temp_c", "temp_f"]
 
 	# sensor addresses
 	humid0_addr = 0x40	# SI7021 humidity sensor
 
-	humid0 = humidSensorSI7021(humid0_addr, None, bus)
+	# i2c bus object
+	bus = smbus.SMBus(1)
+
+	# i2c logger object
+	humid_logger = logger.logger("humidSensorSI7021_logger")
+
+	humid0 = humidSensorSI7021(humid0_addr, None, bus, humid_logger)
+
+	print header
 
 	while(1):
 		print humid0.readHumidTemp()
