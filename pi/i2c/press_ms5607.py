@@ -200,7 +200,13 @@ class pressSensorMS5607(i2c):
 		# convert altitude to feet (1m ~= 3.28084 feet)
 		altitude_ft = altitude_m * 3.28084
 
-		return [temp_c, temp_f, press_mbar, press_pa, altitude_m, altitude_ft]
+		#return [temp_c, temp_f, press_mbar, press_pa, altitude_m, altitude_ft]
+		return ["{:+08.3f}".format(temp_c),
+				"{:+08.3f}".format(temp_f),
+				"{:08.3f}".format(press_mbar),
+				"{:08.1f}".format(press_pa),
+				"{:010.3f}".format(altitude_m),
+				"{:010.3f}".format(altitude_ft)]
 
 ################################################################################
 

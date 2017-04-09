@@ -178,12 +178,12 @@ class pressSensorMS5803(i2c):
 		d2_temp = (adc_temperature[0] << 16)|(adc_temperature[1] << 8)|(adc_temperature[2])
 
 		# calculate temperature
-		dT = d2_temp - self.T_REF 					# 25bit value, Difference between actual and reference temperature
-		TEMP = 2000 + ((dT * self.TEMPSENS) >> 23) 	# Actual temperature (-40...85C with 0.01C resolution)
+		dT = d2_temp - self.T_REF 							# 25bit value, Difference between actual and reference temperature
+		TEMP = 2000 + ((dT * self.TEMPSENS) >> 23) 			# Actual temperature (-40...85C with 0.01C resolution)
 
 		# convert temp to proper sensor units
-		temp_c = TEMP / 100.0 				# Temperature in C
-		temp_f = temp_c * (9.0/5.0) + 32 	# Temperature in F
+		temp_c = TEMP / 100.0 								# Temperature in C
+		temp_f = temp_c * (9.0/5.0) + 32 					# Temperature in F
 
 		# calculate temperature compensated pressure
 		OFF = self.OFF_T1 + ((self.TCO * dT) >> 5) 			# Offset at actual temperature
@@ -191,8 +191,8 @@ class pressSensorMS5803(i2c):
 		P = (((d1_pressure * SENS) >> 21) - OFF) >> 15 		# Temperature compensated pressure (0...6000mbar with 0.03mbar resolution)
 
 		# convert pressure to proper sensor units
-		press_mbar = P / 100.0 				# Pressur in mBar
-		press_pa = press_mbar * 100			# Pressure in Pascals (1Bar = 100,000Pa) --> (1mBar = 100Pa)
+		press_mbar = P / 100.0 								# Pressur in mBar
+		press_pa = press_mbar * 100							# Pressure in Pascals (1Bar = 100,000Pa) --> (1mBar = 100Pa)
 
 		# calculate altitude (in meters) from the pressure reading
 		altitude_m = 44330 * (1 - ((press_pa/pressSensorMS5803.PRESSURE0)**(1/5.255)))
@@ -200,7 +200,13 @@ class pressSensorMS5803(i2c):
 		# convert altitude to feet (1m ~= 3.28084 feet)
 		altitude_ft = altitude_m * 3.28084
 
-		return [temp_c, temp_f, press_mbar, press_pa, altitude_m, altitude_ft]
+		#return [temp_c, temp_f, press_mbar, press_pa, altitude_m, altitude_ft]
+		return ["{:+08.3f}".format(temp_c),
+				"{:+08.3f}".format(temp_f),
+				"{:08.3f}".format(press_mbar),
+				"{:08.1f}".format(press_pa),
+				"{:010.3f}".format(altitude_m),
+				"{:010.3f}".format(altitude_ft)]
 
 ################################################################################
 

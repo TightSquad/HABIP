@@ -76,7 +76,8 @@ class tempSensorPCT2075(i2c):
 				# convert celcius to fahrenheit
 				temperature_f = temperature_c * (9.0/5.0) + 32
 
-			return [temperature_c, temperature_f]
+			return ["{:+08.3f}".format(temperature_c),
+					"{:+08.3f}".format(temperature_f)]
 
 ################################################################################
 
