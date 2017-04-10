@@ -56,10 +56,11 @@ class i2c(object):
 		self.maxWriteAttempts = 3
 
 
-	#
-	#	Read byte from I2C bus
-	#
 	def readByte(self, regAddress):
+		"""
+		Read byte from I2C bus
+		"""
+
 		attempts = 0
 		while attempts < self.maxReadAttempts:
 			try:
@@ -77,10 +78,11 @@ class i2c(object):
 				hex(self.address), hex(regAddress), attempts))
 		return None
 
-	#
-	#	Read word from I2C bus
-	#
 	def readWord(self, regAddress):
+		"""
+		Read word from I2C bus
+		"""
+
 		attempts = 0
 		while attempts < self.maxReadAttempts:
 			try:
@@ -98,10 +100,12 @@ class i2c(object):
 				hex(self.address), hex(regAddress), attempts))
 		return None
 
-	#
-	#	Most I2C transmit MSByte first, so the recieved word byte order needs to be swapped for most devices
-	#
 	def readWordSwapped(self, regAddress):
+		"""
+		Most I2C transmit MSByte first, so the recieved word byte order needs to
+		be swapped for most devices
+		"""
+
 		data = self.readWord(regAddress)
 
 		if (data == None):
@@ -110,10 +114,11 @@ class i2c(object):
 			# Swap bytes
 			return ((data & 0xFF) << 8) | ((data & 0xFF00) >> 8)
 
-	#
-	#	Read block from I2C bus (returns list = [first_byte_received, second byte_received, ...]
-	#
 	def readBlock(self, regAddress, numBytes):
+		"""
+		Read block from I2C bus (returns list = [first_byte_received, second byte_received, ...]
+		"""
+
 		attempts = 0
 		while attempts < self.maxReadAttempts:
 			try:
@@ -131,10 +136,11 @@ class i2c(object):
 				hex(self.address), hex(regAddress), attempts))
 		return None
 
-	#
-	#	Write byte to I2C bus
-	#
 	def writeByte(self, regAddress, data=0):
+		"""
+		Write byte to I2C bus
+		"""
+
 		attempts = 0
 		while attempts < self.maxWriteAttempts:
 			try:
@@ -152,10 +158,11 @@ class i2c(object):
 				hex(data), hex(self.address), hex(regAddress), attempts))
 		return False
 
-	#
-	#	Write word to I2C bus
-	#
 	def writeWord(self, regAddress, data=0):
+		"""
+		Write word to I2C bus
+		"""
+
 		attempts = 0
 		while attempts < self.maxWriteAttempts:
 			try:
@@ -173,18 +180,20 @@ class i2c(object):
 				hex(data), hex(self.address), hex(regAddress), attempts))
 		return False
 
-	#
-	#	Most I2C transmit MSByte first, so the transmitted word byte order needs to be swapped for most devices
-	#
 	def writeWordSwapped(self, regAddress, data=0):
+		"""
+		Most I2C transmit MSByte first, so the transmitted word byte order needs to be swapped for most devices
+		"""
+
 		# Swap bytes
 		data = ((data & 0xFF) << 8) | ((data & 0xFF00) >> 8)
 		return self.writeWord(regAddress, data)
 
-	#
-	#	Write block to I2C bus (sends list = [first_byte_transmitted, second byte_transmitted, ...]
-	#
 	def writeBlock (self, regAddress, dataList=[]):
+		"""
+		Write block to I2C bus (sends list = [first_byte_transmitted, second byte_transmitted, ...]
+		"""
+
 		attempts = 0
 		while attempts < self.maxWriteAttempts:
 			try:
