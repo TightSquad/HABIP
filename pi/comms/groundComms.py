@@ -16,7 +16,7 @@ class groundComms(object):
     """
 
     def __init__(self):
-        self.commandQueue = Queue.Queue()
+        self.groundCommandQueue = Queue.Queue()
 
         # Create the logger
         self.logger = logger.logger("groundComms")
@@ -32,12 +32,16 @@ class groundComms(object):
                 parsedCommand.ack()
                 self.logger.log.debug("Parsed command: {}".format(commandString))
                 if parsedCommand.executed is False:
-                    self.commandQueue.put(parsedCommand)
+                    self.groundCommandQueue.put(parsedCommand)
 
     def executeCommands(self):
-        while not self.commandQueue.empty():
-            command = self.commandQueue.get()
-            command.execute()
+        while not self.groundCommandQueue.empty():
+            command = self.groundCommandQueue.get()
+            
+            try:
+                command.execute()
+            except Exception as e:
+                self.logger.log.error("Got exception: {} trying to execute command: {}".format(e, command.commandString))
             # print command.commandString
 
 ################################# Unit Testing #################################

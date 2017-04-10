@@ -10,7 +10,7 @@ import localCommand
 
 class groundCommand(object):
     """
-    Base class for commands
+    Base class for ground commands
     """
 
     # Used as an enum, make sure each key has a unique value
