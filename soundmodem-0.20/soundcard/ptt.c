@@ -87,6 +87,7 @@ struct modemparams pttparams[] = {
 	{ "hamlib_model", "Hamlib model", "Model number", "", MODEMPAR_STRING }, 
 	{ "hamlib_params", "Rig configuration params", "Rig configuration params", "", MODEMPAR_STRING },
 #endif
+	{ "script", "Path to PTT Script", "Path to PTT Script", "", MODEMPAR_STRING },
 	{ NULL }
 };
 
@@ -168,6 +169,7 @@ int pttinit(struct pttio *state, const char *params[])
 #else
 #define HAMLIBPARAMS 0
 #endif
+#define PTTSCRIPTPARAMS 1 // Number of parameters for the ptt script addition
 	const char *path = params[0];
 	int fd;
 	unsigned char x;
@@ -243,6 +245,20 @@ int pttinit(struct pttio *state, const char *params[])
         	return my_rig_error == RIG_OK ? 0 : -1 ;
 	}
 #endif
+
+#define PAR_SCRIPTPATH (1+CM108GPIOPARAMS+HAMLIBPARAMS)
+
+	/* get ptt script possibly */
+	const char *ptt_script = params[PAR_SCRIPTPATH];
+	if (ptt_script && ptt_script[0]) {
+		logprintf(MLOG_INFO, "ptt config got script path: %s\n", ptt_script);
+		state->use_ptt_script = 1;
+		state->ptt_script = ptt_script;
+	}
+	else {
+		logprintf(MLOG_INFO, "ptt config did not find a script path\n");
+	}
+
 	/* check for sysfs gpio path */
 	if (!pttinit_sysfsgpio(state, path)) {
 		pttsetptt(state, 0);
@@ -293,6 +309,9 @@ int pttinit(struct pttio *state, const char *params[])
 		close(fd);
 		return -1;
 	}
+
+
+
 	pttsetptt(state, 0);
 	pttsetdcd(state, 0);
         return 0;
@@ -302,11 +321,20 @@ void pttsetptt(struct pttio *state, int pttx)
 {
 	unsigned char reg;
 
-	printf("turning ptt: %s\n", pttx ? "ON" : "OFF");
+	// printf("turning ptt: %s\n", pttx ? "ON" : "OFF");
 	// Add code for controlling ptt manually
+
 
 	if (!state)
 		return;
+
+	if (state->use_ptt_script) {
+		static char cmd[128];
+		sprintf(cmd, "%s %s", state->ptt_script, (pttx ? "1" : "0"));
+		logprintf(MLOG_INFO, "Calling ptt script: $ %s", &cmd);
+		system(&cmd);
+	}
+
 	state->ptt = !!pttx;
 	switch (state->mode) {
 #ifdef HAVE_LIBHAMLIB

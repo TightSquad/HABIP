@@ -58,13 +58,16 @@ struct pttio {
 	unsigned int ptt;
 	unsigned int dcd;
 	unsigned int gpio;
-	
+
 	union {
 		int fd;
 #ifdef HAVE_LIBHAMLIB
 		RIG *rig_ptr;
 #endif
 	} u;
+
+	unsigned int use_ptt_script;
+	char* ptt_script;
 };
 
 #endif
