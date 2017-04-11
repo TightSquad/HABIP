@@ -343,8 +343,12 @@ class MyApp(Tkinter.Frame):
         self.cmdStringTextBox.insert(Tkinter.END,self.commandString)
 
     # Create a text box display to show error messages
-    def createErrorStringDisplay(self):
-        self.errorStringFrame = Tkinter.Frame(root, bd=2, relief=Tkinter.SUNKEN)
+    # Also create a text box to manually enter commands into
+    def createErrorAndManualDisplay(self):
+    	self.bottomFrame = Tkinter.Frame(root, bd=2)
+
+    	# Error Message Box
+        self.errorStringFrame = Tkinter.Frame(self.bottomFrame, bd=2, relief=Tkinter.SUNKEN)
         self.errorBoxScroll = Tkinter.Scrollbar(self.errorStringFrame)
         self.errorStringTextBox = Tkinter.Text(self.errorStringFrame, height=5, width=50)
         self.errorStringTextBox.grid(row=30,column=1)
@@ -355,7 +359,20 @@ class MyApp(Tkinter.Frame):
         self.errorStringTextLabel.grid(row=30,column=0)
         self.errorMsgClearButton = Tkinter.Button(self.errorStringFrame, text="Clear Errors", command=lambda: self.clearErrors())
         self.errorMsgClearButton.grid(row=30,column=3)
-        self.errorStringFrame.grid()
+        self.errorStringFrame.grid(row=30,column=0)
+
+        # Manual Command Entry Box
+        self.manualCmdFrame = Tkinter.Frame(self.bottomFrame, bd=2, relief=Tkinter.SUNKEN)
+        self.manualCmdLabel = Tkinter.Label(self.manualCmdFrame, text="Manually Enter a Command:")
+        self.manualCmdLabel.grid(row=30,column=5)
+        self.manualCmd = Tkinter.StringVar()
+        self.manualCmdEntry = Tkinter.Entry(self.manualCmdFrame, textvariable=self.manualCmd, width=20)
+        self.manualCmdEntry.grid(row=30,column=6)
+        self.manualCmdButton = Tkinter.Button(self.manualCmdFrame, text="Go", command=lambda: self.addManualCommand(self.manualCmd.get()))
+        self.manualCmdButton.grid(row=30,column=7)
+        self.manualCmdFrame.grid(row=30,column=2)
+
+        self.bottomFrame.grid()
 
     # Print and show error message
     def errorMsg(self, argument=""):
@@ -369,6 +386,14 @@ class MyApp(Tkinter.Frame):
     # Clear error message text box
     def clearErrors(self):
         self.errorStringTextBox.delete(1.0,Tkinter.END)
+
+    # Deal with a manually entered command
+    def addManualCommand(self, command=""):
+        # Add the command to the command queue
+        self.addToCmdDisplay(command) # SHOULD ADD SOME CHECKING HERE TO MAKE SURE IT IS VALID******************************************************
+
+        # Clear contents of Manual Command Entry box
+        self.manualCmdEntry.delete(0,Tkinter.END)
 
     # Send commands listed in self.commandString
     def sendCommands(self):
@@ -405,7 +430,7 @@ class MyApp(Tkinter.Frame):
         self.createTimeSyncButton()
         self.createCutdownButton()
         self.createCmdStringDisplay()
-        self.createErrorStringDisplay()
+        self.createErrorAndManualDisplay()
 
     def __init__(self, master=None):
         Tkinter.Frame.__init__(self, master)
