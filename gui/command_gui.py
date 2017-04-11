@@ -1,5 +1,6 @@
 import Tkinter
 import time
+import logging
 
 class MyApp(Tkinter.Frame):
     def say_hi(self):
@@ -397,7 +398,8 @@ class MyApp(Tkinter.Frame):
 
     # Send commands listed in self.commandString
     def sendCommands(self):
-        return None
+        # Add commands to be sent to command log file
+        self.commandLogger.info(self.commandString)
 
     # Remove last command from command "queue"
     def removeLastCommand(self):
@@ -437,6 +439,16 @@ class MyApp(Tkinter.Frame):
         self.grid()
         self.commandString = ""
         self.commandList = []
+
+        # Create command log file
+        self.commandLogger = logging.getLogger('myapp')
+        self.loggerHandler = logging.FileHandler('./command.log')
+        self.loggerFormatter = logging.Formatter('%(asctime)s %(message)s')
+        self.loggerHandler.setFormatter(self.loggerFormatter)
+        self.commandLogger.addHandler(self.loggerHandler)
+        self.commandLogger.setLevel(logging.INFO)
+
+        # Create GUI
         self.createGUI()
         
 if __name__ == "__main__":
