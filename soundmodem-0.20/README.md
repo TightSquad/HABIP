@@ -4,7 +4,7 @@
 	
 	```bash
 	$ sudo apt update
-	$ sudo apt install libasound2-dev libxml2-dev libgtk2.0-dev libaudiofile-dev
+	$ sudo apt install libasound2-dev libxml2-dev libgtk2.0-dev libaudiofile-dev autoconf
 	```
 
 2. Download and extract source code (if using original source):
