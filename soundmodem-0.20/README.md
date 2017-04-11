@@ -7,14 +7,7 @@
 	$ sudo apt install libasound2-dev libxml2-dev libgtk2.0-dev libaudiofile-dev autoconf
 	```
 
-2. Download and extract source code (if using original source):
-
-	```bash
-	wget http://download.gna.org/soundmodem/soundmodem-0.20.tar.gz
-	tar -xvzf soundmodem-0.20.tar.gz
-	```
-
-3. Configure and build soundmodem
+2. Configure and build soundmodem
 
 	```bash
 	cd soundmodem-0.20

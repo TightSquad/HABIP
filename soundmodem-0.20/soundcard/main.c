@@ -405,6 +405,7 @@ static void parseopts(int argc, char *argv[])
                 }
         }
 	if (err) {
+				fprintf(stderr, "HABIP build of soundmodem-0.20\n");
                 fprintf(stderr, "usage: [-v <verblevel>] [-s] [-S] [-R]" MLOCKHLP " [-c <configname>] <configfile>\n");
                 exit(1);
         }
