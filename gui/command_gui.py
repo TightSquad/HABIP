@@ -190,10 +190,23 @@ class MyApp(Tkinter.Frame):
         self.rxnWhlTurnButton = Tkinter.Button(self.rxnWhlCtlFrame, text="Turn", command=lambda: self.rxnWhlTurnSelectionMade(self.rxnWhlDirection.get(),self.rxnWhlDegrees.get())).grid(row=17,column=4)
         Tkinter.Radiobutton(self.rxnWhlCtlFrame, text="CW Direction", variable=self.rxnWhlDirection, value=0).grid(row=17,column=5)
         Tkinter.Radiobutton(self.rxnWhlCtlFrame, text="CCW Direction", variable=self.rxnWhlDirection, value=1).grid(row=18,column=5)
-        self.rxnWhlDegSlide = Tkinter.Scale(self.rxnWhlCtlFrame, from_=0, to=180, orient=Tkinter.HORIZONTAL, label="Degrees to Turn", variable=self.rxnWhlDegrees)
-        self.rxnWhlDegSlide.set(0)
-        self.rxnWhlDegSlide.grid(row=17,column=6)
+        #self.rxnWhlDegSlide = Tkinter.Scale(self.rxnWhlCtlFrame, from_=0, to=180, orient=Tkinter.HORIZONTAL, label="Degrees to Turn", variable=self.rxnWhlDegrees)
+        #self.rxnWhlDegSlide.set(0)
+        #self.rxnWhlDegSlide.grid(row=17,column=6)
+        self.rxnWhlDegLabel = Tkinter.Label(self.rxnWhlCtlFrame, text="Degrees to Turn (0-180):")
+        self.rxnWhlDegLabel.grid(row=17,column=6)
+        self.rxnWhlDegEntry = Tkinter.Entry(self.rxnWhlCtlFrame, textvariable=self.rxnWhlDegrees, width=5)
+        self.rxnWhlDegEntry.grid(row=18,column=6)
         self.rxnWhlCtlFrame.grid()
+
+    # Check the reaction wheel degree entry value
+    def rxnWhlDegCheck(self,argument=0):
+        if ((argument>=0) and (argument<=180)):
+            print "returning true"
+            return True
+        else:
+            print "returning false"
+            return False
 
     # Add reaction wheel power control button select to command list to be sent
     def rxnWhlPwrCtlSelectionMade(self,argument=0):
@@ -208,12 +221,14 @@ class MyApp(Tkinter.Frame):
 
     # Add reaction wheel turn control selection to command list to be sent
     def rxnWhlTurnSelectionMade(self,direction=0,degrees=0):
-        if direction == 1:
-            self.rxnWhlTurnCtlString = "RW:CCW," + str(degrees)
+    	if(degrees>=0 and degrees<=180): # make sure valid degrees avlue
+            if direction == 1:
+                self.rxnWhlTurnCtlString = "RW:CCW," + str(degrees)
+            else:
+                self.rxnWhlTurnCtlString = "RW:CW," + str(degrees)
+            self.addToCmdDisplay(self.rxnWhlTurnCtlString)
         else:
-            self.rxnWhlTurnCtlString = "RW:CW," + str(degrees)
-
-        self.addToCmdDisplay(self.rxnWhlTurnCtlString)
+            self.errorMsg("Invalid rxn wheel degrees value")
 
     # Create board reset command portion of GUI
     def createBoardResetControl(self):
@@ -327,6 +342,34 @@ class MyApp(Tkinter.Frame):
         # Update command string in display box
         self.cmdStringTextBox.insert(Tkinter.END,self.commandString)
 
+    # Create a text box display to show error messages
+    def createErrorStringDisplay(self):
+        self.errorStringFrame = Tkinter.Frame(root, bd=2, relief=Tkinter.SUNKEN)
+        self.errorBoxScroll = Tkinter.Scrollbar(self.errorStringFrame)
+        self.errorStringTextBox = Tkinter.Text(self.errorStringFrame, height=5, width=50)
+        self.errorStringTextBox.grid(row=30,column=1)
+        self.errorBoxScroll.grid(row=30,column=2, sticky="ns")
+        self.errorBoxScroll.config(command=self.errorStringTextBox.yview)
+        self.errorStringTextBox.config(yscrollcommand=self.errorBoxScroll.set)
+        self.errorStringTextLabel = Tkinter.Label(self.errorStringFrame, text="Errors:")
+        self.errorStringTextLabel.grid(row=30,column=0)
+        self.errorMsgClearButton = Tkinter.Button(self.errorStringFrame, text="Clear Errors", command=lambda: self.clearErrors())
+        self.errorMsgClearButton.grid(row=30,column=3)
+        self.errorStringFrame.grid()
+
+    # Print and show error message
+    def errorMsg(self, argument=""):
+        print argument
+        self.updateErrorDisplay(argument)
+
+    # Add error string to text box of error messages
+    def updateErrorDisplay(self, argument=""):
+        self.errorStringTextBox.insert(Tkinter.END,argument+"\n")
+
+    # Clear error message text box
+    def clearErrors(self):
+        self.errorStringTextBox.delete(1.0,Tkinter.END)
+
     # Send commands listed in self.commandString
     def sendCommands(self):
         return None
@@ -362,6 +405,7 @@ class MyApp(Tkinter.Frame):
         self.createTimeSyncButton()
         self.createCutdownButton()
         self.createCmdStringDisplay()
+        self.createErrorStringDisplay()
 
     def __init__(self, master=None):
         Tkinter.Frame.__init__(self, master)
