@@ -369,10 +369,11 @@ class MyApp(Tkinter.Frame):
         self.commandString = ""
         self.commandList = []
         self.createGUI()
-
-root = Tkinter.Tk()
-root.title("HABIP Commands")
-root.geometry('{}x{}'.format(1200,700))
-app = MyApp(master=root)
-app.mainloop()
-root.destroy()
+        
+if __name__ == "__main__":
+	root = Tkinter.Tk()
+	root.title("HABIP Commands")
+	root.geometry('{}x{}'.format(1200,700))
+	app = MyApp(master=root)
+	app.mainloop()
+	root.destroy()
