@@ -331,7 +331,8 @@ void pttsetptt(struct pttio *state, int pttx)
 	if (state->use_ptt_script) {
 		static char cmd[128];
 		sprintf(cmd, "%s %s", state->ptt_script, (pttx ? "1" : "0"));
-		logprintf(MLOG_INFO, "Calling ptt script: $ %s", &cmd);
+		printf("Calling ptt script: $ %s\n", &cmd);
+		logprintf(MLOG_INFO, "Calling ptt script: $ %s\n", &cmd);
 		system(&cmd);
 	}
 
