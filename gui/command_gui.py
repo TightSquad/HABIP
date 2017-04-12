@@ -1,6 +1,7 @@
 import Tkinter
 import time
 import logging
+import subprocess
 
 class MyApp(Tkinter.Frame):
     def say_hi(self):
@@ -427,6 +428,10 @@ class MyApp(Tkinter.Frame):
     def sendCommands(self):
         # Add commands to be sent to command log file
         self.commandLogger.info(self.commandString)
+
+        # Call beacon in Linux to transmit command(s)
+        processCallString = "beacon -s sm0" + "\"" + self.commandString + "\""
+        subprocess.call(processCallString)
 
     # Remove last command from command "queue"
     def removeLastCommand(self):
