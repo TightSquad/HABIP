@@ -430,8 +430,7 @@ class MyApp(Tkinter.Frame):
         self.commandLogger.info(self.commandString)
 
         # Call beacon in Linux to transmit command(s)
-        processCallString = "beacon -s sm0" + "\"" + self.commandString + "\""
-        subprocess.call(processCallString)
+        subprocess.call(["beacon","-s","sm0",self.commandString])
 
     # Remove last command from command "queue"
     def removeLastCommand(self):
