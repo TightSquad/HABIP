@@ -5,7 +5,6 @@ description: Default GPIO setup and helper functions
 """
 
 import sys
-sys.path.append("..")
 
 import common
 import logger
@@ -23,10 +22,20 @@ lookupModeToString = {
 }
 
 def initialize():
+	GPIO.setwarnings(False)
 	GPIO.setmode(GPIO.BOARD)
 
 def getMode(pin):
 	return lookupModeToString[GPIO.gpio_function(pin)]
+
+def setPinMode(pin, mode):
+	GPIO.setup(pin, mode)
+
+def setHigh(pin):
+	GPIO.output(pin, 1)
+
+def setLow(pin):
+	GPIO.output(pin, 0)
 
 def status(*pins):
 	displayString = "{:<2} : {}"
@@ -42,6 +51,6 @@ def status(*pins):
 
 # Testing
 if __name__ == "__main__":
-	setup()
+	initialize()
 	status()
 
