@@ -109,7 +109,8 @@ class MyApp(Tkinter.Frame):
         Tkinter.Radiobutton(self.osdPresFrame, text="Pi3 Basic", variable=self.osdPresSelVal, value=7).grid(row=10,column=2, sticky=Tkinter.W)
         Tkinter.Radiobutton(self.osdPresFrame, text="Pi3 Vacuum", variable=self.osdPresSelVal, value=8).grid(row=11,column=2, sticky=Tkinter.W)
         Tkinter.Radiobutton(self.osdPresFrame, text="DAQCS Basic", variable=self.osdPresSelVal, value=9).grid(row=8,column=3, sticky=Tkinter.W)
-        Tkinter.Radiobutton(self.osdPresFrame, text="COMMS Basic", variable=self.osdPresSelVal, value=10).grid(row=9,column=3, sticky=Tkinter.W)
+        Tkinter.Radiobutton(self.osdPresFrame, text="Balloon", variable=self.osdPresSelVal, value=10).grid(row=9,column=3, sticky=Tkinter.W)
+        Tkinter.Radiobutton(self.osdPresFrame, text="COMMS Basic", variable=self.osdPresSelVal, value=11).grid(row=10,column=3, sticky=Tkinter.W)
         self.osdPresFrame.grid()
 
     # Add OSD pressure sensor source select to command list to be sent
@@ -125,7 +126,8 @@ class MyApp(Tkinter.Frame):
             7: "OSD:PRES:B3:P0",
             8: "OSD:PRES:B3:P1",
             9: "OSD:PRES:B4:P0",
-            10: "OSD:PRES:B5:P0",
+            10: "OSD:PRES:B4:PB",
+            11: "OSD:PRES:B5:P0",
         }
 
         self.osdPresSelCmdString = osdPresSelTable.get(self.osdPresSelVal.get(),"OSD:PRES:B0:P0")
@@ -470,7 +472,7 @@ class MyApp(Tkinter.Frame):
         self.validCommandList.extend(["OSD:TEMP:B1:TB0","OSD:TEMP:B1:TB1","OSD:TEMP:B1:TE0","OSD:TEMP:B1:TE1","OSD:TEMP:B2:TD0","OSD:TEMP:B2:TB0","OSD:TEMP:B2:TB1","OSD:TEMP:B2:TE0"])
         self.validCommandList.extend(["OSD:TEMP:B2:TE1","OSD:TEMP:B3:TD0","OSD:TEMP:B3:TB0","OSD:TEMP:B3:TB1","OSD:TEMP:B3:TE0","OSD:TEMP:B3:TE1","OSD:TEMP:B4:TB0","OSD:TEMP:B5:TD0"])
         self.validCommandList.extend(["OSD:TEMP:B5:TB0","OSD:PRES:B0:P0","OSD:PRES:B0:P1","OSD:PRES:B1:P0","OSD:PRES:B1:P1","OSD:PRES:B2:P0","OSD:PRES:B2:P1","OSD:PRES:B3:P0"])
-        self.validCommandList.extend(["OSD:PRES:B3:P1","OSD:PRES:B4:P0","OSD:PRES:B5:P0","OSD:HUM:B0","OSD:HUM:B1","OSD:HUM:B2","OSD:HUM:B3","OSD:ON","OSD:OFF","OSD:RST"])
+        self.validCommandList.extend(["OSD:PRES:B3:P1","OSD:PRES:B4:P0","OSD:PRES:B4:PB","OSD:PRES:B5:P0","OSD:HUM:B0","OSD:HUM:B1","OSD:HUM:B2","OSD:HUM:B3","OSD:ON","OSD:OFF","OSD:RST"])
         self.validCommandList.extend(["RW:ON","RW:OFF","RST:B0","RST:B1","RST:B2","RST:B3","ATV:PWR:0.5","ATV:PWR:1.0","ATV:PWR:1.5","ATV:PWR:2.0","ATV:PWR:2.5","ATV:PWR:3.0"])
         self.validCommandList.extend(["ATV:PWR:3.5","ATV:PWR:4.0","ATV:PWR:4.5","ATV:PWR:5.0","CUTDOWN"])
 
