@@ -4,7 +4,7 @@
 file: log_all_pihat_sensors.py
 author: Chris Schwab
 project: High Altitude Balloon Instrumentation Platform
-description: Script to log all PiHat Sensors to csv
+description: Script to log all I2C/1-wire/internalARM PiHat sensors to csv as well as "pet" the hardware WDT
 """
 
 ###########################
@@ -14,10 +14,13 @@ description: Script to log all PiHat Sensors to csv
 import smbus
 import sys
 import time
-import logger
 import csv
 import subprocess
 import os
+import RPi.GPIO as GPIO
+
+# Custom logger class
+import logger
 
 # Custom i2c sensor classes
 from power_ina219 import powerMonitorINA219
@@ -27,6 +30,7 @@ from press_ms5803 import pressSensorMS5803
 from humid_si7021 import humidSensorSI7021
 
 # Custom 1-wire sensor class
+
 
 ###########################
 # LOGGING / PRINTING CONFIG
@@ -50,20 +54,40 @@ humid0_addr = 0x40		# SI7021 humidity sensor
 # 1-wire sensors
 
 ###########################
+# GPIO Pins
+###########################
+# GPIO pin numbers
+dbg_led0 	= 20
+wdt_pet 	= 21
+
+# set GPIO pin numbering to match the RasPi board header
+GPIO.setmode(GPIO.BCM)
+
+# set GPIOs as outputs and drive low
+GPIO.setwarnings(False)			# disable printed warnings
+GPIO.setup(dbg_led0, GPIO.OUT) 	# set as output
+GPIO.setup(wdt_pet, GPIO.OUT)
+
+GPIO.output(dbg_led0, 0x0) 		# drive low
+GPIO.output(wdt_pet, 0x0)
+
+###########################
 # Log File Naming
 ###########################
+# NOTE: Use absolute paths since script will be called froma boot area
+
 # i2c_bus_log
-# 	check for already used log names (aka if the RasPi had been previously booted or crashed --> i2c_bus_logger_XXXXX.log)
+# 	check for already used log names (aka if the RasPi had been previously booted or crashed --> XXXXX_i2c_bus_logger.log)
 # 	start log index at 0
 log_file_index = 0
 i2c_log_file_base = "i2c_bus_logger"
-i2c_log_base_path = "../sensors_logs/"
+i2c_log_base_path = "/home/pi/habip/sensors_sw/logs/"
 log_files_found = False
 # check for all i2c_log_file_base files and increment the index to the next unique number
 for file in os.listdir(i2c_log_base_path):
-	if (file.startswith(i2c_log_file_base) and file.endswith('.log')):
+	if (file[6:].startswith(i2c_log_file_base) and file.endswith('.log')):
 		log_files_found = True
-		number_in_use = int(file[-8:][0:4])
+		number_in_use = int(file[0:5])
 		if (number_in_use > log_file_index):
 			log_file_index = number_in_use
 if (log_files_found):
@@ -74,26 +98,26 @@ print "Log file index set to: {}".format(log_file_index)
 
 # csv data logs
 # 	use the unique log_file_index from the i2c_log_file search
-csv_logfile_name 	= "all_sensors_logged_{}.csv".format(log_file_index)
+csv_logfile_name 	= "{}_all_sensors_logged.csv".format(log_file_index)
 csv_logfile_header 	= ["Sample Index", "Elapsed Time (s)", "Epoch Time (s)", "Power0 Shunt Voltage (mV)", "Power0 Bus Voltage (V)", "Power0 Current (mA)", "Power0 Power (mW)", "Temp0 Temp (C)", "Temp0 Temp (F)", "Temp1 Temp (C)", "Temp1 Temp (F)", "Press0 Temp (C)", "Press0 Temp (F)", "Press0 Press (mBar)", "Press0 Press (Pa)", "Press0 Alt (m)", "Press0 Alt (ft)", "Press1 Temp (C)", "Press1 Temp (F)", "Press1 Press (mBar)", "Press1 Press (Pa)", "Press1 Alt (m)", "Press1 Alt (ft)", "Humid0 RH (%%)", "Humid0 Temp (C)", "Humid0 Temp (F)", "ARM0 Core Temp (C)", "ARM0 Core Temp (F)", "ARM0 Core Voltage (V)", "ARM0 SDRAM_c Voltage (V)", "ARM0 SDRAM_i Voltage (V)", "ARM0 SDRAM_p Voltage (V)"]
-csv_log_base_path 	= "../sensors_logs/"
+csv_log_base_path 	= "/home/pi/habip/sensors_sw/logs/"
 
 # 	sensor headers and sensor log file names
 sample_time_header 	= ["Sample Index", "Elapsed Time (s)", "Epoch Time (s)"]
 power0_header 		= ["Power0 Shunt Voltage (mV)", "Power0 Bus Voltage (V)", "Power0 Current (mA)", "Power0 Power (mW)"]
-power0_logfile_name = "power0_sensor_logged_{}.csv".format(log_file_index)
+power0_logfile_name = "{}_power0_sensor_logged.csv".format(log_file_index)
 temp0_header 		= ["Temp0 Temp (C)", "Temp0 Temp (F)"]
-temp0_logfile_name 	= "temp0_sensor_logged_{}.csv".format(log_file_index)
+temp0_logfile_name 	= "{}_temp0_sensor_logged.csv".format(log_file_index)
 temp1_header 		= ["Temp1 Temp (C)", "Temp1 Temp (F)"]
-temp1_logfile_name 	= "temp1_sensor_logged_{}.csv".format(log_file_index)
+temp1_logfile_name 	= "{}_temp1_sensor_logged.csv".format(log_file_index)
 press0_header 		= ["Press0 Temp (C)", "Press0 Temp (F)", "Press0 Press (mBar)", "Press0 Press (Pa)", "Press0 Alt (m)", "Press0 Alt (ft)"]
-press0_logfile_name = "press0_sensor_logged_{}.csv".format(log_file_index)
+press0_logfile_name = "{}_press0_sensor_logged.csv".format(log_file_index)
 press1_header 		= ["Press1 Temp (C)", "Press1 Temp (F)", "Press1 Press (mBar)", "Press1 Press (Pa)", "Press1 Alt (m)", "Press1 Alt (ft)"]
-press1_logfile_name = "press1_sensor_logged_{}.csv".format(log_file_index)
+press1_logfile_name = "{}_press1_sensor_logged.csv".format(log_file_index)
 humid0_header 		= ["Humid0 RH (%%)", "Humid0 Temp (C)", "Humid0 Temp (F)"]
-humid0_logfile_name = "humid0_sensor_logged_{}.csv".format(log_file_index)
+humid0_logfile_name = "{}_humid0_sensor_logged.csv".format(log_file_index)
 arm0_header 		= ["ARM0 Core Temp (C)", "ARM0 Core Temp (F)", "ARM0 Core Voltage (V)", "ARM0 SDRAM_c Voltage (V)", "ARM0 SDRAM_i Voltage (V)", "ARM0 SDRAM_p Voltage (V)"]
-arm0_logfile_name 	= "arm0_sensor_logged_{}.csv".format(log_file_index)
+arm0_logfile_name 	= "{}_arm0_sensor_logged.csv".format(log_file_index)
 
 # 	create log files
 if (logging_enabled):
@@ -138,7 +162,7 @@ if (logging_enabled):
 bus = smbus.SMBus(1)
 
 # i2c logger object
-i2c_logger = logger.logger("i2c_logger", logFileName="{}{}_{}.log".format(i2c_log_base_path, i2c_log_file_base, log_file_index))
+i2c_logger = logger.logger("i2c_logger", logFileName="{}{}_{}.log".format(i2c_log_base_path, log_file_index, i2c_log_file_base))
 
 # create and initialize sensor objects
 power0 	= powerMonitorINA219(power0_addr, None, bus, i2c_logger)
@@ -161,6 +185,10 @@ humid0 	= humidSensorSI7021(humid0_addr, None, bus, i2c_logger)
 
 # loop counter
 loop_index = 0
+
+# GPIO output values
+dbg_led0_value 	= 0x0
+wdt_pet_value 	= 0x0
 
 # starting relative time stamp
 t_start_rel = time.time()
@@ -280,6 +308,14 @@ while(1):
 
 	# delay between samples (want a sample period of ~1second)
 	time.sleep(0.78)
+
+	# toggle the DGB0 LED to show script is still running
+	dbg_led0_value = dbg_led0_value ^ 0x1
+	GPIO.output(dbg_led0, dbg_led0_value)
+
+	# "pet" (aka toggle) the hardware WDT
+	wdt_pet_value = wdt_pet_value ^ 0x1
+	GPIO.output(wdt_pet, wdt_pet_value)
 
 	# increment loop counter
 	loop_index = loop_index + 1
