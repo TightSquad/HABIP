@@ -1,5 +1,7 @@
 import Tkinter
 import time
+import logging
+import subprocess
 
 class MyApp(Tkinter.Frame):
     def say_hi(self):
@@ -108,7 +110,8 @@ class MyApp(Tkinter.Frame):
         Tkinter.Radiobutton(self.osdPresFrame, text="Pi3 Basic", variable=self.osdPresSelVal, value=7).grid(row=10,column=2, sticky=Tkinter.W)
         Tkinter.Radiobutton(self.osdPresFrame, text="Pi3 Vacuum", variable=self.osdPresSelVal, value=8).grid(row=11,column=2, sticky=Tkinter.W)
         Tkinter.Radiobutton(self.osdPresFrame, text="DAQCS Basic", variable=self.osdPresSelVal, value=9).grid(row=8,column=3, sticky=Tkinter.W)
-        Tkinter.Radiobutton(self.osdPresFrame, text="COMMS Basic", variable=self.osdPresSelVal, value=10).grid(row=9,column=3, sticky=Tkinter.W)
+        Tkinter.Radiobutton(self.osdPresFrame, text="Balloon", variable=self.osdPresSelVal, value=10).grid(row=9,column=3, sticky=Tkinter.W)
+        Tkinter.Radiobutton(self.osdPresFrame, text="COMMS Basic", variable=self.osdPresSelVal, value=11).grid(row=10,column=3, sticky=Tkinter.W)
         self.osdPresFrame.grid()
 
     # Add OSD pressure sensor source select to command list to be sent
@@ -124,7 +127,8 @@ class MyApp(Tkinter.Frame):
             7: "OSD:PRES:B3:P0",
             8: "OSD:PRES:B3:P1",
             9: "OSD:PRES:B4:P0",
-            10: "OSD:PRES:B5:P0",
+            10: "OSD:PRES:B4:PB",
+            11: "OSD:PRES:B5:P0",
         }
 
         self.osdPresSelCmdString = osdPresSelTable.get(self.osdPresSelVal.get(),"OSD:PRES:B0:P0")
@@ -190,10 +194,23 @@ class MyApp(Tkinter.Frame):
         self.rxnWhlTurnButton = Tkinter.Button(self.rxnWhlCtlFrame, text="Turn", command=lambda: self.rxnWhlTurnSelectionMade(self.rxnWhlDirection.get(),self.rxnWhlDegrees.get())).grid(row=17,column=4)
         Tkinter.Radiobutton(self.rxnWhlCtlFrame, text="CW Direction", variable=self.rxnWhlDirection, value=0).grid(row=17,column=5)
         Tkinter.Radiobutton(self.rxnWhlCtlFrame, text="CCW Direction", variable=self.rxnWhlDirection, value=1).grid(row=18,column=5)
-        self.rxnWhlDegSlide = Tkinter.Scale(self.rxnWhlCtlFrame, from_=0, to=180, orient=Tkinter.HORIZONTAL, label="Degrees to Turn", variable=self.rxnWhlDegrees)
-        self.rxnWhlDegSlide.set(0)
-        self.rxnWhlDegSlide.grid(row=17,column=6)
+        #self.rxnWhlDegSlide = Tkinter.Scale(self.rxnWhlCtlFrame, from_=0, to=180, orient=Tkinter.HORIZONTAL, label="Degrees to Turn", variable=self.rxnWhlDegrees)
+        #self.rxnWhlDegSlide.set(0)
+        #self.rxnWhlDegSlide.grid(row=17,column=6)
+        self.rxnWhlDegLabel = Tkinter.Label(self.rxnWhlCtlFrame, text="Degrees to Turn (0-180):")
+        self.rxnWhlDegLabel.grid(row=17,column=6)
+        self.rxnWhlDegEntry = Tkinter.Entry(self.rxnWhlCtlFrame, textvariable=self.rxnWhlDegrees, width=5)
+        self.rxnWhlDegEntry.grid(row=18,column=6)
         self.rxnWhlCtlFrame.grid()
+
+    # Check the reaction wheel degree entry value
+    def rxnWhlDegCheck(self,argument=0):
+        if ((argument>=0) and (argument<=180)):
+            print "returning true"
+            return True
+        else:
+            print "returning false"
+            return False
 
     # Add reaction wheel power control button select to command list to be sent
     def rxnWhlPwrCtlSelectionMade(self,argument=0):
@@ -208,12 +225,14 @@ class MyApp(Tkinter.Frame):
 
     # Add reaction wheel turn control selection to command list to be sent
     def rxnWhlTurnSelectionMade(self,direction=0,degrees=0):
-        if direction == 1:
-            self.rxnWhlTurnCtlString = "RW:CCW," + str(degrees)
+    	if(degrees>=0 and degrees<=180): # make sure valid degrees avlue
+            if direction == 1:
+                self.rxnWhlTurnCtlString = "RW:CCW," + str(degrees)
+            else:
+                self.rxnWhlTurnCtlString = "RW:CW," + str(degrees)
+            self.addToCmdDisplay(self.rxnWhlTurnCtlString)
         else:
-            self.rxnWhlTurnCtlString = "RW:CW," + str(degrees)
-
-        self.addToCmdDisplay(self.rxnWhlTurnCtlString)
+            self.errorMsg("Invalid rxn wheel degrees value")
 
     # Create board reset command portion of GUI
     def createBoardResetControl(self):
@@ -327,9 +346,92 @@ class MyApp(Tkinter.Frame):
         # Update command string in display box
         self.cmdStringTextBox.insert(Tkinter.END,self.commandString)
 
+    # Create a text box display to show error messages
+    # Also create a text box to manually enter commands into
+    def createErrorAndManualDisplay(self):
+    	self.bottomFrame = Tkinter.Frame(root, bd=2)
+
+    	# Error Message Box
+        self.errorStringFrame = Tkinter.Frame(self.bottomFrame, bd=2, relief=Tkinter.SUNKEN)
+        self.errorBoxScroll = Tkinter.Scrollbar(self.errorStringFrame)
+        self.errorStringTextBox = Tkinter.Text(self.errorStringFrame, height=5, width=50)
+        self.errorStringTextBox.grid(row=30,column=1)
+        self.errorBoxScroll.grid(row=30,column=2, sticky="ns")
+        self.errorBoxScroll.config(command=self.errorStringTextBox.yview)
+        self.errorStringTextBox.config(yscrollcommand=self.errorBoxScroll.set)
+        self.errorStringTextLabel = Tkinter.Label(self.errorStringFrame, text="Errors:")
+        self.errorStringTextLabel.grid(row=30,column=0)
+        self.errorMsgClearButton = Tkinter.Button(self.errorStringFrame, text="Clear Errors", command=lambda: self.clearErrors())
+        self.errorMsgClearButton.grid(row=30,column=3)
+        self.errorStringFrame.grid(row=30,column=0)
+
+        # Manual Command Entry Box
+        self.manualCmdFrame = Tkinter.Frame(self.bottomFrame, bd=2, relief=Tkinter.SUNKEN)
+        self.manualCmdLabel = Tkinter.Label(self.manualCmdFrame, text="Manually Enter a Command:")
+        self.manualCmdLabel.grid(row=30,column=5)
+        self.manualCmd = Tkinter.StringVar()
+        self.manualCmdEntry = Tkinter.Entry(self.manualCmdFrame, textvariable=self.manualCmd, width=20)
+        self.manualCmdEntry.grid(row=30,column=6)
+        self.manualCmdButton = Tkinter.Button(self.manualCmdFrame, text="Go", command=lambda: self.addManualCommand(self.manualCmd.get()))
+        self.manualCmdButton.grid(row=30,column=7)
+        self.manualCmdFrame.grid(row=30,column=2)
+
+        self.bottomFrame.grid()
+
+    # Print and show error message
+    def errorMsg(self, argument=""):
+        print argument
+        self.updateErrorDisplay(argument)
+
+    # Add error string to text box of error messages
+    def updateErrorDisplay(self, argument=""):
+        self.errorStringTextBox.insert(Tkinter.END,argument+"\n")
+
+    # Clear error message text box
+    def clearErrors(self):
+        self.errorStringTextBox.delete(1.0,Tkinter.END)
+
+    # Deal with a manually entered command
+    def addManualCommand(self, command=""):
+        # Check if valid command
+        if command in self.validCommandList:
+            # Add the command to the command queue
+            self.addToCmdDisplay(command)
+        else:
+            if command[:6] == "RW:CW,":
+                # Add the command to the command queue if valid degrees value for reaction wheel to turn
+                degreesVal = int(command[6:])
+                if (degreesVal>=0 and degreesVal<=180):
+                    # Add the command to the command queue
+                    self.addToCmdDisplay(command)
+                else:
+                    self.errorMsg("Invalid degrees value for manual RW:CW,# command")
+            elif command[:7] == "RW:CCW,":
+                # Add the command to the command queue if valid degrees value for reaction wheel to turn
+                degreesVal = int(command[7:])
+                if (degreesVal>=0 and degreesVal<=180):
+                    # Add the command to the command queue
+                    self.addToCmdDisplay(command)
+                else:
+                    self.errorMsg("Invalid degrees value for manual RW:CCW,# command")
+            elif command[:5] == "TIME:":
+                # Assume the time value given is correct *************************************************************
+                # Add the command to the command queue
+                self.addToCmdDisplay(command)
+            else:
+                self.errorMsg("Invalid manual command entered")
+
+        # Clear contents of Manual Command Entry box
+        self.manualCmdEntry.delete(0,Tkinter.END)
+
     # Send commands listed in self.commandString
     def sendCommands(self):
-        return None
+        # Add commands to be sent to command log file
+        self.commandLogger.info(self.commandString)
+
+        # Call beacon in Linux to transmit command(s)
+        processCallString = "beacon -s sm0" + "\"" + self.commandString + "\""
+        subprocess.call(processCallString)
 
     # Remove last command from command "queue"
     def removeLastCommand(self):
@@ -362,12 +464,32 @@ class MyApp(Tkinter.Frame):
         self.createTimeSyncButton()
         self.createCutdownButton()
         self.createCmdStringDisplay()
+        self.createErrorAndManualDisplay()
 
     def __init__(self, master=None):
         Tkinter.Frame.__init__(self, master)
         self.grid()
         self.commandString = ""
         self.commandList = []
+
+        # List valid commands
+        self.validCommandList = ["CAM:0","CAM:1","CAM:2","CAM:3","OSD:TEMP:B0:TD0","OSD:TEMP:B0:TB0","OSD:TEMP:B0:TB1","OSD:TEMP:B0:TE0","OSD:TEMP:B0:TE1","OSD:TEMP:B1:TD0"]
+        self.validCommandList.extend(["OSD:TEMP:B1:TB0","OSD:TEMP:B1:TB1","OSD:TEMP:B1:TE0","OSD:TEMP:B1:TE1","OSD:TEMP:B2:TD0","OSD:TEMP:B2:TB0","OSD:TEMP:B2:TB1","OSD:TEMP:B2:TE0"])
+        self.validCommandList.extend(["OSD:TEMP:B2:TE1","OSD:TEMP:B3:TD0","OSD:TEMP:B3:TB0","OSD:TEMP:B3:TB1","OSD:TEMP:B3:TE0","OSD:TEMP:B3:TE1","OSD:TEMP:B4:TB0","OSD:TEMP:B5:TD0"])
+        self.validCommandList.extend(["OSD:TEMP:B5:TB0","OSD:PRES:B0:P0","OSD:PRES:B0:P1","OSD:PRES:B1:P0","OSD:PRES:B1:P1","OSD:PRES:B2:P0","OSD:PRES:B2:P1","OSD:PRES:B3:P0"])
+        self.validCommandList.extend(["OSD:PRES:B3:P1","OSD:PRES:B4:P0","OSD:PRES:B4:PB","OSD:PRES:B5:P0","OSD:HUM:B0","OSD:HUM:B1","OSD:HUM:B2","OSD:HUM:B3","OSD:ON","OSD:OFF","OSD:RST"])
+        self.validCommandList.extend(["RW:ON","RW:OFF","RST:B0","RST:B1","RST:B2","RST:B3","ATV:PWR:0.5","ATV:PWR:1.0","ATV:PWR:1.5","ATV:PWR:2.0","ATV:PWR:2.5","ATV:PWR:3.0"])
+        self.validCommandList.extend(["ATV:PWR:3.5","ATV:PWR:4.0","ATV:PWR:4.5","ATV:PWR:5.0","CUTDOWN"])
+
+        # Create command log file
+        self.commandLogger = logging.getLogger('myapp')
+        self.loggerHandler = logging.FileHandler('./command.log')
+        self.loggerFormatter = logging.Formatter('%(asctime)s %(message)s')
+        self.loggerHandler.setFormatter(self.loggerFormatter)
+        self.commandLogger.addHandler(self.loggerHandler)
+        self.commandLogger.setLevel(logging.INFO)
+
+        # Create GUI
         self.createGUI()
         
 if __name__ == "__main__":
