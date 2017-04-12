@@ -390,8 +390,33 @@ class MyApp(Tkinter.Frame):
 
     # Deal with a manually entered command
     def addManualCommand(self, command=""):
-        # Add the command to the command queue
-        self.addToCmdDisplay(command) # SHOULD ADD SOME CHECKING HERE TO MAKE SURE IT IS VALID******************************************************
+        # Check if valid command
+        if command in self.validCommandList:
+            # Add the command to the command queue
+            self.addToCmdDisplay(command)
+        else:
+            if command[:6] == "RW:CW,":
+                # Add the command to the command queue if valid degrees value for reaction wheel to turn
+                degreesVal = int(command[6:])
+                if (degreesVal>=0 and degreesVal<=180):
+                    # Add the command to the command queue
+                    self.addToCmdDisplay(command)
+                else:
+                    self.errorMsg("Invalid degrees value for manual RW:CW,# command")
+            elif command[:7] == "RW:CCW,":
+                # Add the command to the command queue if valid degrees value for reaction wheel to turn
+                degreesVal = int(command[7:])
+                if (degreesVal>=0 and degreesVal<=180):
+                    # Add the command to the command queue
+                    self.addToCmdDisplay(command)
+                else:
+                    self.errorMsg("Invalid degrees value for manual RW:CCW,# command")
+            elif command[:5] == "TIME:":
+                # Assume the time value given is correct *************************************************************
+                # Add the command to the command queue
+                self.addToCmdDisplay(command)
+            else:
+                self.errorMsg("Invalid manual command entered")
 
         # Clear contents of Manual Command Entry box
         self.manualCmdEntry.delete(0,Tkinter.END)
@@ -439,6 +464,15 @@ class MyApp(Tkinter.Frame):
         self.grid()
         self.commandString = ""
         self.commandList = []
+
+        # List valid commands
+        self.validCommandList = ["CAM:0","CAM:1","CAM:2","CAM:3","OSD:TEMP:B0:TD0","OSD:TEMP:B0:TB0","OSD:TEMP:B0:TB1","OSD:TEMP:B0:TE0","OSD:TEMP:B0:TE1","OSD:TEMP:B1:TD0"]
+        self.validCommandList.extend(["OSD:TEMP:B1:TB0","OSD:TEMP:B1:TB1","OSD:TEMP:B1:TE0","OSD:TEMP:B1:TE1","OSD:TEMP:B2:TD0","OSD:TEMP:B2:TB0","OSD:TEMP:B2:TB1","OSD:TEMP:B2:TE0"])
+        self.validCommandList.extend(["OSD:TEMP:B2:TE1","OSD:TEMP:B3:TD0","OSD:TEMP:B3:TB0","OSD:TEMP:B3:TB1","OSD:TEMP:B3:TE0","OSD:TEMP:B3:TE1","OSD:TEMP:B4:TB0","OSD:TEMP:B5:TD0"])
+        self.validCommandList.extend(["OSD:TEMP:B5:TB0","OSD:PRES:B0:P0","OSD:PRES:B0:P1","OSD:PRES:B1:P0","OSD:PRES:B1:P1","OSD:PRES:B2:P0","OSD:PRES:B2:P1","OSD:PRES:B3:P0"])
+        self.validCommandList.extend(["OSD:PRES:B3:P1","OSD:PRES:B4:P0","OSD:PRES:B5:P0","OSD:HUM:B0","OSD:HUM:B1","OSD:HUM:B2","OSD:HUM:B3","OSD:ON","OSD:OFF","OSD:RST"])
+        self.validCommandList.extend(["RW:ON","RW:OFF","RST:B0","RST:B1","RST:B2","RST:B3","ATV:PWR:0.5","ATV:PWR:1.0","ATV:PWR:1.5","ATV:PWR:2.0","ATV:PWR:2.5","ATV:PWR:3.0"])
+        self.validCommandList.extend(["ATV:PWR:3.5","ATV:PWR:4.0","ATV:PWR:4.5","ATV:PWR:5.0","CUTDOWN"])
 
         # Create command log file
         self.commandLogger = logging.getLogger('myapp')
