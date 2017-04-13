@@ -313,16 +313,20 @@ class MyApp(Tkinter.Frame):
     # Create a text box display to show the command strings selected
     def createCmdStringDisplay(self):
         self.cmdStringFrame = Tkinter.Frame(root, bd=2, relief=Tkinter.SUNKEN)
-        self.cmdStringTextBox = Tkinter.Text(self.cmdStringFrame, height=1, width=100)
+        self.cmdBoxScroll = Tkinter.Scrollbar(self.cmdStringFrame)
+        self.cmdStringTextBox = Tkinter.Text(self.cmdStringFrame, height=3, width=100)
         self.cmdStringTextBox.grid(row=28,column=2)
+        self.cmdBoxScroll.grid(row=28,column=3, sticky="ns")
+        self.cmdBoxScroll.config(command=self.cmdStringTextBox.yview)
+        self.cmdStringTextBox.config(yscrollcommand=self.cmdBoxScroll.set)
         self.cmdStringTextLabel = Tkinter.Label(self.cmdStringFrame, text="Command Queue:")
         self.cmdStringTextLabel.grid(row=28,column=0)
         self.cmdSendButton = Tkinter.Button(self.cmdStringFrame, text="Send", command=lambda: self.sendCommands())
         self.cmdSendButton.grid(row=28,column=1)
         self.cmdBackButton = Tkinter.Button(self.cmdStringFrame, text="Back", command=lambda: self.removeLastCommand())
-        self.cmdBackButton.grid(row=28,column=3)
+        self.cmdBackButton.grid(row=28,column=4)
         self.cmdClearButton = Tkinter.Button(self.cmdStringFrame, text="Clear", command=lambda: self.clearCommands())
-        self.cmdClearButton.grid(row=28,column=4)
+        self.cmdClearButton.grid(row=28,column=5)
         self.cmdStringFrame.grid()
 
     # Add a command string to the text box display of commands and add it to the command list
@@ -366,12 +370,12 @@ class MyApp(Tkinter.Frame):
         # Manual Command Entry Box
         self.manualCmdFrame = Tkinter.Frame(self.bottomFrame, bd=2, relief=Tkinter.SUNKEN)
         self.manualCmdLabel = Tkinter.Label(self.manualCmdFrame, text="Manually Enter a Command:")
-        self.manualCmdLabel.grid(row=30,column=5)
+        self.manualCmdLabel.grid(row=30,column=7)
         self.manualCmd = Tkinter.StringVar()
         self.manualCmdEntry = Tkinter.Entry(self.manualCmdFrame, textvariable=self.manualCmd, width=20)
-        self.manualCmdEntry.grid(row=30,column=6)
+        self.manualCmdEntry.grid(row=30,column=8)
         self.manualCmdButton = Tkinter.Button(self.manualCmdFrame, text="Go", command=lambda: self.addManualCommand(self.manualCmd.get()))
-        self.manualCmdButton.grid(row=30,column=7)
+        self.manualCmdButton.grid(row=30,column=9)
         self.manualCmdFrame.grid(row=30,column=2)
 
         self.bottomFrame.grid()
