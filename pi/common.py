@@ -24,3 +24,4 @@ def flatten(lst):
 		else:
 			l.append(item)
 	return l
+

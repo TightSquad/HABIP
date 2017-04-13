@@ -38,7 +38,8 @@ class groundCommand(object):
 
         # the command index number which is acked back
         try:
-            self.index = int(fields[0])
+            self.index = int(fields[0]) # Decode the command index as decimal
+            #self.index = int(fields[0], 16) # Decode the command index as hex
         except Exception as e:
             self.logger("Error converting index to int: {}".format(fields[0]))
             self.index = 0
@@ -55,21 +56,18 @@ class groundCommand(object):
         else:
             self.sub = None
 
-        # a board identifier for the command
-        if len(fields) > 3:
-            self.board = fields[3]
-        else:
-            self.board = None
+        self.params = []
 
-        # a sensor idenfifier
-        if len(fields) > 4:
-            self.sensor = fields[4]
-        else:
-            self.sensor = None
+        for item in fields[3:]:
+            self.params.append(item)
 
         self.executed = False
 
+    def __str__(self):
+        return "Command: {}\nValid: {}\nExecuted: {}".format(self.commandString, self.valid, self.executed)
+
     def ack(self):
+        pass
         print "ACK:{0:04d}".format(self.index)
 
     def execute(self):
@@ -153,6 +151,9 @@ class osdCommand(groundCommand):
         # Call super constructor
         super(self.__class__, self).__init__(logger=commsLogger, commandString=commandString, fields=fields)
 
+        self.board = None
+        self.sensor = None
+
         if self.sub is None:
             self.logger.log.error("Could not find sub command for OSD command")
         
@@ -164,23 +165,26 @@ class osdCommand(groundCommand):
             osdCommand.subCommand[self.sub] == osdCommand.subCommand["RST"]:
                 self.valid = True
         
-        elif self.board is None:
+        elif len(self.params) < 1:
             self.logger.log.error("Could not find board field in command")
         
-        elif self.board not in board.board.boardID.keys():
+        elif self.params[0] not in board.board.boardID.keys():
             self.logger.log.error("Found invalid board ID: {}".format(fields[3]))
-            
-        elif osdCommand.subCommand[self.sub] == osdCommand.subCommand["HUM"]:
-                self.valid = True
-        
-        elif self.sensor is None:
-            self.logger.log.error("Could not find sensor field in command")
         else:
-            targetBoard = board.board.getBoard(board.board.boardID[self.board])
-            if self.sensor not in targetBoard.sensors.keys():
-                self.logger.log.error("Could not find sensor: {} on board: {}".format(self.sensor, self.board))
+            self.board = self.params[0]
+
+            if osdCommand.subCommand[self.sub] == osdCommand.subCommand["HUM"]:
+                    self.valid = True
+            
+            elif len(self.params) < 2:
+                self.logger.log.error("Could not find sensor field in command")
             else:
-                self.valid = True
+                targetBoard = board.board.getBoard(board.board.boardID[self.board])
+                if self.params[1] not in targetBoard.sensors.keys():
+                    self.logger.log.error("Could not find sensor: {} on board: {}".format(self.params[1], self.board))
+                else:
+                    self.sensor = self.params[1]
+                    self.valid = True
         
     def execute(self):
         # Execute osd command
@@ -287,24 +291,20 @@ class atvCommand(groundCommand):
 
         if self.sub is None:
             self.logger.log.error("Could not find sub command for ATV command")
-        elif not self.sub.startswith("PWR"):
+        elif self.sub not in self.subCommand.keys():
             self.logger.log.error("Found invalid ATV sub command: {}".format(self.sub))
+        elif not self.params:
+            self.logger.log.error("Could not find ATV power parameter")
         else:
-            split = self.sub.split(',')
-            if len(split) != 2:
-                self.logger.log.error("Found invalid ATV sub command: {}".format(self.sub))
-            else:
-                self.sub = split[0]
+            try:
+                self.power = float(self.params[0])
 
-                try:
-                    self.power = float(split[1])
-
-                    if self.power < 0.0 or self.power > 5.5:
-                        self.logger.log.error("Output power out of valid range: {}".format(self.power))
-                    else:
-                        self.valid = True
-                except Exception as e:
-                    self.logger.log.error("Could not convert power of {} to float".format(split[1]))
+                if self.power < 0.0 or self.power > 5.5:
+                    self.logger.log.error("Output power out of valid range: {}".format(self.power))
+                else:
+                    self.valid = True
+            except Exception as e:
+                self.logger.log.error("Could not convert power of {} to float".format(self.params[0]))
 
     def execute(self):
         # Execute ATV command
