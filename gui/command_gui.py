@@ -1,12 +1,10 @@
-import Tkinter
-import time
-import logging
-import subprocess
+import Tkinter # Needed to create the GUI
+import time # Needed to get timestamps
+import logging # Needed for creating command log file
+import subprocess # Needed for calling soundmodem's beacon command to transmit commands
 
+# Main command GUI class
 class MyApp(Tkinter.Frame):
-    def say_hi(self):
-        print "Hello, World"
-
     # Create camera number selection buttons
     def createCamSelect(self):
         self.camSelFrame = Tkinter.Frame(root, bd=2, relief=Tkinter.SUNKEN)
@@ -426,11 +424,22 @@ class MyApp(Tkinter.Frame):
 
     # Send commands listed in self.commandString
     def sendCommands(self):
+        # Update command string based on command list
+        #self.commandString = ";".join(self.commandList)
+
+        # Create a new version of the command string that includes command number
+        #    Each command should have a 4 digit (4 ASCII characters) number in front of it
+        #    Increment this number as commands are sent
+        finalCommandString = ""
+        for commandNumber in range(0, len(self.commandList)):
+            finalCommandString += "%04d"%(self.commandSentNumber) + ":" + self.commandList[commandNumber] + ";"
+            self.commandSentNumber += 1
+
         # Add commands to be sent to command log file
-        self.commandLogger.info(self.commandString)
+        self.commandLogger.info(finalCommandString)
 
         # Call beacon in Linux to transmit command(s)
-        subprocess.call(["beacon","-s","sm0",self.commandString])
+        subprocess.call(["beacon","-s","sm0",finalCommandString])
 
     # Remove last command from command "queue"
     def removeLastCommand(self):
@@ -451,6 +460,7 @@ class MyApp(Tkinter.Frame):
         # Remove commands from display box
         self.cmdStringTextBox.delete(1.0,Tkinter.END)
 
+    # Create the command GUI
     def createGUI(self):
         self.createCamSelect()
         self.createOsdTempSelect()
@@ -465,11 +475,13 @@ class MyApp(Tkinter.Frame):
         self.createCmdStringDisplay()
         self.createErrorAndManualDisplay()
 
+    # Class initialization
     def __init__(self, master=None):
         Tkinter.Frame.__init__(self, master)
-        self.grid()
-        self.commandString = ""
-        self.commandList = []
+        self.grid() # Grid placement method of Tkinter widgets
+        self.commandString = "" # String for commands being queued up to send
+        self.commandList = [] # Keep a list of the commands being queued up to send
+        self.commandSentNumber = 0 # Keep track of how many commands have been sent
 
         # List valid commands
         self.validCommandList = ["CAM:0","CAM:1","CAM:2","CAM:3","OSD:TEMP:B0:TD0","OSD:TEMP:B0:TB0","OSD:TEMP:B0:TB1","OSD:TEMP:B0:TE0","OSD:TEMP:B0:TE1","OSD:TEMP:B1:TD0"]
@@ -491,6 +503,7 @@ class MyApp(Tkinter.Frame):
         # Create GUI
         self.createGUI()
         
+# Main loop
 if __name__ == "__main__":
 	root = Tkinter.Tk()
 	root.title("HABIP Commands")
