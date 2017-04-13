@@ -430,16 +430,38 @@ class MyApp(Tkinter.Frame):
         # Create a new version of the command string that includes command number
         #    Each command should have a 4 digit (4 ASCII characters) number in front of it
         #    Increment this number as commands are sent
+        #    Need to make sure only transmit a max of 256 characters at a time
         finalCommandString = ""
+        finalCommandStringList = []
         for commandNumber in range(0, len(self.commandList)):
-            finalCommandString += "%04d"%(self.commandSentNumber) + ":" + self.commandList[commandNumber] + ";"
+            tempCommandString = "%04d"%(self.commandSentNumber) + ":" + self.commandList[commandNumber] + ";"
             self.commandSentNumber += 1
 
-        # Add commands to be sent to command log file
-        self.commandLogger.info(finalCommandString)
+            # Add the command string to a list if it is going to be too long to send and start a new string
+            if ((len(finalCommandString)+len(tempCommandString))>256):
+                finalCommandStringList.append(finalCommandString)
+                finalCommandString = ""
+                finalCommandString += tempCommandString
+            # Add the command string to the list if it is the last
+            elif (commandNumber==(len(self.commandList)-1)):
+                finalCommandString += tempCommandString
+                finalCommandStringList.append(finalCommandString)
+            else:
+                finalCommandString += tempCommandString
 
-        # Call beacon in Linux to transmit command(s)
-        subprocess.call(["beacon","-s","sm0",finalCommandString])
+        # Go through finalCommandStringList and transmit the elements
+        for commandStringToSend in finalCommandStringList:
+            # Add commands to be sent to command log file
+            self.commandLogger.info(commandStringToSend)
+
+            # Call beacon in Linux to transmit command(s)
+            subprocess.call(["beacon","-s","sm0",commandStringToSend])
+
+            # Sleep between transmissions
+            time.sleep(1) # 1 second
+
+        # Clear commands once done sending
+        self.clearCommands()
 
     # Remove last command from command "queue"
     def removeLastCommand(self):
