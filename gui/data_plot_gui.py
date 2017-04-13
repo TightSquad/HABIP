@@ -17,6 +17,8 @@ import ttk
 
 from matplotlib import pyplot as plt
 
+from decimal import Decimal
+
 LARGE_FONT= ("Verdana", 12)
 style.use("ggplot")
 
@@ -27,91 +29,132 @@ a = f.add_subplot(111)
 # Current sensor
 sensor = "B0:TD0" # default to BCM die temp sensor of Pi Hat 0
 
-# Sensor abbreviation to graph title dictionary
-graphTitleTable = {
-    "B0:TD0": "Pi Hat 0 BCM Die Temperature Sensor",
-    "B0:TB0": "Pi Hat 0 Board Temperature Sensor #0",
-    "B0:TB1": "Pi Hat 0 Board Temperature Sensor #1",
-    "B0:TE0": "Pi Hat 0 External Temperature Sensor #0",
-    "B0:TE1": "Pi Hat 0 External Temperature Sensor #1",
-    "B1:TD0": "Pi Hat 1 BCM Die Temperature Sensor",
-    "B1:TB0": "Pi Hat 1 Board Temperature Sensor #0",
-    "B1:TB1": "Pi Hat 1 Board Temperature Sensor #1",
-    "B1:TE0": "Pi Hat 1 External Temperature Sensor #0",
-    "B1:TE1": "Pi Hat 1 External Temperature Sensor #1",
-    "B2:TD0": "Pi Hat 2 BCM Die Temperature Sensor",
-    "B2:TB0": "Pi Hat 2 Board Temperature Sensor #0",
-    "B2:TB1": "Pi Hat 2 Board Temperature Sensor #1",
-    "B2:TE0": "Pi Hat 2 External Temperature Sensor #0",
-    "B2:TE1": "Pi Hat 2 External Temperature Sensor #1",
-    "B3:TD0": "Pi Hat 3 BCM Die Temperature Sensor",
-    "B3:TB0": "Pi Hat 3 Board Temperature Sensor #0",
-    "B3:TB1": "Pi Hat 3 Board Temperature Sensor #1",
-    "B3:TE0": "Pi Hat 3 External Temperature Sensor #0",
-    "B3:TE1": "Pi Hat 3 External Temperature Sensor #1",
-    "B4:TB0": "DAQCS Board Temperature Sensor #0",
-    "B5:TD0": "COMMS Board BCM Die Temperature Sensor",
-    "B5:TB0": "COMMS Board Temperature Sensor #0",
-    "B0:P0": "Pi Hat 0 Basic Pressure Sensor",
-    "B0:P1": "Pi Hat 0 Vacuum Pressure Sensor",
-    "B1:P0": "Pi Hat 1 Basic Pressure Sensor",
-    "B1:P1": "Pi Hat 1 Vacuum Pressure Sensor",
-    "B2:P0": "Pi Hat 2 Basic Pressure Sensor",
-    "B2:P1": "Pi Hat 2 Vacuum Pressure Sensor",
-    "B3:P0": "Pi Hat 3 Basic Pressure Sensor",
-    "B3:P1": "Pi Hat 3 Vacuum Pressure Sensor",
-    "B4:PO": "DAQCS Board Basic Pressure Sensor",
-    "B4:PB": "Balloon Pressure Sensor",
-    "B5:P0": "COMMS Board Basic Pressure Sensor",
-    "B0:H": "Pi Hat 0 Humidity Sensor",
-    "B1:H": "Pi Hat 1 Humidity Sensor",
-    "B2:H": "Pi Hat 2 Humidity Sensor",
-    "B3:H": "Pi Hat 3 Humidity Sensor",
-    "B0:V": "Pi Hat 0 Power Monitor - Supply Voltage",
-    "B0:C": "Pi Hat 0 Power Monitor - Supply Current",
-    "B1:V": "Pi Hat 1 Power Monitor - Supply Voltage",
-    "B1:C": "Pi Hat 1 Power Monitor - Supply Current",
-    "B2:V": "Pi Hat 2 Power Monitor - Supply Voltage",
-    "B2:C": "Pi Hat 2 Power Monitor - Supply Current",
-    "B3:V": "Pi Hat 3 Power Monitor - Supply Voltage",
-    "B3:C": "Pi Hat 3 Power Monitor - Supply Current",
-    "B4:V": "DAQCS Board Power Monitor - Supply Voltage",
-    "B4:C": "DAQCS Board Power Monitor - Supply Current",
-    "B4:XGY": "IMU Gyroscope X (Angular Velocity)",
-    "B4:XAC": "IMU Acceleration X",
-    "B4:YGY": "IMU Gyroscope Y (Angular Velocity)",
-    "B4:YAC": "IMU Acceleration Y",
-    "B4:ZGY": "IMU Gyroscope Z (Angular Velocity)",
-    "B4:ZAC": "IMU Acceleration Z",
-    "B4:MS": "Motor Speed",
-    "B4:MC": "Motor Current Draw",
-    "B4:MV": "Motor Battery Voltage",
-    "B4:MD": "Motor Direction (1=CW, 0=CCW)",
-    "B4:ME": "Motor Status (1=ON, 0=OFF)",
-    "B5:LAT": "GPS - Latitude",
-    "B5:LON": "GPS - Longitude",
-    "B5:TM": "GPS - Time",
-    "B5:SPD": "GPS - Speed",
-    "B5:ALT": "GPS - Altitude",
+# Sensor abbreviation dictionary
+# First value element is graph title associated with the sensor
+# Second value element is y axis label with units associated with the sensor
+# Third value is the index in the parsed data line (comma separated values on lines per received set of data) that the data for the sensor is at
+graphTable = {
+    "B0:TD0": ["Pi Hat 0 BCM Die Temperature Sensor","Temperature (degC)",5],
+    "B0:TB0": ["Pi Hat 0 Board Temperature Sensor #0","Temperature (degC)",1],
+    "B0:TB1": ["Pi Hat 0 Board Temperature Sensor #1","Temperature (degC)",2],
+    "B0:TE0": ["Pi Hat 0 External Temperature Sensor #0","Temperature (degC)",3],
+    "B0:TE1": ["Pi Hat 0 External Temperature Sensor #1","Temperature (degC)",4],
+    "B1:TD0": ["Pi Hat 1 BCM Die Temperature Sensor","Temperature (degC)",15],
+    "B1:TB0": ["Pi Hat 1 Board Temperature Sensor #0","Temperature (degC)",11],
+    "B1:TB1": ["Pi Hat 1 Board Temperature Sensor #1","Temperature (degC)",12],
+    "B1:TE0": ["Pi Hat 1 External Temperature Sensor #0","Temperature (degC)",13],
+    "B1:TE1": ["Pi Hat 1 External Temperature Sensor #1","Temperature (degC)",14],
+    "B2:TD0": ["Pi Hat 2 BCM Die Temperature Sensor","Temperature (degC)",25],
+    "B2:TB0": ["Pi Hat 2 Board Temperature Sensor #0","Temperature (degC)",21],
+    "B2:TB1": ["Pi Hat 2 Board Temperature Sensor #1","Temperature (degC)",22],
+    "B2:TE0": ["Pi Hat 2 External Temperature Sensor #0","Temperature (degC)",23],
+    "B2:TE1": ["Pi Hat 2 External Temperature Sensor #1","Temperature (degC)",24],
+    "B3:TD0": ["Pi Hat 3 BCM Die Temperature Sensor","Temperature (degC)",35],
+    "B3:TB0": ["Pi Hat 3 Board Temperature Sensor #0","Temperature (degC)",31],
+    "B3:TB1": ["Pi Hat 3 Board Temperature Sensor #1","Temperature (degC)",32],
+    "B3:TE0": ["Pi Hat 3 External Temperature Sensor #0","Temperature (degC)",33],
+    "B3:TE1": ["Pi Hat 3 External Temperature Sensor #1","Temperature (degC)",34],
+    "B4:TB0": ["DAQCS Board Temperature Sensor #0","Temperature (degC)",41],
+    "B5:TD0": ["COMMS Board BCM Die Temperature Sensor","Temperature (degC)",58],
+    "B5:TB0": ["COMMS Board Temperature Sensor #0","Temperature (degC)",57],
+    "B0:P0": ["Pi Hat 0 Basic Pressure Sensor","Pressure (mBar)",6],
+    "B0:P1": ["Pi Hat 0 Vacuum Pressure Sensor","Pressure (mBar)",7],
+    "B1:P0": ["Pi Hat 1 Basic Pressure Sensor","Pressure (mBar)",16],
+    "B1:P1": ["Pi Hat 1 Vacuum Pressure Sensor","Pressure (mBar)",17],
+    "B2:P0": ["Pi Hat 2 Basic Pressure Sensor","Pressure (mBar)",26],
+    "B2:P1": ["Pi Hat 2 Vacuum Pressure Sensor","Pressure (mBar)",27],
+    "B3:P0": ["Pi Hat 3 Basic Pressure Sensor","Pressure (mBar)",36],
+    "B3:P1": ["Pi Hat 3 Vacuum Pressure Sensor","Pressure (mBar)",37],
+    "B4:PO": ["DAQCS Board Basic Pressure Sensor","Pressure (mBar)",42],
+    "B4:PB": ["Balloon Pressure Sensor","Pressure (mBar)",43],
+    "B5:P0": ["COMMS Board Basic Pressure Sensor","Pressure (mBar)",59],
+    "B0:H": ["Pi Hat 0 Humidity Sensor","Relative Humidity (%)",8],
+    "B1:H": ["Pi Hat 1 Humidity Sensor","Relative Humidity (%)",18],
+    "B2:H": ["Pi Hat 2 Humidity Sensor","Relative Humidity (%)",28],
+    "B3:H": ["Pi Hat 3 Humidity Sensor","Relative Humidity (%)",38],
+    "B0:V": ["Pi Hat 0 Power Monitor - Supply Voltage","Voltage (V)",9],
+    "B0:C": ["Pi Hat 0 Power Monitor - Supply Current","Current (mA)",10],
+    "B1:V": ["Pi Hat 1 Power Monitor - Supply Voltage","Voltage (V)",19],
+    "B1:C": ["Pi Hat 1 Power Monitor - Supply Current","Current (mA)",20],
+    "B2:V": ["Pi Hat 2 Power Monitor - Supply Voltage","Voltage (V",29],
+    "B2:C": ["Pi Hat 2 Power Monitor - Supply Current","Current (mA)",30],
+    "B3:V": ["Pi Hat 3 Power Monitor - Supply Voltage","Voltage (V)",39],
+    "B3:C": ["Pi Hat 3 Power Monitor - Supply Current","Current (mA)",40],
+    "B4:V": ["DAQCS Board Power Monitor - Supply Voltage","Voltage (V)",44],
+    "B4:C": ["DAQCS Board Power Monitor - Supply Current","Current (mA)",45],
+    "B4:XGY": ["IMU Gyroscope X","Angular Velocity (deg/s)",46],
+    "B4:XAC": ["IMU Acceleration X","Acceleration (deg/s^2)",47],
+    "B4:YGY": ["IMU Gyroscope Y","Angular Velocity (deg/s)",48],
+    "B4:YAC": ["IMU Acceleration Y","Acceleration (deg/s^2)",49],
+    "B4:ZGY": ["IMU Gyroscope Z","Angular Velocity (deg/s)",50],
+    "B4:ZAC": ["IMU Acceleration Z","Acceleration (deg/s^2)",51],
+    "B4:MS": ["Motor Speed","Speed (RPM)",52],
+    "B4:MC": ["Motor Current Draw","Current (mA)",53],
+    "B4:MV": ["Motor Battery Voltage","Voltage (V)",54],
+    "B4:MD": ["Motor Direction (1=CW, 0=CCW)","",55],
+    "B4:ME": ["Motor Status (1=ON, 0=OFF)","",56],
+    "B5:LAT": ["GPS - Latitude","",60],
+    "B5:LON": ["GPS - Longitude","",61],
+    "B5:TM": ["GPS - Time","",62],
+    "B5:SPD": ["GPS - Speed","Speed (mph)",63],
+    "B5:ALT": ["GPS - Altitude","Altitude (meters)",64],
 }
+
+graphStartTime = None
 
 # Add the data of the currently selected sensor to a graph in the frame
 def animate(i):
-    pullData = open("sampleText.txt","r").read()
+    global graphStartTime
+
+    # Grab graph title, y axis label, data file index from dictionary based on current sensor
+    graphInfo = graphTable.get(sensor, ["ERROR with sensor value","ERROR"])
+
+    fileIndex = graphInfo[2]
+    
+    #pullData = open("sampleText.txt","r").read()
+    #dataList = pullData.split('\n')
+    #xList = []
+    #yList = []
+    #for eachLine in dataList:
+    #    if len(eachLine) > 1: # change how data is grabbed depending on desired sensor. Also don't add to list if there is "NULL"****************************************************
+    #        x, y = eachLine.split(',')
+    #        xList.append(int(x))
+    #        yList.append(int(y))
+
+    # Open data file and split up each line
+    pullData = open("fakeData.txt","r").read()
     dataList = pullData.split('\n')
     xList = []
     yList = []
+
+    # Loop through file lines
     for eachLine in dataList:
-        if len(eachLine) > 1:
-            x, y = eachLine.split(',')
-            xList.append(int(x))
-            yList.append(int(y))
+        if len(eachLine) > 0:
+            lineData = eachLine.split(',') # Sensor data is comma separated
+
+            # Data is on the y-axis
+            data = lineData[fileIndex] # Grab the data for the current sensor (a string with the value)
+
+            # If there is data present
+            if data != "NULL":
+                yList.append(Decimal(data)) # Add it to the list of y-values
+
+                # Plot time on x-axis
+                # First part of line is timestamp for data
+                h, m, s = lineData[0].split(':')
+                timeStampInMinutes = int(h)*60 + int(m) + int(s)/60
+                if graphStartTime == None: # Put as start time if first data received
+                    graphStartTime = timeStampInMinutes
+                    xList.append(0)
+                else:
+                    xList.append(timeStampInMinutes-graphStartTime) # Just want difference in time since starting
 
     a.clear()
     a.plot(xList, yList)
 
-    title = graphTitleTable.get(sensor, "ERROR with sensor value")
-    a.set_title(title)
+    a.set_title(graphInfo[0])
+    a.set_xlabel("Time Since Start (min)")
+    a.set_ylabel(graphInfo[1])
 
 class graphGui(tk.Tk):
     def __init__(self, *args, **kwargs):
