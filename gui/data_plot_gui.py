@@ -63,6 +63,36 @@ graphTitleTable = {
     "B4:PO": "DAQCS Board Basic Pressure Sensor",
     "B4:PB": "Balloon Pressure Sensor",
     "B5:P0": "COMMS Board Basic Pressure Sensor",
+    "B0:H": "Pi Hat 0 Humidity Sensor",
+    "B1:H": "Pi Hat 1 Humidity Sensor",
+    "B2:H": "Pi Hat 2 Humidity Sensor",
+    "B3:H": "Pi Hat 3 Humidity Sensor",
+    "B0:V": "Pi Hat 0 Power Monitor - Supply Voltage",
+    "B0:C": "Pi Hat 0 Power Monitor - Supply Current",
+    "B1:V": "Pi Hat 1 Power Monitor - Supply Voltage",
+    "B1:C": "Pi Hat 1 Power Monitor - Supply Current",
+    "B2:V": "Pi Hat 2 Power Monitor - Supply Voltage",
+    "B2:C": "Pi Hat 2 Power Monitor - Supply Current",
+    "B3:V": "Pi Hat 3 Power Monitor - Supply Voltage",
+    "B3:C": "Pi Hat 3 Power Monitor - Supply Current",
+    "B4:V": "DAQCS Board Power Monitor - Supply Voltage",
+    "B4:C": "DAQCS Board Power Monitor - Supply Current",
+    "B4:XGY": "IMU Gyroscope X (Angular Velocity)",
+    "B4:XAC": "IMU Acceleration X",
+    "B4:YGY": "IMU Gyroscope Y (Angular Velocity)",
+    "B4:YAC": "IMU Acceleration Y",
+    "B4:ZGY": "IMU Gyroscope Z (Angular Velocity)",
+    "B4:ZAC": "IMU Acceleration Z",
+    "B4:MS": "Motor Speed",
+    "B4:MC": "Motor Current Draw",
+    "B4:MV": "Motor Battery Voltage",
+    "B4:MD": "Motor Direction (1=CW, 0=CCW)",
+    "B4:ME": "Motor Status (1=ON, 0=OFF)",
+    "B5:LAT": "GPS - Latitude",
+    "B5:LON": "GPS - Longitude",
+    "B5:TM": "GPS - Time",
+    "B5:SPD": "GPS - Speed",
+    "B5:ALT": "GPS - Altitude",
 }
 
 # Add the data of the currently selected sensor to a graph in the frame
@@ -99,6 +129,10 @@ class graphGui(tk.Tk):
         # Create submenus
         self.createTempSensorMenu()
         self.createPresSensorMenu()
+        self.createHumidSensorMenu()
+        self.createPowerSensorMenu()
+        self.createReactionWheelMenu()
+        self.createGpsSensorMenu()
 
         # Configure top level sensor menu
         tk.Tk.config(self, menu=self.menubar)
@@ -168,7 +202,7 @@ class graphGui(tk.Tk):
         tempSensorCommsMenu.add_separator()
         tempSensorCommsMenu.add_command(label="Board #0", command=lambda: self.changeSensor("B5:TB0"))
         tempSensorMenu.add_cascade(label="COMMS", menu=tempSensorCommsMenu)
-        # Put submenus in temperature sensor menu
+        # Put temperature sensor menu in main menu
         self.menubar.add_cascade(label="Temp Sensors", menu=tempSensorMenu)
 
     def createPresSensorMenu(self):
@@ -208,8 +242,104 @@ class graphGui(tk.Tk):
         presSensorCommsMenu = tk.Menu(presSensorMenu, tearoff=0)
         presSensorCommsMenu.add_command(label="Basic", command=lambda: self.changeSensor("B5:P0"))
         presSensorMenu.add_cascade(label="COMMS", menu=presSensorCommsMenu)
-        # Put submenus in pressure sensor menu
-        self.menubar.add_cascade(label="Pres Sensors", menu=presSensorMenu)
+        # Put pressure sensor menu in main menu
+        self.menubar.add_cascade(label="Pressure Sensors", menu=presSensorMenu)
+
+    def createHumidSensorMenu(self):
+        # Create dropdown menu for humidity sensors
+        humidSensorMenu = tk.Menu(self.menubar, tearoff=0)
+        humidSensorMenu.add_command(label="Pi Hat 0", command=lambda: self.changeSensor("B0:H"))
+        humidSensorMenu.add_separator()
+        humidSensorMenu.add_command(label="Pi Hat 1", command=lambda: self.changeSensor("B1:H"))
+        humidSensorMenu.add_separator()
+        humidSensorMenu.add_command(label="Pi Hat 2", command=lambda: self.changeSensor("B2:H"))
+        humidSensorMenu.add_separator()
+        humidSensorMenu.add_command(label="Pi Hat 3", command=lambda: self.changeSensor("B3:H"))
+        # Add humidity sensor menu to main menu
+        self.menubar.add_cascade(label="Humidity Sensors", menu=humidSensorMenu)
+
+    def createPowerSensorMenu(self):
+        # Create dropdown menu for power monitor data
+        powerSensorMenu = tk.Menu(self.menubar, tearoff=0)
+        # Submenu for Pi Hat 0
+        powerSensorPiHat0Menu = tk.Menu(powerSensorMenu, tearoff=0)
+        powerSensorPiHat0Menu.add_command(label="Voltage", command=lambda: self.changeSensor("B0:V"))
+        powerSensorPiHat0Menu.add_separator()
+        powerSensorPiHat0Menu.add_command(label="Current", command=lambda: self.changeSensor("B0:C"))
+        powerSensorMenu.add_cascade(label="Pi Hat 0", menu=powerSensorPiHat0Menu)
+        # Submenu for Pi Hat 1
+        powerSensorPiHat1Menu = tk.Menu(powerSensorMenu, tearoff=0)
+        powerSensorPiHat1Menu.add_command(label="Voltage", command=lambda: self.changeSensor("B1:V"))
+        powerSensorPiHat1Menu.add_separator()
+        powerSensorPiHat1Menu.add_command(label="Current", command=lambda: self.changeSensor("B1:C"))
+        powerSensorMenu.add_cascade(label="Pi Hat 1", menu=powerSensorPiHat1Menu)
+        # Submenu for Pi Hat 2
+        powerSensorPiHat2Menu = tk.Menu(powerSensorMenu, tearoff=0)
+        powerSensorPiHat2Menu.add_command(label="Voltage", command=lambda: self.changeSensor("B2:V"))
+        powerSensorPiHat2Menu.add_separator()
+        powerSensorPiHat2Menu.add_command(label="Current", command=lambda: self.changeSensor("B2:C"))
+        powerSensorMenu.add_cascade(label="Pi Hat 2", menu=powerSensorPiHat2Menu)
+        # Submenu for Pi Hat 3
+        powerSensorPiHat3Menu = tk.Menu(powerSensorMenu, tearoff=0)
+        powerSensorPiHat3Menu.add_command(label="Voltage", command=lambda: self.changeSensor("B3:V"))
+        powerSensorPiHat3Menu.add_separator()
+        powerSensorPiHat3Menu.add_command(label="Current", command=lambda: self.changeSensor("B3:C"))
+        powerSensorMenu.add_cascade(label="Pi Hat 3", menu=powerSensorPiHat3Menu)
+        # Submenu for DAQCS host board
+        powerSensorDaqcsMenu = tk.Menu(powerSensorMenu, tearoff=0)
+        powerSensorDaqcsMenu.add_command(label="Voltage", command=lambda: self.changeSensor("B4:V"))
+        powerSensorDaqcsMenu.add_separator()
+        powerSensorDaqcsMenu.add_command(label="Current", command=lambda: self.changeSensor("B4:C"))
+        powerSensorMenu.add_cascade(label="DAQCS Host", menu=powerSensorDaqcsMenu)
+        # Put power sensors menu in main menu
+        self.menubar.add_cascade(label="Power Monitor", menu=powerSensorMenu)
+
+    def createReactionWheelMenu(self):
+        # Create dropdown menu for IMU and motor controller data
+        reactionWheelMenu = tk.Menu(self.menubar, tearoff=0)
+        # Submenu for IMU Data
+        imuDataMenu = tk.Menu(reactionWheelMenu, tearoff=0)
+        imuDataMenu.add_command(label="Gyroscope X", command=lambda: self.changeSensor("B4:XGY"))
+        imuDataMenu.add_separator()
+        imuDataMenu.add_command(label="Gyroscope Y", command=lambda: self.changeSensor("B4:YGY"))
+        imuDataMenu.add_separator()
+        imuDataMenu.add_command(label="Gyroscope Z", command=lambda: self.changeSensor("B4:ZGY"))
+        imuDataMenu.add_separator()
+        imuDataMenu.add_command(label="Acceleration X", command=lambda: self.changeSensor("B4:XAC"))
+        imuDataMenu.add_separator()
+        imuDataMenu.add_command(label="Acceleration Y", command=lambda: self.changeSensor("B4:YAC"))
+        imuDataMenu.add_separator()
+        imuDataMenu.add_command(label="Acceleration Z", command=lambda: self.changeSensor("B4:ZAC"))
+        reactionWheelMenu.add_cascade(label="IMU Data", menu=imuDataMenu)
+        # Submenu for motor controller data
+        motorCtlMenu = tk.Menu(reactionWheelMenu, tearoff=0)
+        motorCtlMenu.add_command(label="Motor Speed", command=lambda: self.changeSensor("B4:MS"))
+        motorCtlMenu.add_separator()
+        motorCtlMenu.add_command(label="Motor Current Draw", command=lambda: self.changeSensor("B4:MC"))
+        motorCtlMenu.add_separator()
+        motorCtlMenu.add_command(label="Motor Battery Voltage", command=lambda: self.changeSensor("B4:MV"))
+        motorCtlMenu.add_separator()
+        motorCtlMenu.add_command(label="Motor Direction", command=lambda: self.changeSensor("B4:MD"))
+        motorCtlMenu.add_separator()
+        motorCtlMenu.add_command(label="Motor Status", command=lambda: self.changeSensor("B4:ME"))
+        reactionWheelMenu.add_cascade(label="Motor Controller", menu=motorCtlMenu)
+        # Put reaction wheel menu in main menu
+        self.menubar.add_cascade(label="Reaction Wheel", menu=reactionWheelMenu)
+
+    def createGpsSensorMenu(self): # NOT SURE HOW GOING TO SHOW LATITUDE, LONGITUDE, TIME yet...... Need separate window or display instead of graph*****************
+        # Create dropdown menu for GPS data
+        gpsSensorMenu = tk.Menu(self.menubar, tearoff=0)
+        gpsSensorMenu.add_command(label="Latitude", command=lambda: self.changeSensor("B5:LAT"))
+        gpsSensorMenu.add_separator()
+        gpsSensorMenu.add_command(label="Longitude", command=lambda: self.changeSensor("B5:LON"))
+        gpsSensorMenu.add_separator()
+        gpsSensorMenu.add_command(label="Time", command=lambda: self.changeSensor("B5:TM"))
+        gpsSensorMenu.add_separator()
+        gpsSensorMenu.add_command(label="Speed", command=lambda: self.changeSensor("B5:SPD"))
+        gpsSensorMenu.add_separator()
+        gpsSensorMenu.add_command(label="Altitude", command=lambda: self.changeSensor("B5:ALT"))
+        # Put GPS sensor menu in main menu
+        self.menubar.add_cascade(label="GPS", menu=gpsSensorMenu)
 
     # Change current sensor
     def changeSensor(self, sensorAbbrev):
