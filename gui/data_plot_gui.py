@@ -111,16 +111,6 @@ def animate(i):
 
     fileIndex = graphInfo[2]
     
-    #pullData = open("sampleText.txt","r").read()
-    #dataList = pullData.split('\n')
-    #xList = []
-    #yList = []
-    #for eachLine in dataList:
-    #    if len(eachLine) > 1: # change how data is grabbed depending on desired sensor. Also don't add to list if there is "NULL"****************************************************
-    #        x, y = eachLine.split(',')
-    #        xList.append(int(x))
-    #        yList.append(int(y))
-
     # Open data file and split up each line
     pullData = open("fakeData.txt","r").read()
     dataList = pullData.split('\n')
@@ -149,9 +139,9 @@ def animate(i):
                 else:
                     xList.append(timeStampInMinutes-graphStartTime) # Just want difference in time since starting
 
+    # Update data graph
     a.clear()
     a.plot(xList, yList)
-
     a.set_title(graphInfo[0])
     a.set_xlabel("Time Since Start (min)")
     a.set_ylabel(graphInfo[1])
@@ -369,7 +359,7 @@ class graphGui(tk.Tk):
         # Put reaction wheel menu in main menu
         self.menubar.add_cascade(label="Reaction Wheel", menu=reactionWheelMenu)
 
-    def createGpsSensorMenu(self): # NOT SURE HOW GOING TO SHOW LATITUDE, LONGITUDE, TIME yet...... Need separate window or display instead of graph*****************
+    def createGpsSensorMenu(self): # NOT SURE HOW GOING TO SHOW LATITUDE, LONGITUDE, TIME yet...... Need separate window or display instead of graph*****************Just display them in a separate window always
         # Create dropdown menu for GPS data
         gpsSensorMenu = tk.Menu(self.menubar, tearoff=0)
         gpsSensorMenu.add_command(label="Latitude", command=lambda: self.changeSensor("B5:LAT"))
@@ -402,5 +392,5 @@ class DataGraph(tk.Frame):
 if __name__ == "__main__":
     app = graphGui()
     app.geometry("800x600")
-    ani = animation.FuncAnimation(f, animate, interval=1000)
+    ani = animation.FuncAnimation(f, animate, interval=1000) #1000ms = 1s
     app.mainloop()
