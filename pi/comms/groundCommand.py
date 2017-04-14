@@ -1,5 +1,4 @@
 """
-file: groundCommand.py
 author: Connor Goldberg
 project: High Altitude Balloon Instrumentation Platform
 description: Abstract the ground commands format
@@ -333,9 +332,8 @@ class timeCommand(groundCommand):
 
     def execute(self):
         # Execute time command
-        localCommandID = "06"
-        lc = localCommand.localCommand(logger=self.logger, commandID=localCommandID, data=str(self.seconds))
-        print lc
+        command = localCommand.timeCommand(logger=self.logger, secondsString=str(self.seconds))
+
 
         self.logger.log.info("Executing command: {}".format(lc))
 

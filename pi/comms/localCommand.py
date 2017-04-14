@@ -1,5 +1,4 @@
 """
-file: localCommand.py
 author: Connor Goldberg
 project: High Altitude Balloon Instrumentation Platform
 description: Code for commands between pis and the msp
@@ -9,6 +8,17 @@ class localCommand(object):
 	"""
 	Class for representing local platform commands
 	"""
+
+	commandIDTable = {
+		"DATA" 		: "00",
+		"ALLDATA" 	: "01",
+		"RWPWR"		: "03",
+		"RWCTL"		: "04",
+		"RST"		: "05",
+		"TIME"		: "06",
+
+		"CUTDOWN" : "FF"
+	}
 
 	# static members
 	startChar = '{'
@@ -58,6 +68,9 @@ class localCommand(object):
 				localCommand.seperator.join(self.data) if self.data else ''),
 				localCommand.endChar)
 
+	def send(self):
+
+
 	@staticmethod
 	def parseCommandFromString(commandString, logger):
 		if not commandString.startswith(localCommand.startChar):
@@ -95,6 +108,10 @@ class localCommand(object):
 				return None
 			else:
 				return localCommand(logger=logger, data=fields[0:], isAllData=True)
+
+	@staticmethod
+	def timeCommand(logger, secondsString):
+		return localCommand(logger=logger, commandID=localCommand.commandIDTable["TIME"], data=secondsString)
 
 ##### Testing
 if __name__ == "__main__":

@@ -1,5 +1,4 @@
 """
-file: board.py
 author: Connor Goldberg
 project: High Altitude Balloon Instrumentation Platform
 description: ID codes for the different boards and sensors
@@ -48,8 +47,8 @@ class piHat(board):
         "P0"    : None, # Pressure sensor 0 (basic)
         "P1"    : None, # Pressure sensor 1 (vacuum)
         "H"     : None, # Humidity
-        "BV"    : None, # Battery voltage
-        "BC"    : None  # Battery current
+        "V"    : None, # Battery voltage
+        "C"    : None  # Battery current
     }
 
     def __init__(self, num):
@@ -64,6 +63,7 @@ class daqcsHost(board):
     sensors = {
         "TB0"   : None, # Board temp
         "P0"    : None, # Pressure
+        "PB"    : None, # Pressure
         "V"     : None, # Supply voltage
         "C"     : None, # Supply current
         "XGY"   : None, # IMU Gyroscope X
@@ -94,6 +94,8 @@ class commsHost(board):
         "LAT"   : None, # GPS - latitude
         "LON"   : None, # GPS - longitude
         "TM"    : None  # GPS - time
+        "SPD"    : None  # GPS - speed
+        "ALT"    : None  # GPS - altitude
     }
 
     def __init__(self, num):

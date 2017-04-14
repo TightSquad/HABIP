@@ -41,4 +41,5 @@ class groundComms(object):
                 command.execute()
             except Exception as e:
                 self.logger.log.error("Got exception: {} trying to execute command: {}".format(e, command.commandString))
-            # print command.commandString
+            
+            self.logger.log.info("Executed command: {}".format(command.commandString))
