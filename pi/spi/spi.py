@@ -53,6 +53,7 @@ class spi(object):
 			if resp:
 				response.append(resp)
 
+		self.logger.log.debug("sent string: {}".format(string))
 		return response
 
 	def sendByte(self, byte):
@@ -66,7 +67,7 @@ class spi(object):
 			self.logger.log.debug("sent byte: {}, received byte: {}"
 				.format(hex(byte), hex(resp)))
 		except Exception as e:
-			self.logger.log.error("Could not send byte: {}, Exception: {}"
+			self.logger.log.error("could not send byte: {}, Exception: {}"
 				.format(hex(byte), e))
 
 		return resp
@@ -92,7 +93,9 @@ class spi(object):
 			if valid:
 				response.append(char)
 
-		return "".join(response)
+		string = "".join(response)
+		self.logger.log.debug("received string: {}".format(string))
+		return string
 
 
 ########### Testing #############
