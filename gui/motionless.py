@@ -2,6 +2,8 @@
 
 import re
 from six.moves.urllib.parse import quote, urlparse
+#from urlparse import urlparse
+#from urllib import quote
 from gpolyencode import GPolyEncoder
 
 """

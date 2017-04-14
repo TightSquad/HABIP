@@ -1,4 +1,5 @@
-
+# Need to install six
+# Need to install pillow
 
 # Help with map window code from: http://hci574.blogspot.com/2010/04/using-google-maps-static-images.html
 # Image updating code based on: http://stackoverflow.com/questions/23969883/tkinter-changing-image-on-a-canvas
