@@ -4,9 +4,9 @@ project: High Altitude Balloon Instrumentation Platform
 description: Default logger settings and helper functions
 """
 
-import common
 import logging
 import time
+import os
 
 
 class logger(object):
@@ -17,7 +17,7 @@ class logger(object):
 
 	def __init__(self, loggerName, logFileName=None, logFormat=None,
 			dateFormat=None, logFileHandler=None, baseLogger=True,
-			logErrorToConsole=True):
+			logErrorToConsole=True, useLogsDirectory=True):
 		self.loggerName = loggerName
 		self.logFileName = None
 		self.logFormat = None
@@ -25,6 +25,8 @@ class logger(object):
 		self.logFileHandler = None
 		self.log = None
 		self.logErrorToConsole = logErrorToConsole
+		self.useLogsDirectory = useLogsDirectory
+		self.logDirectory = "logs"
 
 		if logFileName is not None:
 			self.logFileName = logFileName
@@ -65,6 +67,16 @@ class logger(object):
 		ch.setLevel(logging.ERROR)
 		ch.setFormatter(formatter)
 
+		# Create logs directory
+		if self.useLogsDirectory:
+			if not os.path.isdir(self.logDirectory):
+				try:
+					os.mkdir(self.logDirectory)
+				except Exception as e:
+					print "ERROR: {}".format(e)
+					
+			self.logFileName = os.path.join(self.logDirectory, self.logFileName)
+
 		# File Handler
 		if self.logFileHandler is None:
 			fh = logging.FileHandler(filename=self.logFileName)
@@ -85,7 +97,8 @@ class logger(object):
 		c = logger(newName, logFileName=self.logFileName,
 			logFormat=self.logFormat, dateFormat=self.dateFormat,
 			logFileHandler=self.logFileHandler, baseLogger=False,
-			logErrorToConsole=self.logErrorToConsole)
+			logErrorToConsole=self.logErrorToConsole,
+			useLogsDirectory=self.useLogsDirectory)
 		return c
 
 # Testing

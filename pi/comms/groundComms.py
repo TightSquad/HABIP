@@ -4,6 +4,8 @@ project: High Altitude Balloon Instrumentation Platform
 description: Abstraction for the 2m communicaions
 """
 
+import axreader
+import common
 import groundCommand
 import logger
 
@@ -12,12 +14,26 @@ class groundComms(object):
     Handle the 2m communications
     """
 
-    def __init__(self):
+    def __init__(self, axLogPath, interfaces):
         self.groundCommandList = []
 
         # Create the logger
         self.logger = logger.logger("groundComms")
 
+        self.interfaces = interfaces
+
+        AX_INTERFACES = ["sm0"]
+        AX_SOURCES = ["W2RIT"]
+        AX_DESTINATIONS = ["W2RIT-11"]
+
+        self.reader = axreader.axreader(filePath=axLogPath, interfaces=AX_INTERFACES, sources=AX_SOURCES, destinations=AX_DESTINATIONS)
+
+    def update(self):
+        # Check the axlog for new packets
+        packets = reader.getNewData()
+
+        for packet in packets:
+            self.parseCommands(packet.data)
 
     def parseCommands(self, inputString):
         commandStrings = inputString.split(';')
@@ -33,12 +49,14 @@ class groundComms(object):
                     self.groundCommandList.insert(0, parsedCommand)
 
 
-    def executeCommands(self):
+    def executeCommands(self, withDelay=None):
         while self.groundCommandList:
             command = self.groundCommandList.pop()
             
             try:
-                command.execute()
+                command.execute(interfaces=self.interfaces)
+                if withDelay:
+                    common.msleep(withDelay)
             except Exception as e:
                 self.logger.log.error("Got exception: {} trying to execute command: {}".format(e, command.commandString))
             

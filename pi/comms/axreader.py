@@ -16,7 +16,7 @@ class ax25packet(object):
 		self.data = ""
 
 	def __str__(self):
-		return "interface: {}\nsource: {}\ndestination: {}\nlength: {}\ndata: {}".format(self.interface, self.source, self.destination, self.length, self.data)
+		return "interface: {}; source: {}; destination: {}; length: {}; data: {}".format(self.interface, self.source, self.destination, self.length, self.data)
 
 	def isComplete(self):
 		return True if (self.interface and self.source and self.destination and self.length and self.data) else False
@@ -149,7 +149,7 @@ class axreader(object):
 		rawPackets = self.separatePackets(lines)
 
 		if not rawPackets:
-			return None
+			return []
 		else:
 			for rawPacket in rawPackets:
 				packet = ax25packet.parseFromList(rawPacket)
@@ -167,6 +167,7 @@ class axreader(object):
 				if self.destinations and packet.destination not in self.destinations:
 					continue
 
+				self.logger.log.debug("Found packet: {}".format(packet))
 				packets.append(packet)
 
 		return packets

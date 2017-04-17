@@ -4,6 +4,8 @@ project: High Altitude Balloon Instrumentation Platform
 description: Abstract the ground commands format
 """
 
+import subprocess # To change the system time
+
 import board
 import localCommand
 
@@ -69,7 +71,7 @@ class groundCommand(object):
         pass
         print "ACK:{0:04d}".format(self.index)
 
-    def execute(self):
+    def execute(self, interfaces):
         raise NotImplementedError
 
     @staticmethod
@@ -127,9 +129,10 @@ class camCommand(groundCommand):
         else:
             self.valid = True
     
-    def execute(self):
+    def execute(self, interfaces):
         # Change the camera to the index based on the subCommand
-        pass
+        self.logger.log.info("Executing change camera to: {}".format(self.sub))
+        interfaces.cameraMux.selectCamera(camCommand.subCommand[self.sub])
 
 
 class osdCommand(groundCommand):
@@ -185,7 +188,7 @@ class osdCommand(groundCommand):
                     self.sensor = self.params[1]
                     self.valid = True
         
-    def execute(self):
+    def execute(self, interfaces):
         # Execute osd command
         pass
 
@@ -232,20 +235,21 @@ class reactionWheelCommand(groundCommand):
                     self.logger.log.error("Could not convert {} to degrees".format(split[1]))
 
 
-    def execute(self):
+    def execute(self, interfaces):
         # Execute reaction wheel command
+        lc = None
 
         if self.sub == "ON" or self.sub == "OFF":
             localCommandID = "03"
             data = '1' if self.sub == "ON" else '0'
             lc = localCommand.localCommand(logger=self.logger, commandID=localCommandID, data=data)
-            print lc
         else:
             localCommandID = "04"
             lc = localCommand.localCommand(logger=self.logger, commandID=localCommandID, data=[self.sub, str(self.degrees)])
-            print lc
 
-        self.logger.log.info("Executing command: {}".format(lc))
+        self.logger.log.info("Sending SPI command: {}".format(lc))
+        interfaces.spi.sendString(str(lc))
+
 
 class resetCommand(groundCommand):
     """
@@ -265,13 +269,13 @@ class resetCommand(groundCommand):
         else:
             self.valid = True
 
-    def execute(self):
+    def execute(self, interfaces):
         # Execute reset command
         localCommandID = "05"
         lc = localCommand.localCommand(logger=self.logger, commandID=localCommandID, data=self.sub)
-        print lc
 
-        self.logger.log.info("Executing command: {}".format(lc))
+        self.logger.log.info("Sending SPI command: {}".format(lc))
+        interfaces.spi.sendString(str(lc))
 
 class atvCommand(groundCommand):
     """
@@ -305,7 +309,7 @@ class atvCommand(groundCommand):
             except Exception as e:
                 self.logger.log.error("Could not convert power of {} to float".format(self.params[0]))
 
-    def execute(self):
+    def execute(self, interfaces):
         # Execute ATV command
         pass
 
@@ -330,13 +334,18 @@ class timeCommand(groundCommand):
             except Exception as e:
                 self.logger.log.error("Could not convert time to an int: {}".format(self.sub))
 
-    def execute(self):
+    def execute(self, interfaces):
         # Execute time command
         command = localCommand.timeCommand(logger=self.logger, secondsString=str(self.seconds))
 
+        self.logger.log.info("Sending SPI command: {}".format(lc))
+        interfaces.spi.sendString(str(lc))
 
-        self.logger.log.info("Executing command: {}".format(lc))
+        # Set our local time
+        cmd = ["sudo", "date", "-s", "@{}".format(self.seconds)]
+        resp = subprocess.Popen(cmd)
 
+        self.logger.log.info("Set local datetime to: {}".format(resp))
 
 class cutdownCommand(groundCommand):
     """
@@ -348,10 +357,10 @@ class cutdownCommand(groundCommand):
         super(self.__class__, self).__init__(logger=commsLogger, commandString=commandString, fields=fields)
         self.valid = True
 
-    def execute(self):
+    def execute(self, interfaces):
         # Execute cutdown command
         localCommandID = "FF"
         lc = localCommand.localCommand(logger=self.logger, commandID=localCommandID)
-        print lc
 
-        self.logger.log.info("Executing command: {}".format(lc))
+        self.logger.log.info("Sending SPI command: {}".format(lc))
+        interfaces.spi.sendString(str(lc))

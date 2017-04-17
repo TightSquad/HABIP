@@ -6,7 +6,6 @@ description: Abstracts the serial interface for the OSD-232 analog video
     overlay board
 """
 import serial
-import sys
 
 import common
 import logger
@@ -99,7 +98,6 @@ class osd232(object):
         
         if not self.connection.open():
         	self.logger.log.error("Could not open uart interface")
-        	sys.exit(1)
         else:
         	self.logger.log.info("Opened uart interface for osd")
 
