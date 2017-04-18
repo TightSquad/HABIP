@@ -112,7 +112,7 @@ def animate(i):
     fileIndex = graphInfo[2]
     
     # Open data file and split up each line
-    pullData = open("fakeData.txt","r").read()
+    pullData = open("/home/spex/habip_data.log","r").read()
     dataList = pullData.split('\n')
     xList = []
     yList = []
@@ -362,12 +362,12 @@ class graphGui(tk.Tk):
     def createGpsSensorMenu(self): # NOT SURE HOW GOING TO SHOW LATITUDE, LONGITUDE, TIME yet...... Need separate window or display instead of graph*****************Just display them in a separate window always
         # Create dropdown menu for GPS data
         gpsSensorMenu = tk.Menu(self.menubar, tearoff=0)
-        gpsSensorMenu.add_command(label="Latitude", command=lambda: self.changeSensor("B5:LAT"))
-        gpsSensorMenu.add_separator()
-        gpsSensorMenu.add_command(label="Longitude", command=lambda: self.changeSensor("B5:LON"))
-        gpsSensorMenu.add_separator()
-        gpsSensorMenu.add_command(label="Time", command=lambda: self.changeSensor("B5:TM"))
-        gpsSensorMenu.add_separator()
+        #gpsSensorMenu.add_command(label="Latitude", command=lambda: self.changeSensor("B5:LAT"))
+        #gpsSensorMenu.add_separator()
+        #gpsSensorMenu.add_command(label="Longitude", command=lambda: self.changeSensor("B5:LON"))
+        #gpsSensorMenu.add_separator()
+        #gpsSensorMenu.add_command(label="Time", command=lambda: self.changeSensor("B5:TM"))
+        #gpsSensorMenu.add_separator()
         gpsSensorMenu.add_command(label="Speed", command=lambda: self.changeSensor("B5:SPD"))
         gpsSensorMenu.add_separator()
         gpsSensorMenu.add_command(label="Altitude", command=lambda: self.changeSensor("B5:ALT"))
