@@ -566,23 +566,24 @@ class MyApp(Tkinter.Frame):
         # Create GUI
         self.createGUI()
 
+
+        # Open up command acknowledgement log file
+        self.ackFileHandle = open("/home/spex/habip_ack.log","r")
+        self.ackFileHandle.seek(0,2) # Seek to the end of the log file
+
         # Poll command acknowledgement file for acknowledged commands
-        self.cmdAckNum = 0
+        #self.cmdAckNum = 0
         self.id = self.after(1000, self.commandAckLoop)
 
     # Check command acknowledgement file
     def commandAckLoop(self):
-        # Open file and split up each line
-        ackData = open("/home/spex/habip_ack.log","r").read()
-        ackList = ackData.split("\n")
-
-        # Just continue if there are new acknowledgements
-        if len(ackList) > self.cmdAckNum:
-            for newCmdNum in range(self.cmdAckNum,len(ackList)):
-            	ackLine = ackList[newCmdNum].split(",")
-                self.cmdAckTextBox.insert(Tkinter.END,ackLine[1]+"\n")
-
-            self.cmdAckNum = len(ackList)
+        # Grab new acknowledgement lines
+        ackLine = self.ackFileHandle.readline()
+        while ackLine:
+            if len(ackLine)>1:
+                ackLineParts = ackLine.split(",")
+                self.cmdAckTextBox.insert(Tkinter.END,ackLineParts[1])
+            ackLine = self.ackFileHandle.readline()
 
         # Keep checking for more command acknowledgements (keep re-calling this function) every 1000ms
         self.id = self.after(1000, self.commandAckLoop)
@@ -591,7 +592,7 @@ class MyApp(Tkinter.Frame):
 if __name__ == "__main__":
 	root = Tkinter.Tk()
 	root.title("HABIP Commands")
-	root.geometry('{}x{}'.format(1250,700))
+	root.geometry('{}x{}'.format(1300,700))
 	app = MyApp(master=root)
 	app.mainloop()
 	root.destroy()
