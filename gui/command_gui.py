@@ -498,7 +498,6 @@ class MyApp(Tkinter.Frame):
             time.sleep(1) # 1 second
 
         # Clear commands once done sending
-        print "here"
         self.clearCommands()
 
     # Remove last command from command "queue"
@@ -559,7 +558,7 @@ class MyApp(Tkinter.Frame):
         # Create command log file
         self.commandLogger = logging.getLogger('myapp')
         self.loggerHandler = logging.FileHandler('./command.log')
-        self.loggerFormatter = logging.Formatter('%(asctime)s %(message)s')
+        self.loggerFormatter = logging.Formatter('%(asctime)s %(message)s')#,datefmt='%H:%M:%S')
         self.loggerHandler.setFormatter(self.loggerFormatter)
         self.commandLogger.addHandler(self.loggerHandler)
         self.commandLogger.setLevel(logging.INFO)
