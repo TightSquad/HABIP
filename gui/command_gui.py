@@ -1,14 +1,13 @@
-import Tkinter
-import time
-import logging
+import Tkinter # Needed to create the GUI
+import time # Needed to get timestamps
+import logging # Needed for creating command log file
+import subprocess # Needed for calling soundmodem's beacon command to transmit commands
 
+# Main command GUI class
 class MyApp(Tkinter.Frame):
-    def say_hi(self):
-        print "Hello, World"
-
     # Create camera number selection buttons
     def createCamSelect(self):
-        self.camSelFrame = Tkinter.Frame(root, bd=2, relief=Tkinter.SUNKEN)
+        self.camSelFrame = Tkinter.Frame(self.topFrame, bd=2, relief=Tkinter.SUNKEN)
         self.camSelButton = Tkinter.Button(self.camSelFrame, text="Camera Number", command=lambda: self.camSelectionMade()).grid(row=0,column=5)
         self.camSelVal = Tkinter.IntVar()
         Tkinter.Radiobutton(self.camSelFrame, text="CAM0", variable=self.camSelVal, value=0).grid(row=0,column=6)
@@ -16,7 +15,7 @@ class MyApp(Tkinter.Frame):
         Tkinter.Radiobutton(self.camSelFrame, text="CAM2", variable=self.camSelVal, value=2).grid(row=0,column=8)
         Tkinter.Radiobutton(self.camSelFrame, text="CAM3", variable=self.camSelVal, value=3).grid(row=0,column=9)
         #root.grid_rowconfigure(1, weight=1)
-        self.camSelFrame.grid()
+        self.camSelFrame.grid(row=0,column=0)
 
     # Add camera selection command to command list to be sent
     def camSelectionMade(self):
@@ -33,7 +32,7 @@ class MyApp(Tkinter.Frame):
 
     # Create OSD temp sensor source select buttons
     def createOsdTempSelect(self):
-        self.osdTempFrame = Tkinter.Frame(root, bd=2, relief=Tkinter.SUNKEN)
+        self.osdTempFrame = Tkinter.Frame(self.topFrame, bd=2, relief=Tkinter.SUNKEN)
         self.osdTempSelVal = Tkinter.IntVar()
         self.osdTempButton = Tkinter.Button(self.osdTempFrame, text="OSD Temp Source", command=lambda: self.osdTempSelectionMade())
         self.osdTempButton.grid(row=4,column=0)
@@ -60,7 +59,7 @@ class MyApp(Tkinter.Frame):
         Tkinter.Radiobutton(self.osdTempFrame, text="DAQCS Board", variable=self.osdTempSelVal, value=21).grid(row=2,column=5, sticky=Tkinter.W)
         Tkinter.Radiobutton(self.osdTempFrame, text="COMMS BCM Die", variable=self.osdTempSelVal, value=22).grid(row=3,column=5, sticky=Tkinter.W)
         Tkinter.Radiobutton(self.osdTempFrame, text="COMMS Board", variable=self.osdTempSelVal, value=23).grid(row=4,column=5, sticky=Tkinter.W)
-        self.osdTempFrame.grid()
+        self.osdTempFrame.grid(row=1,column=0)
 
     # Add OSD temp sensor source select to command list to be sent
     def osdTempSelectionMade(self):
@@ -96,7 +95,7 @@ class MyApp(Tkinter.Frame):
 
     # Create OSD pressure sensor source select buttons
     def createOsdPresSelect(self):
-        self.osdPresFrame = Tkinter.Frame(root, bd=2, relief=Tkinter.SUNKEN)
+        self.osdPresFrame = Tkinter.Frame(self.topFrame, bd=2, relief=Tkinter.SUNKEN)
         self.osdPresSelVal = Tkinter.IntVar()
         self.osdPresButton = Tkinter.Button(self.osdPresFrame, text="OSD Pres Source", command=lambda: self.osdPresSelectionMade())
         self.osdPresButton.grid(row=9,column=0)
@@ -109,8 +108,9 @@ class MyApp(Tkinter.Frame):
         Tkinter.Radiobutton(self.osdPresFrame, text="Pi3 Basic", variable=self.osdPresSelVal, value=7).grid(row=10,column=2, sticky=Tkinter.W)
         Tkinter.Radiobutton(self.osdPresFrame, text="Pi3 Vacuum", variable=self.osdPresSelVal, value=8).grid(row=11,column=2, sticky=Tkinter.W)
         Tkinter.Radiobutton(self.osdPresFrame, text="DAQCS Basic", variable=self.osdPresSelVal, value=9).grid(row=8,column=3, sticky=Tkinter.W)
-        Tkinter.Radiobutton(self.osdPresFrame, text="COMMS Basic", variable=self.osdPresSelVal, value=10).grid(row=9,column=3, sticky=Tkinter.W)
-        self.osdPresFrame.grid()
+        Tkinter.Radiobutton(self.osdPresFrame, text="Balloon", variable=self.osdPresSelVal, value=10).grid(row=9,column=3, sticky=Tkinter.W)
+        Tkinter.Radiobutton(self.osdPresFrame, text="COMMS Basic", variable=self.osdPresSelVal, value=11).grid(row=10,column=3, sticky=Tkinter.W)
+        self.osdPresFrame.grid(row=2,column=0)
 
     # Add OSD pressure sensor source select to command list to be sent
     def osdPresSelectionMade(self):
@@ -125,7 +125,8 @@ class MyApp(Tkinter.Frame):
             7: "OSD:PRES:B3:P0",
             8: "OSD:PRES:B3:P1",
             9: "OSD:PRES:B4:P0",
-            10: "OSD:PRES:B5:P0",
+            10: "OSD:PRES:B4:PB",
+            11: "OSD:PRES:B5:P0",
         }
 
         self.osdPresSelCmdString = osdPresSelTable.get(self.osdPresSelVal.get(),"OSD:PRES:B0:P0")
@@ -133,14 +134,14 @@ class MyApp(Tkinter.Frame):
 
     # Create OSD humidity sensor source select buttons
     def createOsdHumidSelect(self):
-        self.osdHumidSelFrame = Tkinter.Frame(root, bd=2, relief=Tkinter.SUNKEN)
+        self.osdHumidSelFrame = Tkinter.Frame(self.topFrame, bd=2, relief=Tkinter.SUNKEN)
         self.osdHumidButton = Tkinter.Button(self.osdHumidSelFrame, text="OSD Humid Source", command=lambda: self.osdHumidSelectionMade()).grid(row=13,column=5)
         self.osdHumidSelVal = Tkinter.IntVar()
         Tkinter.Radiobutton(self.osdHumidSelFrame, text="Pi0", variable=self.osdHumidSelVal, value=0).grid(row=13,column=6)
         Tkinter.Radiobutton(self.osdHumidSelFrame, text="Pi1", variable=self.osdHumidSelVal, value=1).grid(row=13,column=7)
         Tkinter.Radiobutton(self.osdHumidSelFrame, text="Pi2", variable=self.osdHumidSelVal, value=2).grid(row=13,column=8)
         Tkinter.Radiobutton(self.osdHumidSelFrame, text="Pi3", variable=self.osdHumidSelVal, value=3).grid(row=13,column=9)
-        self.osdHumidSelFrame.grid()
+        self.osdHumidSelFrame.grid(row=3,column=0)
 
     # Add OSD humidity sensor source select to command list to be sent
     def osdHumidSelectionMade(self):
@@ -157,13 +158,13 @@ class MyApp(Tkinter.Frame):
 
     # Create OSD power control portion of GUI
     def createOsdPowerControl(self):
-        self.osdPwrCtlFrame = Tkinter.Frame(root, bd=2, relief=Tkinter.SUNKEN)
+        self.osdPwrCtlFrame = Tkinter.Frame(self.topFrame, bd=2, relief=Tkinter.SUNKEN)
         self.osdPwrCtlLabel = Tkinter.Label(self.osdPwrCtlFrame, text="OSD Power Control:")
         self.osdPwrCtlLabel.grid(row=15,column=0)
         self.osdPwrOnButton = Tkinter.Button(self.osdPwrCtlFrame, text="ON", command=lambda: self.osdPwrCtlSelectionMade(0)).grid(row=15,column=1)
         self.osdPwrOffButton = Tkinter.Button(self.osdPwrCtlFrame, text="OFF", command=lambda: self.osdPwrCtlSelectionMade(1)).grid(row=15,column=2)
         self.osdPwrRstButton = Tkinter.Button(self.osdPwrCtlFrame, text="RESET", command=lambda: self.osdPwrCtlSelectionMade(2)).grid(row=15,column=3)
-        self.osdPwrCtlFrame.grid()
+        self.osdPwrCtlFrame.grid(row=4,column=0)
 
     # Add OSD power control button select to command list to be sent
     def osdPwrCtlSelectionMade(self,argument=0):
@@ -179,7 +180,7 @@ class MyApp(Tkinter.Frame):
 
     # Create reaction wheel control portion of GUI
     def createRxnWheelControl(self):
-        self.rxnWhlCtlFrame = Tkinter.Frame(root, bd=2, relief=Tkinter.SUNKEN)
+        self.rxnWhlCtlFrame = Tkinter.Frame(self.topFrame, bd=2, relief=Tkinter.SUNKEN)
         self.rxnWhlPwrCtlLabel = Tkinter.Label(self.rxnWhlCtlFrame, text="Reaction Wheel Power Control:")
         self.rxnWhlPwrCtlLabel.grid(row=17,column=0)
         self.rxnWhlDirection = Tkinter.IntVar()
@@ -198,7 +199,7 @@ class MyApp(Tkinter.Frame):
         self.rxnWhlDegLabel.grid(row=17,column=6)
         self.rxnWhlDegEntry = Tkinter.Entry(self.rxnWhlCtlFrame, textvariable=self.rxnWhlDegrees, width=5)
         self.rxnWhlDegEntry.grid(row=18,column=6)
-        self.rxnWhlCtlFrame.grid()
+        self.rxnWhlCtlFrame.grid(row=5,column=0)
 
     # Check the reaction wheel degree entry value
     def rxnWhlDegCheck(self,argument=0):
@@ -233,7 +234,7 @@ class MyApp(Tkinter.Frame):
 
     # Create board reset command portion of GUI
     def createBoardResetControl(self):
-        self.boardRstFrame = Tkinter.Frame(root, bd=2, relief=Tkinter.SUNKEN)
+        self.boardRstFrame = Tkinter.Frame(self.topFrame, bd=2, relief=Tkinter.SUNKEN)
         self.boardRstLabel = Tkinter.Label(self.boardRstFrame, text="Board Reset Control:")
         self.boardRstLabel.grid(row=20,column=0)
         self.boardRstBoardVal = Tkinter.IntVar()
@@ -242,7 +243,7 @@ class MyApp(Tkinter.Frame):
         Tkinter.Radiobutton(self.boardRstFrame, text="Pi1", variable=self.boardRstBoardVal, value=1).grid(row=20,column=3)
         Tkinter.Radiobutton(self.boardRstFrame, text="Pi2", variable=self.boardRstBoardVal, value=2).grid(row=20,column=4)
         Tkinter.Radiobutton(self.boardRstFrame, text="Pi3", variable=self.boardRstBoardVal, value=3).grid(row=20,column=5)
-        self.boardRstFrame.grid()
+        self.boardRstFrame.grid(row=6,column=0)
 
     # Add board reset control button select to command list to be sent
     def boardRstSelectionMade(self,argument=0):
@@ -259,7 +260,7 @@ class MyApp(Tkinter.Frame):
 
     # Create ATV power control command portion of GUI
     def createAtvPwrControl(self):
-        self.atvPwrCtlFrame = Tkinter.Frame(root, bd=2, relief=Tkinter.SUNKEN)
+        self.atvPwrCtlFrame = Tkinter.Frame(self.topFrame, bd=2, relief=Tkinter.SUNKEN)
         self.atvPwrCtlLabel = Tkinter.Label(self.atvPwrCtlFrame, text="ATV Output Power (Watts):")
         self.atvPwrCtlLabel.grid(row=22,column=0)
         self.atvPwrCtlVal = Tkinter.DoubleVar()
@@ -267,7 +268,7 @@ class MyApp(Tkinter.Frame):
         self.atvPwrCtlSlide = Tkinter.Scale(self.atvPwrCtlFrame, from_=0.5, to=5.0, resolution = 0.5, orient=Tkinter.HORIZONTAL, variable=self.atvPwrCtlVal)
         self.atvPwrCtlSlide.set(1.5)
         self.atvPwrCtlSlide.grid(row=22,column=2)
-        self.atvPwrCtlFrame.grid()
+        self.atvPwrCtlFrame.grid(row=7,column=0)
 
     # Add ATV power control selection to command list to be sent
     def atvPwrCtlSelectionMade(self,argument=1.5):
@@ -276,11 +277,11 @@ class MyApp(Tkinter.Frame):
 
     # Send computer time (seconds since Linux epoch for time value)
     def createTimeSyncButton(self):
-        self.timeSyncFrame = Tkinter.Frame(root, bd=2, relief=Tkinter.SUNKEN)
+        self.timeSyncFrame = Tkinter.Frame(self.topFrame, bd=2, relief=Tkinter.SUNKEN)
         self.timeSyncLabel = Tkinter.Label(self.timeSyncFrame, text="Send time for data logging sync purposes:")
         self.timeSyncLabel.grid(row=24,column=0)
         self.timeSyncButton = Tkinter.Button(self.timeSyncFrame, text="Update", command=lambda: self.timeSyncSelectionMade()).grid(row=24,column=1)
-        self.timeSyncFrame.grid()
+        self.timeSyncFrame.grid(row=8,column=0)
 
     # Add time sync to command list to be sent
     def timeSyncSelectionMade(self):
@@ -290,7 +291,7 @@ class MyApp(Tkinter.Frame):
 
     # Create cutdown button in GUI
     def createCutdownButton(self):
-        self.cutdownFrame = Tkinter.Frame(root, bd=2, relief=Tkinter.SUNKEN)
+        self.cutdownFrame = Tkinter.Frame(self.topFrame, bd=2, relief=Tkinter.SUNKEN)
         self.cutdownLabel = Tkinter.Label(self.cutdownFrame, text="Cut down balloon (select both boxes and press the button):")
         self.cutdownLabel.grid(row=26,column=0)
         self.cutdownVal1 = Tkinter.IntVar()
@@ -298,7 +299,7 @@ class MyApp(Tkinter.Frame):
         self.cutdownButton = Tkinter.Button(self.cutdownFrame, text="CUT", command=lambda: self.cutdownSelectionMade(self.cutdownVal1.get(),self.cutdownVal2.get())).grid(row=26,column=1)
         Tkinter.Checkbutton(self.cutdownFrame, text="Check if sure", variable=self.cutdownVal1).grid(row=26, column=2)
         Tkinter.Checkbutton(self.cutdownFrame, text="Check if sure", variable=self.cutdownVal2).grid(row=26, column=3)
-        self.cutdownFrame.grid()
+        self.cutdownFrame.grid(row=9,column=0)
 
     # Add cut down to command list to be sent if really sure
     def cutdownSelectionMade(self,check1=0,check2=0):
@@ -309,20 +310,54 @@ class MyApp(Tkinter.Frame):
             self.addToCmdDisplay(self.cutdownString)
             self.addToCmdDisplay(self.cutdownString)
 
+    # Create a text box display to show the commands that have been sent so far
+    def createCmdSentDisplay(self):
+        self.cmdSentFrame = Tkinter.Frame(self.topFrame, bd=2, relief=Tkinter.SUNKEN)
+        self.cmdSentScroll = Tkinter.Scrollbar(self.cmdSentFrame)
+        self.cmdSentTextBox = Tkinter.Text(self.cmdSentFrame, height=40, width=22)
+        self.cmdSentTextBox.grid(row=3,column=12)
+        self.cmdSentScroll.grid(row=3,column=13,sticky="ns")
+        self.cmdSentScroll.config(command=self.cmdSentTextBox.yview)
+        self.cmdSentTextBox.config(yscrollcommand=self.cmdSentScroll.set)
+        self.cmdSentTextLabel = Tkinter.Label(self.cmdSentFrame, text="Commands Sent:")
+        self.cmdSentTextLabel.grid(row=2,column=12)
+        self.cmdSentFrame.grid(row=0,column=2,rowspan=12)
+
+    # Add text to the self.cmdSentTextBox
+    def addToCmdSentDisplay(self, argument=""):
+        self.cmdSentTextBox.insert(Tkinter.END,argument)
+
+    # Create a text box to show the commands that have been acknowledged by the platform so far
+    def createCmdAckDisplay(self):
+        self.cmdAckFrame = Tkinter.Frame(self.topFrame, bd=2, relief=Tkinter.SUNKEN)
+        self.cmdAckScroll = Tkinter.Scrollbar(self.cmdAckFrame)
+        self.cmdAckTextBox = Tkinter.Text(self.cmdAckFrame, height=40, width=15)
+        self.cmdAckTextBox.grid(row=3,column=15)
+        self.cmdAckScroll.grid(row=3,column=16,sticky="ns")
+        self.cmdAckScroll.config(command=self.cmdAckTextBox.yview)
+        self.cmdAckTextBox.config(yscrollcommand=self.cmdAckScroll.set)
+        self.cmdAckTextLabel = Tkinter.Label(self.cmdAckFrame, text="Commands Acknowledged:")
+        self.cmdAckTextLabel.grid(row=2,column=15)
+        self.cmdAckFrame.grid(row=0,column=4,rowspan=12)
+
     # Create a text box display to show the command strings selected
     def createCmdStringDisplay(self):
-        self.cmdStringFrame = Tkinter.Frame(root, bd=2, relief=Tkinter.SUNKEN)
-        self.cmdStringTextBox = Tkinter.Text(self.cmdStringFrame, height=1, width=100)
+        self.cmdStringFrame = Tkinter.Frame(self.topFrame, bd=2, relief=Tkinter.SUNKEN)
+        self.cmdBoxScroll = Tkinter.Scrollbar(self.cmdStringFrame)
+        self.cmdStringTextBox = Tkinter.Text(self.cmdStringFrame, height=3, width=75)
         self.cmdStringTextBox.grid(row=28,column=2)
+        self.cmdBoxScroll.grid(row=28,column=3, sticky="ns")
+        self.cmdBoxScroll.config(command=self.cmdStringTextBox.yview)
+        self.cmdStringTextBox.config(yscrollcommand=self.cmdBoxScroll.set)
         self.cmdStringTextLabel = Tkinter.Label(self.cmdStringFrame, text="Command Queue:")
         self.cmdStringTextLabel.grid(row=28,column=0)
         self.cmdSendButton = Tkinter.Button(self.cmdStringFrame, text="Send", command=lambda: self.sendCommands())
         self.cmdSendButton.grid(row=28,column=1)
         self.cmdBackButton = Tkinter.Button(self.cmdStringFrame, text="Back", command=lambda: self.removeLastCommand())
-        self.cmdBackButton.grid(row=28,column=3)
+        self.cmdBackButton.grid(row=28,column=4)
         self.cmdClearButton = Tkinter.Button(self.cmdStringFrame, text="Clear", command=lambda: self.clearCommands())
-        self.cmdClearButton.grid(row=28,column=4)
-        self.cmdStringFrame.grid()
+        self.cmdClearButton.grid(row=28,column=5)
+        self.cmdStringFrame.grid(row=10,column=0)
 
     # Add a command string to the text box display of commands and add it to the command list
     def addToCmdDisplay(self, argument=""):
@@ -346,7 +381,7 @@ class MyApp(Tkinter.Frame):
     # Create a text box display to show error messages
     # Also create a text box to manually enter commands into
     def createErrorAndManualDisplay(self):
-    	self.bottomFrame = Tkinter.Frame(root, bd=2)
+    	self.bottomFrame = Tkinter.Frame(self.topFrame, bd=2)
 
     	# Error Message Box
         self.errorStringFrame = Tkinter.Frame(self.bottomFrame, bd=2, relief=Tkinter.SUNKEN)
@@ -365,15 +400,15 @@ class MyApp(Tkinter.Frame):
         # Manual Command Entry Box
         self.manualCmdFrame = Tkinter.Frame(self.bottomFrame, bd=2, relief=Tkinter.SUNKEN)
         self.manualCmdLabel = Tkinter.Label(self.manualCmdFrame, text="Manually Enter a Command:")
-        self.manualCmdLabel.grid(row=30,column=5)
+        self.manualCmdLabel.grid(row=30,column=7)
         self.manualCmd = Tkinter.StringVar()
         self.manualCmdEntry = Tkinter.Entry(self.manualCmdFrame, textvariable=self.manualCmd, width=20)
-        self.manualCmdEntry.grid(row=30,column=6)
+        self.manualCmdEntry.grid(row=30,column=8)
         self.manualCmdButton = Tkinter.Button(self.manualCmdFrame, text="Go", command=lambda: self.addManualCommand(self.manualCmd.get()))
-        self.manualCmdButton.grid(row=30,column=7)
+        self.manualCmdButton.grid(row=30,column=9)
         self.manualCmdFrame.grid(row=30,column=2)
 
-        self.bottomFrame.grid()
+        self.bottomFrame.grid(row=11,column=0)
 
     # Print and show error message
     def errorMsg(self, argument=""):
@@ -423,8 +458,47 @@ class MyApp(Tkinter.Frame):
 
     # Send commands listed in self.commandString
     def sendCommands(self):
-        # Add commands to be sent to command log file
-        self.commandLogger.info(self.commandString)
+        # Update command string based on command list
+        #self.commandString = ";".join(self.commandList)
+
+        # Create a new version of the command string that includes command number
+        #    Each command should have a 4 digit (4 ASCII characters) number in front of it
+        #    Increment this number as commands are sent
+        #    Need to make sure only transmit a max of 256 characters at a time
+        finalCommandString = ""
+        finalCommandStringList = []
+        for commandNumber in range(0, len(self.commandList)):
+            tempCommandString = "%04d"%(self.commandSentNumber) + ":" + self.commandList[commandNumber] + ";"
+            self.commandSentNumber += 1
+
+            # Add the command that is being sent to the command sent display
+            self.addToCmdSentDisplay(tempCommandString+"\n")
+
+            # Add the command string to a list if it is going to be too long to send and start a new string
+            if ((len(finalCommandString)+len(tempCommandString))>256):
+                finalCommandStringList.append(finalCommandString)
+                finalCommandString = ""
+                finalCommandString += tempCommandString
+            # Add the command string to the list if it is the last
+            elif (commandNumber==(len(self.commandList)-1)):
+                finalCommandString += tempCommandString
+                finalCommandStringList.append(finalCommandString)
+            else:
+                finalCommandString += tempCommandString
+
+        # Go through finalCommandStringList and transmit the elements
+        for commandStringToSend in finalCommandStringList:
+            # Add commands to be sent to command log file
+            self.commandLogger.info(commandStringToSend)
+
+            # Call beacon in Linux to transmit command(s)
+            subprocess.call(["beacon","-c", "W2RIT", "-d", "W2RIT-11", "-s","sm0",commandStringToSend])
+
+            # Sleep between transmissions
+            time.sleep(1) # 1 second
+
+        # Clear commands once done sending
+        self.clearCommands()
 
     # Remove last command from command "queue"
     def removeLastCommand(self):
@@ -445,7 +519,9 @@ class MyApp(Tkinter.Frame):
         # Remove commands from display box
         self.cmdStringTextBox.delete(1.0,Tkinter.END)
 
+    # Create the command GUI
     def createGUI(self):
+    	self.topFrame = Tkinter.Frame(root, bd=2, relief=Tkinter.SUNKEN)
         self.createCamSelect()
         self.createOsdTempSelect()
         self.createOsdPresSelect()
@@ -458,37 +534,65 @@ class MyApp(Tkinter.Frame):
         self.createCutdownButton()
         self.createCmdStringDisplay()
         self.createErrorAndManualDisplay()
+        self.createCmdSentDisplay()
+        self.createCmdAckDisplay()
+        self.topFrame.grid()
 
+    # Class initialization
     def __init__(self, master=None):
         Tkinter.Frame.__init__(self, master)
-        self.grid()
-        self.commandString = ""
-        self.commandList = []
+        self.grid() # Grid placement method of Tkinter widgets
+        self.commandString = "" # String for commands being queued up to send
+        self.commandList = [] # Keep a list of the commands being queued up to send
+        self.commandSentNumber = 0 # Keep track of how many commands have been sent
 
         # List valid commands
         self.validCommandList = ["CAM:0","CAM:1","CAM:2","CAM:3","OSD:TEMP:B0:TD0","OSD:TEMP:B0:TB0","OSD:TEMP:B0:TB1","OSD:TEMP:B0:TE0","OSD:TEMP:B0:TE1","OSD:TEMP:B1:TD0"]
         self.validCommandList.extend(["OSD:TEMP:B1:TB0","OSD:TEMP:B1:TB1","OSD:TEMP:B1:TE0","OSD:TEMP:B1:TE1","OSD:TEMP:B2:TD0","OSD:TEMP:B2:TB0","OSD:TEMP:B2:TB1","OSD:TEMP:B2:TE0"])
         self.validCommandList.extend(["OSD:TEMP:B2:TE1","OSD:TEMP:B3:TD0","OSD:TEMP:B3:TB0","OSD:TEMP:B3:TB1","OSD:TEMP:B3:TE0","OSD:TEMP:B3:TE1","OSD:TEMP:B4:TB0","OSD:TEMP:B5:TD0"])
         self.validCommandList.extend(["OSD:TEMP:B5:TB0","OSD:PRES:B0:P0","OSD:PRES:B0:P1","OSD:PRES:B1:P0","OSD:PRES:B1:P1","OSD:PRES:B2:P0","OSD:PRES:B2:P1","OSD:PRES:B3:P0"])
-        self.validCommandList.extend(["OSD:PRES:B3:P1","OSD:PRES:B4:P0","OSD:PRES:B5:P0","OSD:HUM:B0","OSD:HUM:B1","OSD:HUM:B2","OSD:HUM:B3","OSD:ON","OSD:OFF","OSD:RST"])
+        self.validCommandList.extend(["OSD:PRES:B3:P1","OSD:PRES:B4:P0","OSD:PRES:B4:PB","OSD:PRES:B5:P0","OSD:HUM:B0","OSD:HUM:B1","OSD:HUM:B2","OSD:HUM:B3","OSD:ON","OSD:OFF","OSD:RST"])
         self.validCommandList.extend(["RW:ON","RW:OFF","RST:B0","RST:B1","RST:B2","RST:B3","ATV:PWR:0.5","ATV:PWR:1.0","ATV:PWR:1.5","ATV:PWR:2.0","ATV:PWR:2.5","ATV:PWR:3.0"])
         self.validCommandList.extend(["ATV:PWR:3.5","ATV:PWR:4.0","ATV:PWR:4.5","ATV:PWR:5.0","CUTDOWN"])
 
         # Create command log file
         self.commandLogger = logging.getLogger('myapp')
-        self.loggerHandler = logging.FileHandler('./command.log')
-        self.loggerFormatter = logging.Formatter('%(asctime)s %(message)s')
+        self.loggerHandler = logging.FileHandler('/home/spex/commandsSent.log')
+        self.loggerFormatter = logging.Formatter('%(asctime)s %(message)s')#,datefmt='%H:%M:%S')
         self.loggerHandler.setFormatter(self.loggerFormatter)
         self.commandLogger.addHandler(self.loggerHandler)
         self.commandLogger.setLevel(logging.INFO)
 
         # Create GUI
         self.createGUI()
-        
+
+
+        # Open up command acknowledgement log file
+        self.ackFileHandle = open("/home/spex/habip_ack.log","r")
+        self.ackFileHandle.seek(0,2) # Seek to the end of the log file
+
+        # Poll command acknowledgement file for acknowledged commands
+        #self.cmdAckNum = 0
+        self.id = self.after(1000, self.commandAckLoop)
+
+    # Check command acknowledgement file
+    def commandAckLoop(self):
+        # Grab new acknowledgement lines
+        ackLine = self.ackFileHandle.readline()
+        while ackLine:
+            if len(ackLine)>1:
+                ackLineParts = ackLine.split(",")
+                self.cmdAckTextBox.insert(Tkinter.END,ackLineParts[1])
+            ackLine = self.ackFileHandle.readline()
+
+        # Keep checking for more command acknowledgements (keep re-calling this function) every 1000ms
+        self.id = self.after(1000, self.commandAckLoop)
+
+# Main loop
 if __name__ == "__main__":
 	root = Tkinter.Tk()
 	root.title("HABIP Commands")
-	root.geometry('{}x{}'.format(1200,700))
+	root.geometry('{}x{}'.format(1300,700))
 	app = MyApp(master=root)
 	app.mainloop()
 	root.destroy()

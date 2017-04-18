@@ -1,12 +1,11 @@
 """
-file: gropundComms.py
 author: Connor Goldberg
 project: High Altitude Balloon Instrumentation Platform
 description: Abstraction for the 2m communicaions
 """
 
-import Queue
-
+import axreader
+import common
 import groundCommand
 import logger
 
@@ -15,11 +14,28 @@ class groundComms(object):
     Handle the 2m communications
     """
 
-    def __init__(self):
-        self.groundCommandQueue = Queue.Queue()
+    def __init__(self, axLogPath, interfaces):
+        self.groundCommandList = []
 
         # Create the logger
         self.logger = logger.logger("groundComms")
+
+        self.interfaces = interfaces
+
+        AX_INTERFACES = ["sm0"]
+        AX_SOURCES = ["W2RIT"]
+        AX_DESTINATIONS = ["W2RIT-11"]
+
+        self.reader = axreader.axreader(filePath=axLogPath, interfaces=AX_INTERFACES, sources=AX_SOURCES, destinations=AX_DESTINATIONS)
+
+
+    def update(self):
+        # Check the axlog for new packets
+        packets = self.reader.getNewData()
+
+        for packet in packets:
+            self.parseCommands(packet.data)
+
 
     def parseCommands(self, inputString):
         commandStrings = inputString.split(';')
@@ -28,34 +44,21 @@ class groundComms(object):
             if parsedCommand is None or not parsedCommand.valid:
                 self.logger.log.error("Could not parse command: {}".format(commandString))
             else:
-                print "Parsed: {}".format(commandString)
-                parsedCommand.ack()
+                parsedCommand.ack(beacon=self.interfaces.beacon)
                 self.logger.log.debug("Parsed command: {}".format(commandString))
                 if parsedCommand.executed is False:
-                    self.groundCommandQueue.put(parsedCommand)
+                    self.groundCommandList.insert(0, parsedCommand)
 
-    def executeCommands(self):
-        while not self.groundCommandQueue.empty():
-            command = self.groundCommandQueue.get()
+
+    def executeCommands(self, withDelay=None):
+        while self.groundCommandList:
+            command = self.groundCommandList.pop()
             
             try:
-                command.execute()
+                command.execute(interfaces=self.interfaces)
+                if withDelay:
+                    common.msleep(withDelay)
             except Exception as e:
                 self.logger.log.error("Got exception: {} trying to execute command: {}".format(e, command.commandString))
-            # print command.commandString
-
-################################# Unit Testing #################################
-if __name__ == "__main__":
-    c = groundComms()
-
-    commandString = ""
-    # commandString += "0001:CAM:1;0002:CAM:2;0003:CAM:3;0004:CAM:"
-    # commandString += "0001:OSD:ON;0002:OSD:OFF;0003:OSD:RST;0004:OSD:HUM:B0;0005:OSD:TEMP:B5:TD0;0006:OSD:TEMP:B1:TD;"
-    commandString += "0001:RW:OFF;0002:RW:ON;0003:RW:CW,90;0004:RW:CCW,90;0005:RW:CW,1000;"
-    commandString += "0001:RST:B0;0002:RST:B2;0003:RST:B3;0004:RST:B8"
-    # commandString += "0001:ATV:PWR,1.0;0002:ATV:PWR,5.0;0003:ATV:PWR"
-    commandString += "0001:TIME:1234567890;0002:TIME:asd;"
-    commandString += "0001:CUTDOWN;0002:CUTDOWN;"
-
-    c.parseCommands(commandString)
-    c.executeCommands()
+            
+            self.logger.log.info("Executed command: {}".format(command.commandString))

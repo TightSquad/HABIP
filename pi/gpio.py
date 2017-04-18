@@ -5,43 +5,63 @@ description: Default GPIO setup and helper functions
 """
 
 import sys
-sys.path.append("..")
+import RPi.GPIO as GPIO
 
 import common
 import logger
 
-import RPi.GPIO as GPIO
 
-lookupModeToString = {
-	GPIO.IN : "GPIO.IN",
-	GPIO.OUT : "GPIO.OUT",
-	GPIO.SPI : "GPIO.SPI",
-	GPIO.I2C : "GPIO.I2C",
-	GPIO.HARD_PWM : "GPIO.HARD_PWM",
-	GPIO.SERIAL : "GPIO.SERIAL",
-	GPIO.UNKNOWN : "GPIO.UNKNOWN"
-}
+class gpio(object):
+	GPIO = GPIO # module
 
-def initialize():
-	GPIO.setmode(GPIO.BOARD)
+	lookupModeToString = {
+		GPIO.IN : "GPIO.IN",
+		GPIO.OUT : "GPIO.OUT",
+		GPIO.SPI : "GPIO.SPI",
+		GPIO.I2C : "GPIO.I2C",
+		GPIO.HARD_PWM : "GPIO.HARD_PWM",
+		GPIO.SERIAL : "GPIO.SERIAL",
+		GPIO.UNKNOWN : "GPIO.UNKNOWN"
+	}
 
-def getMode(pin):
-	return lookupModeToString[GPIO.gpio_function(pin)]
+	def __init__(self):
+		self.logger = logger.logger("gpio")
+		GPIO.setwarnings(False)
+		GPIO.setmode(GPIO.BOARD)
 
-def status(*pins):
-	displayString = "{:<2} : {}"
-	if not pins:
-		pins = range(1,41)
+	def getMode(self, pin):
+		return lookupModeToString[GPIO.gpio_function(pin)]
 
-	for pin in pins:
-		try:
-			print displayString.format(pin, getMode(pin))
-		except ValueError:
-			print displayString.format(pin, "Error")
+	def setPinMode(self, pin, mode):
+		self.logger.log.debug("Set pin {} to {}".format(
+			pin, gpio.lookupModeToString[mode]))
+		GPIO.setup(pin, mode)
 
+	def setHigh(self, pin):
+		self.logger.log.debug("Setting pin {} to HIGH".format(pin))
+		GPIO.output(pin, 1)
+
+	def setLow(self, pin):
+		self.logger.log.debug("Setting pin {} to LOW".format(pin))
+		GPIO.output(pin, 0)
+
+	def setOutput(self, pin, state):
+		self.logger.log.debug("Setting pin {} to {}".format(pin, state))
+		GPIO.output(pin, state)
+
+	def status(self, *pins):
+		displayString = "{:<2} : {}"
+		if not pins:
+			pins = range(1,41)
+
+		for pin in pins:
+			try:
+				print displayString.format(pin, getMode(pin))
+			except ValueError:
+				print displayString.format(pin, "Error")
 
 # Testing
 if __name__ == "__main__":
-	setup()
-	status()
+	intf = gpio()
+	intf.status()
 

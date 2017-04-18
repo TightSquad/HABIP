@@ -38,14 +38,15 @@ class uart(object):
         """
         try:
             self.interface.open()
-            self.logger.log.debug("Successfully opened serial interface port: {}". \
-                format(self.interface.port))
-            self.isOpen = True
-            return True
         except serial.SerialException as e:
-            self.logger.log.error(e)
-            return False
+            if str(e) != "Port is already open.":
+                self.logger.log.error("error in uart.open: {}".format(e))
+                return False
 
+        self.logger.log.debug("Successfully opened serial interface port: {}". \
+            format(self.interface.port))
+        self.isOpen = True
+        return True
 
     def close(self):
         self.interface.close()

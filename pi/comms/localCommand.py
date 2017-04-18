@@ -1,5 +1,4 @@
 """
-file: localCommand.py
 author: Connor Goldberg
 project: High Altitude Balloon Instrumentation Platform
 description: Code for commands between pis and the msp
@@ -10,10 +9,22 @@ class localCommand(object):
 	Class for representing local platform commands
 	"""
 
+	commandIDTable = {
+		"DATA" 		: "00",
+		"ALLDATA" 	: "01",
+		"RWPWR"		: "03",
+		"RWCTL"		: "04",
+		"RST"		: "05",
+		"TIME"		: "06",
+
+		"CUTDOWN" : "FF"
+	}
+
 	# static members
 	startChar = '{'
 	endChar = '}'
 	seperator = ':'
+
 
 	def __init__(self, logger, commandID=None, data=None, isAllData=False):
 
@@ -47,6 +58,7 @@ class localCommand(object):
 		else:
 			self.logger.log.error("Invalid data type: {}".format(type(data)))
 
+
 	def __str__(self):
 		if self.commandID is None:
 			return "{}{}{}".format(self.startChar,
@@ -57,6 +69,7 @@ class localCommand(object):
 				(localCommand.seperator + 
 				localCommand.seperator.join(self.data) if self.data else ''),
 				localCommand.endChar)
+
 
 	@staticmethod
 	def parseCommandFromString(commandString, logger):
@@ -80,6 +93,7 @@ class localCommand(object):
 
 				return localCommand(logger=logger, commandID=commandID, data=fields[1:])
 
+
 	@staticmethod
 	def parseDataFromString(dataString, logger):
 		if not dataString.startswith(localCommand.startChar):
@@ -95,6 +109,11 @@ class localCommand(object):
 				return None
 			else:
 				return localCommand(logger=logger, data=fields[0:], isAllData=True)
+
+
+	@staticmethod
+	def timeCommand(logger, secondsString):
+		return localCommand(logger=logger, commandID=localCommand.commandIDTable["TIME"], data=secondsString)
 
 ##### Testing
 if __name__ == "__main__":
