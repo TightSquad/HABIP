@@ -1,5 +1,4 @@
 """
-file: OSD232.py
 author: Connor Goldberg
 project: High Altitude Balloon Instrumentation Platform
 description: Abstracts the serial interface for the OSD-232 analog video
