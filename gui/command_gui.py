@@ -492,7 +492,7 @@ class MyApp(Tkinter.Frame):
             self.commandLogger.info(commandStringToSend)
 
             # Call beacon in Linux to transmit command(s)
-            subprocess.call(["beacon","-s","sm0",commandStringToSend])
+            subprocess.call(["beacon","-c", "W2RIT", "-d", "W2RIT-11", "-s","sm0",commandStringToSend])
 
             # Sleep between transmissions
             time.sleep(1) # 1 second
