@@ -112,7 +112,7 @@ def animate(i):
     fileIndex = graphInfo[2]
     
     # Open data file and split up each line
-    pullData = open("fakeData.txt","r").read()
+    pullData = open("/home/spex/habip_data.log","r").read()
     dataList = pullData.split('\n')
     xList = []
     yList = []

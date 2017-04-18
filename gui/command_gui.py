@@ -557,7 +557,7 @@ class MyApp(Tkinter.Frame):
 
         # Create command log file
         self.commandLogger = logging.getLogger('myapp')
-        self.loggerHandler = logging.FileHandler('./command.log')
+        self.loggerHandler = logging.FileHandler('/home/spex/commandsSent.log')
         self.loggerFormatter = logging.Formatter('%(asctime)s %(message)s')#,datefmt='%H:%M:%S')
         self.loggerHandler.setFormatter(self.loggerFormatter)
         self.commandLogger.addHandler(self.loggerHandler)
@@ -573,7 +573,7 @@ class MyApp(Tkinter.Frame):
     # Check command acknowledgement file
     def commandAckLoop(self):
         # Open file and split up each line
-        ackData = open("fakeAck.txt","r").read()
+        ackData = open("/home/spex/habip_ack.log","r").read()
         ackList = ackData.split("\n")
 
         # Just continue if there are new acknowledgements

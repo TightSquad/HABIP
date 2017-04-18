@@ -29,7 +29,7 @@ class MapWindow(Frame):
         self.id = self.after(1000, self.mapLoop)
 
     def initMap(self):
-        self.fileName = "habipMap0.jpg"
+        self.fileName = "/home/spex/habipMapStart.jpg"
 
         # Generate map URL
         self.map = DecoratedMap(key="AIzaSyDzElKnTJkAewIuxuAUZJYmRfXz1mg0vYU")
@@ -47,7 +47,7 @@ class MapWindow(Frame):
         self.lonList = []
 
         # Open data file and split up each line
-        sensorData = open("fakeData.txt","r").read()
+        sensorData = open("/home/spex/habip_data.log","r").read()
         dataList = sensorData.split("\n")
 
         # Just continue if there is new data (if dataList length changed)
@@ -84,7 +84,7 @@ class MapWindow(Frame):
         self.id = self.after(1000,self.mapLoop) # Keep checking for more data (keep re-calling this function) every 1000ms
 
     def updateImage(self):
-        self.fileName = "habipMap1.jpg"
+        self.fileName = "/home/spex/habipMapUpdated.jpg"
 
         # Generate map URL
         self.map = DecoratedMap(key="AIzaSyDzElKnTJkAewIuxuAUZJYmRfXz1mg0vYU")
