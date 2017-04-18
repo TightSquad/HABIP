@@ -1,9 +1,7 @@
 #!/bin/bash
 
-echo $(date) > /root/.bootdate
-
-# Give tty group read access to the serial port
-chmod 660 /dev/ttyAMA0
+# Change permissions to the uart
+sudo chmod a+rw /dev/ttyAMA0
 
 # Set python path
 rootPythonPath="/home/pi/py"
@@ -15,6 +13,10 @@ for dir in ${rootPythonPath}/*; do
 done
 export PYTHONPATH="${rootPythonPath}"
 
-/root/startsoundmodem.sh &
+
+sudo /home/pi/py/scripts/startsoundmodem.sh &
 sleep 1
-/root/startaxlisten.sh &
+
+sudo /home/pi/py/scripts/startaxlisten.sh &
+sleep 1
+

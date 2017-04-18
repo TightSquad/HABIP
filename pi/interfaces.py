@@ -4,13 +4,13 @@ project: High Altitude Balloon Instrumentation Platform
 description: Holder for all of the pi interfaces
 """
 
+import beacon
 import cameraMux
 import gpio
 import i2c
 import osd232
 import spi
 import uart
-
 import logger
 
 class interfaces(object):
@@ -19,6 +19,7 @@ class interfaces(object):
 	"""
 
 	# Static members
+	beacon = None
 	cameraMux = None
 	gpio = None
 	i2c = None
@@ -29,9 +30,14 @@ class interfaces(object):
 	def __init__(self):
 		self.logger = logger.logger("interfaces")
 
+	def openbeacon(self):
+		interfaces.beacon = beacon.beacon(interface="sm0", source="W2RIT-11", destination="W2RIT")
+		self.logger.log.debug("Opened beacon interface")
+
 	def opencameramux(self):
 		if interfaces.gpio is not None:
 			interfaces.cameraMux = cameraMux.cameraMux(interfaces.gpio)
+			self.logger.log.debug("Opened camera mux interface")
 			interfaces.cameraMux.selectCamera(0)
 		else:
 			self.logger.log.error("Cannot open camera mux interface before GPIO")

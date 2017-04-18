@@ -28,12 +28,14 @@ class groundComms(object):
 
         self.reader = axreader.axreader(filePath=axLogPath, interfaces=AX_INTERFACES, sources=AX_SOURCES, destinations=AX_DESTINATIONS)
 
+
     def update(self):
         # Check the axlog for new packets
         packets = self.reader.getNewData()
 
         for packet in packets:
             self.parseCommands(packet.data)
+
 
     def parseCommands(self, inputString):
         commandStrings = inputString.split(';')
@@ -42,8 +44,7 @@ class groundComms(object):
             if parsedCommand is None or not parsedCommand.valid:
                 self.logger.log.error("Could not parse command: {}".format(commandString))
             else:
-                print "Parsed: {}".format(commandString)
-                parsedCommand.ack()
+                parsedCommand.ack(beacon=self.interfaces.beacon)
                 self.logger.log.debug("Parsed command: {}".format(commandString))
                 if parsedCommand.executed is False:
                     self.groundCommandList.insert(0, parsedCommand)

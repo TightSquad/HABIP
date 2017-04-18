@@ -14,19 +14,22 @@ def main():
 	mainLogger.log.info("Starting main")
 
 	mainInterfaces = interfaces.interfaces()
+	mainInterfaces.openbeacon()
 	mainInterfaces.opengpio()
 	mainInterfaces.opencameramux()
-	mainInterfaces.openosd232() # This will open the uart interface
+	# mainInterfaces.openosd232() # This will open the uart interface
 	mainInterfaces.openspi()
 
-	ground = groundComms.groundComms(axLogPath="/home/pi/axlisten.log", interfaces=mainInterfaces)
+	axLogPath = "/home/pi/axlisten.log"
+
+	ground = groundComms.groundComms(axLogPath=axLogPath, interfaces=mainInterfaces)
 
 	run = True
-
 	while run:
 
 		ground.update()
-		ground.executeCommands(withDelay=100)
+		
+		# ground.executeCommands(withDelay=100)
 
 
 		common.msleep(1000)
