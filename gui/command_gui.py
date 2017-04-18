@@ -310,22 +310,35 @@ class MyApp(Tkinter.Frame):
             self.addToCmdDisplay(self.cutdownString)
             self.addToCmdDisplay(self.cutdownString)
 
-    # Create a text box display to show the commands that have been sent so far*************************************************************************************************************************************************************
+    # Create a text box display to show the commands that have been sent so far
     def createCmdSentDisplay(self):
         self.cmdSentFrame = Tkinter.Frame(self.topFrame, bd=2, relief=Tkinter.SUNKEN)
         self.cmdSentScroll = Tkinter.Scrollbar(self.cmdSentFrame)
-        self.cmdSentTextBox = Tkinter.Text(self.cmdSentFrame, height=40, width=25)
-        self.cmdSentTextBox.grid(row=3,column=13)
-        self.cmdSentScroll.grid(row=3,column=14,sticky="ns")
+        self.cmdSentTextBox = Tkinter.Text(self.cmdSentFrame, height=40, width=22)
+        self.cmdSentTextBox.grid(row=3,column=12)
+        self.cmdSentScroll.grid(row=3,column=13,sticky="ns")
         self.cmdSentScroll.config(command=self.cmdSentTextBox.yview)
         self.cmdSentTextBox.config(yscrollcommand=self.cmdSentScroll.set)
         self.cmdSentTextLabel = Tkinter.Label(self.cmdSentFrame, text="Commands Sent:")
-        self.cmdSentTextLabel.grid(row=3,column=12)
+        self.cmdSentTextLabel.grid(row=2,column=12)
         self.cmdSentFrame.grid(row=0,column=2,rowspan=12)
 
     # Add text to the self.cmdSentTextBox
     def addToCmdSentDisplay(self, argument=""):
         self.cmdSentTextBox.insert(Tkinter.END,argument)
+
+    # Create a text box to show the commands that have been acknowledged by the platform so far
+    def createCmdAckDisplay(self):
+        self.cmdAckFrame = Tkinter.Frame(self.topFrame, bd=2, relief=Tkinter.SUNKEN)
+        self.cmdAckScroll = Tkinter.Scrollbar(self.cmdAckFrame)
+        self.cmdAckTextBox = Tkinter.Text(self.cmdAckFrame, height=40, width=15)
+        self.cmdAckTextBox.grid(row=3,column=15)
+        self.cmdAckScroll.grid(row=3,column=16,sticky="ns")
+        self.cmdAckScroll.config(command=self.cmdAckTextBox.yview)
+        self.cmdAckTextBox.config(yscrollcommand=self.cmdAckScroll.set)
+        self.cmdAckTextLabel = Tkinter.Label(self.cmdAckFrame, text="Commands Acknowledged:")
+        self.cmdAckTextLabel.grid(row=2,column=15)
+        self.cmdAckFrame.grid(row=0,column=4,rowspan=12)
 
     # Create a text box display to show the command strings selected
     def createCmdStringDisplay(self):
@@ -523,8 +536,8 @@ class MyApp(Tkinter.Frame):
         self.createCmdStringDisplay()
         self.createErrorAndManualDisplay()
         self.createCmdSentDisplay()
+        self.createCmdAckDisplay()
         self.topFrame.grid()
-
 
     # Class initialization
     def __init__(self, master=None):
@@ -553,12 +566,33 @@ class MyApp(Tkinter.Frame):
 
         # Create GUI
         self.createGUI()
-        
+
+        # Poll command acknowledgement file for acknowledged commands
+        self.cmdAckNum = 0
+        self.id = self.after(1000, self.commandAckLoop)
+
+    # Check command acknowledgement file
+    def commandAckLoop(self):
+        # Open file and split up each line
+        ackData = open("fakeAck.txt","r").read()
+        ackList = ackData.split("\n")
+
+        # Just continue if there are new acknowledgements
+        if len(ackList) > self.cmdAckNum:
+            for newCmdNum in range(self.cmdAckNum,len(ackList)):
+            	ackLine = ackList[newCmdNum].split(",")
+                self.cmdAckTextBox.insert(Tkinter.END,ackLine[1]+"\n")
+
+            self.cmdAckNum = len(ackList)
+
+        # Keep checking for more command acknowledgements (keep re-calling this function) every 1000ms
+        self.id = self.after(1000, self.commandAckLoop)
+
 # Main loop
 if __name__ == "__main__":
 	root = Tkinter.Tk()
 	root.title("HABIP Commands")
-	root.geometry('{}x{}'.format(1200,700))
+	root.geometry('{}x{}'.format(1250,700))
 	app = MyApp(master=root)
 	app.mainloop()
 	root.destroy()
