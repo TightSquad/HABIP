@@ -24,8 +24,6 @@ class MapWindow(Frame):
         self.image_label.pack()
         self.pack(side="top", fill="both", expand=True)
 
-        #self.dataLines = 0
-
         # Open up data log file
         self.dataFileHandle = open("/home/spex/habip_data.log","r")
         self.dataFileHandle.seek(0,2) # Seek to the end of the log file
@@ -50,9 +48,6 @@ class MapWindow(Frame):
         self.im = Image.open(self.fileName)
 
     def mapLoop(self):
-        #self.latList = []
-        #self.lonList = []
-
         # Grab new command log lines
         dataLine = self.dataFileHandle.readline()
         while dataLine:
@@ -81,41 +76,6 @@ class MapWindow(Frame):
 
             self.updateImage()
             dataLine = self.dataFileHandle.readline()
-
-        # Open data file and split up each line
-        #sensorData = open("/home/spex/habip_data.log","r").read()
-        #dataList = sensorData.split("\n")
-
-        # Just continue if there is new data (if dataList length changed)
-        #if len(dataList) > self.dataLines:
-        #    self.dataLines = len(dataList)
-                
-            # Loop through file lines
-        #    for eachLine in dataList:
-        #        if len(eachLine) > 0:
-        #            lineData = eachLine.split(",") # Sensor data is comma separated
-
-                    # Grab latitude and longitude
-        #            lat = lineData[60] # N (+) or S (-)
-        #            lon = lineData[61] # E (+) or W (-)
-
-                    # Just continue if there is data present
-        #            if (lat != "NULL") and (lon != "NULL"):
-        #                # Change latitude and longitude to be +- instead of direction
-        #                if lat[-1] == "N":
-        #                    lat = lat[:-1]
-        #                elif lat[-1] == "S":
-        #                    lat = "-" + lat[:-1]
-        #                if lon[-1] == "E":
-        #                    lon = lon[:-1]
-        #                elif lon[-1] == "W":
-        #                    lon = "-" + lon[:-1]
-
-        #                # Add latitude and longitude to lists
-        #                self.latList.append(lat)
-        #                self.lonList.append(lon)
-
-        #    self.updateImage()
 
         self.id = self.after(1000,self.mapLoop) # Keep checking for more data (keep re-calling this function) every 1000ms
 

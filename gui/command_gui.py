@@ -192,9 +192,6 @@ class MyApp(Tkinter.Frame):
         self.rxnWhlTurnButton = Tkinter.Button(self.rxnWhlCtlFrame, text="Turn", command=lambda: self.rxnWhlTurnSelectionMade(self.rxnWhlDirection.get(),self.rxnWhlDegrees.get())).grid(row=17,column=4)
         Tkinter.Radiobutton(self.rxnWhlCtlFrame, text="CW Direction", variable=self.rxnWhlDirection, value=0).grid(row=17,column=5)
         Tkinter.Radiobutton(self.rxnWhlCtlFrame, text="CCW Direction", variable=self.rxnWhlDirection, value=1).grid(row=18,column=5)
-        #self.rxnWhlDegSlide = Tkinter.Scale(self.rxnWhlCtlFrame, from_=0, to=180, orient=Tkinter.HORIZONTAL, label="Degrees to Turn", variable=self.rxnWhlDegrees)
-        #self.rxnWhlDegSlide.set(0)
-        #self.rxnWhlDegSlide.grid(row=17,column=6)
         self.rxnWhlDegLabel = Tkinter.Label(self.rxnWhlCtlFrame, text="Degrees to Turn (0-180):")
         self.rxnWhlDegLabel.grid(row=17,column=6)
         self.rxnWhlDegEntry = Tkinter.Entry(self.rxnWhlCtlFrame, textvariable=self.rxnWhlDegrees, width=5)
@@ -447,7 +444,7 @@ class MyApp(Tkinter.Frame):
                 else:
                     self.errorMsg("Invalid degrees value for manual RW:CCW,# command")
             elif command[:5] == "TIME:":
-                # Assume the time value given is correct *************************************************************
+                # Assume the time value given is correct ************************************************************************************************
                 # Add the command to the command queue
                 self.addToCmdDisplay(command)
             else:
@@ -458,9 +455,6 @@ class MyApp(Tkinter.Frame):
 
     # Send commands listed in self.commandString
     def sendCommands(self):
-        # Update command string based on command list
-        #self.commandString = ";".join(self.commandList)
-
         # Create a new version of the command string that includes command number
         #    Each command should have a 4 digit (4 ASCII characters) number in front of it
         #    Increment this number as commands are sent
@@ -571,7 +565,6 @@ class MyApp(Tkinter.Frame):
         self.ackFileHandle.seek(0,2) # Seek to the end of the log file
 
         # Poll command acknowledgement file for acknowledged commands
-        #self.cmdAckNum = 0
         self.id = self.after(1000, self.commandAckLoop)
 
     # Check command acknowledgement file
