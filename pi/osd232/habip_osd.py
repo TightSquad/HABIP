@@ -22,8 +22,6 @@ class habip_osd(object):
 		Input: row_number: row number to update (int, 1 through 11)
 	   		   update_string: string to put in this row (string, 28 characters)
 	   	"""
-	   	print str(len(update_string)) + " " + str(row_number) + ": " + update_string
-
 		self.osd232.setPosition(row=row_number)
 		common.msleep(self.sleeptime)
 		self.osd232.display(update_string)

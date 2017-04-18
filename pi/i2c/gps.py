@@ -27,6 +27,13 @@ class gps(i2c):
 		self.deviceLogger = self.baseLogger.getLogger("gps")
 		self.deviceLogger.log.info("Instantiated the gps")
 
+		self.disable_i2c_gsa = [0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x02, 0x00, 0x01, 0x00, 0x01, 0x01, 0x00, 0x04, 0x3B]
+		self.disable_i2c_gll = [0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x01, 0x00, 0x01, 0x00, 0x01, 0x01, 0x00, 0x03, 0x34]
+		self.disable_i2c_gsv = [0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x03, 0x00, 0x01, 0x00, 0x01, 0x01, 0x00, 0x05, 0x42]
+		#self.disable_i2c_vtg = [0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x05, 0x00, 0x01, 0x00, 0x01, 0x01, 0x00, 0x07, 0x50]
+
+		self.config()
+
 	def readRegister(self, regAddress):
 		"""
 		The gps's specific protocol for reading a register
@@ -59,6 +66,7 @@ class gps(i2c):
 			self.deviceLogger.log.debug("Wrote {} to register: {}"
 				.format(hex(data), hex(regAddress)))
 			return True
+
 
 	def readByteStream(self):
 		"""
@@ -104,77 +112,82 @@ class gps(i2c):
 	
 		return byte_stream_string
 
-################################################################################
+	def config(self):
+		"""
+		Writes to the GPS configuration port, telling the GPS to turn off sending specific data points during data acquisition
+		"""
+		# GPS doesn't require a register address, so start with data
+		self.writeBlock(self.disable_i2c_gll[0], self.disable_i2c_gll[1:])
+		self.writeBlock(self.disable_i2c_gsa[0], self.disable_i2c_gsa[1:])
+		self.writeBlock(self.disable_i2c_gsv[0], self.disable_i2c_gsv[1:])
 
-# Just some testing
-if __name__ == "__main__":
-	
-	# Generate GPS instance
-	my_gps = gps(busID=0)
-	if my_gps.interface is None:
-		print "Fail"
-		sys.exit(1)
+	def acquire_data(self):
+		"""
+		Reads the GPS data bytestream
+		Returns a list of important data
+			latitude (string)
+			longitude (string)
+			date (date object)
+			time (time object)
+			altitude (float)
+			speed (float)
+		"""
+		# Perform the config command, because why not
+		self.config()
 
-	# Get the byte stream as a continuous string of ASCII character
-	byte_stream = my_gps.readByteStream()
+		# Get the byte stream as a continuous string of ASCII character
+		byte_stream = self.readByteStream()
 
-	# Convert continuous string to list of string of messages
-	commands = byte_stream.splitlines()
+		# Convert continuous string to list of string of messages
+		commands = byte_stream.splitlines()
 
-	# Blank line
-	if commands[-1] == '\x7f':
-		commands = commands[:-1]
+		# Blank line
+		if commands[-1] == '\x7f':
+			commands = commands[:-1]
 
-	# Parse commands using pynmea2 package
-	parsed = []
-	for command in commands:
-		try:
-			parsed.append(pynmea2.parse(command))
-		except:
-			print "Error parsing commands from GPS"
-			sys.exit(1)
+		# Parse commands using pynmea2 package
+		parsed = []
+		for command in commands:
+			try:
+				parsed.append(pynmea2.parse(command))
+			except:
+				print "Error parsing commands from GPS"
+				sys.exit(1)
 
-	print commands
+		# Check and see if the GPS is locked	
+		status = parsed[0].status
+		if status == 'A':
+			# Extract data from the command
+			lat = parsed[0].lat
+			lon = parsed[0].lon
+			lat_dir = parsed[0].lat_dir
+			lon_dir = parsed[0].lon_dir
+			date = parsed[0].datestamp
+			time = parsed[2].timestamp
+			alt = parsed[2].altitude
+			speed = parsed[0].spd_over_grnd
 
-	# Check and see if the GPS is locked	
-	status = parsed[0].status
-	if status == 'A':
-		# Extract data from the command
-		lat = parsed[0].lat
-		lon = parsed[0].lon
-		lat_dir = parsed[0].lat_dir
-		lon_dir = parsed[0].lon_dir
-		date = parsed[0].datestamp
-		time = parsed[1].timestamp
-		alt = parsed[1].altitude
-		speed = parsed[0].spd_over_grnd
+			# Format latitude better
+			lat_deg = int(lat[0:2])
+			lat_min = int(lat[2:4])/60.0
+			lat_sec = float(lat[4:10])/60.0
+			lat_dec = lat_deg + lat_min + lat_sec
 
-		# Format latitude better
-		lat_deg = int(lat[0:2])
-		lat_min = int(lat[2:4])/60.0
-		lat_sec = float(lat[4:10])/60.0
-		lat_dec = lat_deg + lat_min + lat_sec
+			# Format longitude better
+			lon_deg = int(lon[0:3])
+			lon_min = int(lon[3:5])/60.0
+			lon_sec = float(lon[5:11])/60.0
+			lon_dec = lon_deg + lon_min + lon_sec
+		
+			# Append +/- latitude
+			if (lat_dir == 'S'):
+				lat_dec = lat_dec * -1
 
-		# Format longitude better
-		lon_deg = int(lon[0:3])
-		lon_min = int(lon[3:5])/60.0
-		lon_sec = float(lon[5:11])/60.0
-		lon_dec = lon_deg + lon_min + lon_sec
-	
-		# Append +/- latitude
-		if (lat_dir == 'S'):
-			lat_dec = lat_dec * -1
+			# Append +/- longitutde
+			if (lon_dir == 'W'):
+				lon_dec = lon_dec * -1
 
-		# Append +/- longitutde
-		if (lon_dir == 'W'):
-			lon_dec = lon_dec * -1
+			return [lat_dec, lon_dec, date, time, alt, speed]
 
-		print "lat: " + str(lat_dec)
-		print "lon: " + str(lon_dec)
-		print "date: " + str(date)
-		print "time: " + str(time)
-		print "alt (m): " + str(alt)
-		print "speed (knots): " + str(speed)
-
-	else:
-		print "No Lock"
+		else:
+			return "No Lock"
