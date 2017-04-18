@@ -17,7 +17,7 @@ def main():
 	mainInterfaces.openbeacon()
 	mainInterfaces.opengpio()
 	mainInterfaces.opencameramux()
-	# mainInterfaces.openosd232() # This will open the uart interface
+	mainInterfaces.openhabiposd() # This will open the uart interface
 	mainInterfaces.openspi()
 
 	axLogPath = "/home/pi/axlisten.log"
@@ -28,7 +28,7 @@ def main():
 	while run:
 
 		ground.update()
-		
+
 		# ground.executeCommands(withDelay=100)
 
 

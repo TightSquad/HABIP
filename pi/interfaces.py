@@ -9,6 +9,7 @@ import cameraMux
 import gpio
 import i2c
 import osd232
+import habip_osd
 import spi
 import uart
 import logger
@@ -22,6 +23,7 @@ class interfaces(object):
 	beacon = None
 	cameraMux = None
 	gpio = None
+	habip_osd = None
 	i2c = None
 	spi = None
 	uart = None
@@ -59,6 +61,13 @@ class interfaces(object):
 			self.logger.log.error("Could not open UART interface")
 			return False
 
-	def openosd232(self, port="/dev/ttyAMA0", baudrate=4800):
+	def openhabiposd(self):
 		interfaces.osd232 = osd232.osd232(port=port)
+		self.logger.log.debug("Opened osd232")
+		
 		interfaces.uart = interfaces.osd232.connection
+		self.logger.log.debug("Opened uart")
+
+		interfaces.habip_osd = habip_osd.habip_osd(osd232=interfaces.osd232)
+		self.logger.log.debug("Opened osd232")
+

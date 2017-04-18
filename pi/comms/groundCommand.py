@@ -135,6 +135,8 @@ class camCommand(groundCommand):
         self.logger.log.info("Executing change camera to: {}".format(self.sub))
         interfaces.cameraMux.selectCamera(camCommand.subCommand[self.sub])
 
+        interfaces.habip_osd.update_cam_num(cam_num=self.sub)
+
 
 class osdCommand(groundCommand):
     """
