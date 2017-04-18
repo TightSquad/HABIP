@@ -119,7 +119,7 @@ def animate(i):
 
     # Loop through file lines
     for eachLine in dataList:
-        if len(eachLine) > 0:
+        if len(eachLine) > 1:
             lineData = eachLine.split(',') # Sensor data is comma separated
 
             # Data is on the y-axis

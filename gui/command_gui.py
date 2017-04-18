@@ -201,10 +201,8 @@ class MyApp(Tkinter.Frame):
     # Check the reaction wheel degree entry value
     def rxnWhlDegCheck(self,argument=0):
         if ((argument>=0) and (argument<=180)):
-            print "returning true"
             return True
         else:
-            print "returning false"
             return False
 
     # Add reaction wheel power control button select to command list to be sent
