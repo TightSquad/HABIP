@@ -93,8 +93,8 @@ class commsHost(board):
         "P0"    : None, # Pressure sensor - basic
         "LAT"   : None, # GPS - latitude
         "LON"   : None, # GPS - longitude
-        "TM"    : None  # GPS - time
-        "SPD"    : None  # GPS - speed
+        "TM"    : None,  # GPS - time
+        "SPD"    : None,  # GPS - speed
         "ALT"    : None  # GPS - altitude
     }
 

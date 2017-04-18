@@ -12,6 +12,8 @@ import logger
 
 
 class gpio(object):
+	GPIO = GPIO # module
+
 	lookupModeToString = {
 		GPIO.IN : "GPIO.IN",
 		GPIO.OUT : "GPIO.OUT",

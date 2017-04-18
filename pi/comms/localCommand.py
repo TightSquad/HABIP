@@ -25,6 +25,7 @@ class localCommand(object):
 	endChar = '}'
 	seperator = ':'
 
+
 	def __init__(self, logger, commandID=None, data=None, isAllData=False):
 
 		self.logger = logger
@@ -57,6 +58,7 @@ class localCommand(object):
 		else:
 			self.logger.log.error("Invalid data type: {}".format(type(data)))
 
+
 	def __str__(self):
 		if self.commandID is None:
 			return "{}{}{}".format(self.startChar,
@@ -67,8 +69,6 @@ class localCommand(object):
 				(localCommand.seperator + 
 				localCommand.seperator.join(self.data) if self.data else ''),
 				localCommand.endChar)
-
-	def send(self):
 
 
 	@staticmethod
@@ -93,6 +93,7 @@ class localCommand(object):
 
 				return localCommand(logger=logger, commandID=commandID, data=fields[1:])
 
+
 	@staticmethod
 	def parseDataFromString(dataString, logger):
 		if not dataString.startswith(localCommand.startChar):
@@ -108,6 +109,7 @@ class localCommand(object):
 				return None
 			else:
 				return localCommand(logger=logger, data=fields[0:], isAllData=True)
+
 
 	@staticmethod
 	def timeCommand(logger, secondsString):

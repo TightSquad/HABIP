@@ -31,7 +31,7 @@ def main():
 
 		common.msleep(1000)
 
-	
+	mainLogger.log.info("main loop terminating")
 
 if __name__ == '__main__':
 	main()

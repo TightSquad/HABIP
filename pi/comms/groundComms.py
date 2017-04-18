@@ -30,7 +30,7 @@ class groundComms(object):
 
     def update(self):
         # Check the axlog for new packets
-        packets = reader.getNewData()
+        packets = self.reader.getNewData()
 
         for packet in packets:
             self.parseCommands(packet.data)
