@@ -566,7 +566,6 @@ class MyApp(Tkinter.Frame):
         # Create GUI
         self.createGUI()
 
-
         # Open up command acknowledgement log file
         self.ackFileHandle = open("/home/spex/habip_ack.log","r")
         self.ackFileHandle.seek(0,2) # Seek to the end of the log file
