@@ -42,7 +42,7 @@ class groundCommand(object):
             self.index = int(fields[0]) # Decode the command index as decimal
             #self.index = int(fields[0], 16) # Decode the command index as hex
         except Exception as e:
-            self.logger("Error converting index to int: {}".format(fields[0]))
+            self.logger.log.error("Error converting index to int: {}".format(fields[0]))
             self.index = 0
 
         # If the command was decoded and valid
@@ -67,9 +67,10 @@ class groundCommand(object):
     def __str__(self):
         return "Command: {}\nValid: {}\nExecuted: {}".format(self.commandString, self.valid, self.executed)
 
-    def ack(self):
-        pass
-        print "ACK:{0:04d}".format(self.index)
+    def ack(self, beacon):
+        ackString = "ACK:{0:04d}".format(self.index)
+        self.logger.log.info("Sending ack: {}".format(ackString))
+        beacon.send(ackString)
 
     def execute(self, interfaces):
         raise NotImplementedError
@@ -133,6 +134,8 @@ class camCommand(groundCommand):
         # Change the camera to the index based on the subCommand
         self.logger.log.info("Executing change camera to: {}".format(self.sub))
         interfaces.cameraMux.selectCamera(camCommand.subCommand[self.sub])
+
+        interfaces.habip_osd.update_cam_num(cam_num=self.sub)
 
 
 class osdCommand(groundCommand):

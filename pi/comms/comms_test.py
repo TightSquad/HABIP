@@ -1,40 +1,41 @@
 #!/usr/bin/env python
 
 import axreader
+import interfaces
 import common
 import groundComms
 
 ################################# Unit Testing #################################
 if __name__ == "__main__":
 
-    LOG_PATH = "ax.log"
-    AX_INTERFACES = ["sm0"]
-    AX_SOURCES = ["W2RIT"]
-    AX_DESTINATIONS = [] #["W2RIT-10"]
+    LOG_PATH = "/home/pi/axlisten.log"
+    
+    i = interfaces.interfaces()
+    i.openbeacon()
 
-    c = groundComms.groundComms()
-    reader = axreader.axreader(filePath=LOG_PATH, interfaces=AX_INTERFACES, sources=AX_SOURCES, destinations=AX_DESTINATIONS)
+    gc = groundComms.groundComms(axLogPath=LOG_PATH, interfaces=i)
+    # reader = axreader.axreader(filePath=LOG_PATH, interfaces=AX_INTERFACES, sources=AX_SOURCES, destinations=AX_DESTINATIONS)
 
     # while False:
     while True:
         # Get packets from axreader
-        packets = reader.getNewData()
+        
+        gc.update()
 
-        if packets:
-            for packet in packets:
-                print packet
-                print "--------"
+        # for packet in packets:
+        #     print packet
+        #     print "--------"
 
-                # Parse the commands
-                c.parseCommands(packet.data)
+        #     # Parse the commands
+        #     gc.parseCommands(packet.data)
 
-        if c.groundCommandList:
-            for item in c.groundCommandList:
-                print item
-                print "---"
+        # if gc.groundCommandList:
+        #     for item in gc.groundCommandList:
+        #         print item
+        #         print "---"
 
         # Execute the commands
-        c.executeCommands()
+        # gc.executeCommands()
 
         # Sleep a bit
         common.msleep(1000)
@@ -48,5 +49,5 @@ if __name__ == "__main__":
     # commandString += "0001:TIME:1234567890;0002:TIME:asd;"
     # commandString += "0001:CUTDOWN;0002:CUTDOWN;"
 
-    # c.parseCommands(commandString)
-    # c.executeCommands()
+    # gc.parseCommands(commandString)
+    # gc.executeCommands()
