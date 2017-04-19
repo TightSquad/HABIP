@@ -8,11 +8,33 @@ import common
 
 class habip_osd(object):
 
-	def __init__(self, osd232):
+	POWER_CONTROL_PIN = 32
+
+	def __init__(self, osd232, gpio):
 		self.osd232 = osd232
 		self.sleeptime = 100
 		self.osd_width = 28
 		self.osd_height = 11
+
+		self.gpio = gpio # Used for controlling the power
+
+		# Make sure the power is on
+		self.gpio.setPinMode(habip_osd.POWER_CONTROL_PIN, gpio.OUTPUT)
+		self.gpio.setHigh(habip_osd.POWER_CONTROL_PIN)
+
+
+	def power_on(self):
+		"""
+		Ensure power to the OSD is on
+		"""
+		self.gpio.setHigh(habip_osd.POWER_CONTROL_PIN)
+
+
+	def power_off(self):
+		"""
+		Ensure power to the OSD is off
+		"""
+		self.gpio.setLow(habip_osd.POWER_CONTROL_PIN)
 
 
 	def update_sensor(self, row_number, update_string):
@@ -120,21 +142,17 @@ class habip_osd(object):
 		self.update_sensor(row_number, update_string[0:28])
 
 
-	def update_accel(self, data_value):
+	def update_accel(self, x, y, z):
 		"""
 		Update acceleration rows (3 rows)
 		
-		Input: data_value: list of [x,y,z] acceleration, as floats
+		Input: data_value: x,y,z acceleration, as floats
 		
 		Spacing: source: 1, blank space: 19, data: 8
 		"""
 		x_row_number = 5
 		y_row_number = 6
 		z_row_number = 7
-
-		x = data_value[0]
-		y = data_value[1]
-		z = data_value[2]
 
 		x_formatted = str(x)[0:8].rjust(8)
 		y_formatted = str(y)[0:8].rjust(8)
@@ -149,19 +167,16 @@ class habip_osd(object):
 		self.update_sensor(z_row_number, z_update_string)
 
 
-	def update_gps(self, data_value):
+	def update_gps(self, lat, lon):
 		"""
 		Update latitude/longitude row
 		
-		Input: data_value: list of [lat, long] GPS position, as strings
+		Input: lat, long: GPS position, as strings
 		
 		Spacing: source: 3, blank space: 16(lat), 15(lon), data: 9(lat), 10(lon)
 		"""
 		lat_row_number = 8
 		lon_row_number = 9
-
-		lat = data_value[0]
-		lon = data_value[1]
 
 		lat_formatted = str(lat)[0:9].rjust(9)
 		lon_formatted = str(lon)[0:10].rjust(10)

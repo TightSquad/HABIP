@@ -134,7 +134,6 @@ class camCommand(groundCommand):
         # Change the camera to the index based on the subCommand
         self.logger.log.info("Executing change camera to: {}".format(self.sub))
         interfaces.cameraMux.selectCamera(camCommand.subCommand[self.sub])
-
         interfaces.habip_osd.update_cam_num(cam_num=self.sub)
 
 
@@ -193,8 +192,40 @@ class osdCommand(groundCommand):
         
     def execute(self, interfaces):
         # Execute osd command
-        pass
+        if osdCommand.subCommand[self.sub] == osdCommand.subCommand["OFF"]:
+            # Turn off OSD
+            self.logger.log.info("Command executing to turn off the OSD")
+            interfaces.habip_osd.power_off()
 
+        elif osdCommand.subCommand[self.sub] == osdCommand.subCommand["ON"]:
+            # Turn on OSD
+            self.logger.log.info("Command executing to turn on the OSD")
+            interfaces.habip_osd.power_on()
+
+        elif osdCommand.subCommand[self.sub] == osdCommand.subCommand["RST"]:
+            # Reset OSD
+            self.logger.log.info("Command executing to reset the OSD")
+            interfaces.habip_osd.power_off()
+            common.msleep(100)
+            interfaces.habip_osd.power_on()
+
+        elif osdCommand.subCommand[self.sub] == osdCommand.subCommand["TEMP"]:
+            # Update OSD temp sensor
+            self.logger.log.info("Command executing to update the OSD temp")
+            sensorString = "{}:{}".format(self.board, self.sensor)
+            interfaces.habip_osd.update_temp(data_source=sensorString, data_value=0.00)
+
+        elif osdCommand.subCommand[self.sub] == osdCommand.subCommand["PRES"]:
+            # Update OSD pressure sensor
+            self.logger.log.info("Command executing to update the OSD pressure")
+            sensorString = "{}:{}".format(self.board, self.sensor)
+            interfaces.habip_osd.update_pres(data_source=sensorString, data_value=0.00)
+
+        elif osdCommand.subCommand[self.sub] == osdCommand.subCommand["HUM"]:
+            # Update OSD humidity sensor
+            self.logger.log.info("Command executing to update the OSD humidity")
+            sensorString = "{}:H".format(self.board)
+            interfaces.habip_osd.update_humid(data_source=sensorString, data_value=0.00)
 
 class reactionWheelCommand(groundCommand):
     """

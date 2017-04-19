@@ -17,9 +17,25 @@ import pynmea2
 # Custom i2c class
 from i2c import i2c
 
+class gpsData(object):
+
+	def __init__(self):
+		self.lat = None
+		self.lon = None
+		self.date = None
+		self.time = None
+		self.alt = None
+		self.speed = None
+		self.lock = False
+
+	def __str__(self):
+		return "lat: {}, lon: {}, date: {}, time: {}, alt: {}, speed: {}, lock: {}".format(self.lat, self.lon, self.date, self.time, self.alt, self.speed, self.lock)
+
+	def __repr__(self):
+		return str(self)
 
 class gps(i2c):
-	def __init__(self, address=0x42, busID=None, interface=None):
+	def __init__(self, address=0x42, busID=0, interface=None):
 		# Call super init
 		super(self.__class__, self).__init__(address, busID, interface)
 
@@ -27,6 +43,8 @@ class gps(i2c):
 		self.deviceLogger = self.baseLogger.getLogger("gps")
 		self.deviceLogger.log.info("Instantiated the gps")
 
+		# Following configs taken from u-blox M8 receiver description, Protocol Specification PDF
+		# https://www.u-blox.com/sites/default/files/products/documents/u-blox8-M8_ReceiverDescrProtSpec_(UBX-13003221)_Public.pdf
 		self.disable_i2c_gsa = [0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x02, 0x00, 0x01, 0x00, 0x01, 0x01, 0x00, 0x04, 0x3B]
 		self.disable_i2c_gll = [0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x01, 0x00, 0x01, 0x00, 0x01, 0x01, 0x00, 0x03, 0x34]
 		self.disable_i2c_gsv = [0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x03, 0x00, 0x01, 0x00, 0x01, 0x01, 0x00, 0x05, 0x42]
@@ -112,6 +130,7 @@ class gps(i2c):
 	
 		return byte_stream_string
 
+
 	def config(self):
 		"""
 		Writes to the GPS configuration port, telling the GPS to turn off sending specific data points during data acquisition
@@ -121,7 +140,8 @@ class gps(i2c):
 		self.writeBlock(self.disable_i2c_gsa[0], self.disable_i2c_gsa[1:])
 		self.writeBlock(self.disable_i2c_gsv[0], self.disable_i2c_gsv[1:])
 
-	def acquire_data(self):
+
+	def get_data(self):
 		"""
 		Reads the GPS data bytestream
 		Returns a list of important data
@@ -150,9 +170,10 @@ class gps(i2c):
 		for command in commands:
 			try:
 				parsed.append(pynmea2.parse(command))
-			except:
-				print "Error parsing commands from GPS"
-				sys.exit(1)
+			except Exception as e:
+				self.deviceLogger.log.error("Error parsing commands from GPS")
+				self.deviceLogger.log.error("Got exception: {}".format(e))
+				return gpsData()
 
 		# Check and see if the GPS is locked	
 		status = parsed[0].status
@@ -187,7 +208,16 @@ class gps(i2c):
 			if (lon_dir == 'W'):
 				lon_dec = lon_dec * -1
 
-			return [lat_dec, lon_dec, date, time, alt, speed]
+			data = gpsData()
+			data.lat = lat_dec
+			data.lon = lon_dec
+			data.date = date
+			data.time = time
+			data.alt = alt
+			data.speed = speed
+			data.lock = True
+
+			return data
 
 		else:
-			return "No Lock"
+			return gpsData()

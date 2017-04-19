@@ -72,18 +72,23 @@ class spi(object):
 
 		return resp
 
-	def readString(self):
+	def readString(self, maxCharsSent=float("INF")):
 		"""
-		Read a string from the SPI interface
+		Read a string from the SPI interface by sending bytes one at a time
+		and reading back the responses. Only do this while the number of bytes
+		sent is less than the maxCharsSent parameter (default to infinity)
 		"""
 
 		dontCare = ord('X')
 		response = []
 		valid = False
+		charsSent = 0
 		run = True
+
 		
-		while run:
+		while run and (charsSent < maxCharsSent):
 			char = chr(self.sendByte(dontCare))
+			charsSent += 1
 
 			if char == '{':
 				valid = True

@@ -13,10 +13,13 @@ for dir in ${rootPythonPath}/*; do
 done
 export PYTHONPATH="${rootPythonPath}"
 
-
 sudo /home/pi/py/scripts/startsoundmodem.sh &
 sleep 1
 
 sudo /home/pi/py/scripts/startaxlisten.sh &
 sleep 1
 
+sleep 15 # Need to wait for soundmodem to start before main for some reason
+
+sudo python /home/pi/py/comms/main.py &
+sleep 1

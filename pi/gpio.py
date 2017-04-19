@@ -14,6 +14,13 @@ import logger
 class gpio(object):
 	GPIO = GPIO # module
 
+	OUTPUT = GPIO.OUT
+	OUT = GPIO.OUT
+	INPUT = GPIO.IN
+	IN = GPIO.IN
+	LOW = 0
+	HIGH = 1
+
 	lookupModeToString = {
 		GPIO.IN : "GPIO.IN",
 		GPIO.OUT : "GPIO.OUT",
@@ -48,6 +55,10 @@ class gpio(object):
 	def setOutput(self, pin, state):
 		self.logger.log.debug("Setting pin {} to {}".format(pin, state))
 		GPIO.output(pin, state)
+
+	def toggleOutput(self, pin):
+		self.logger.log.debug("Toggling pin {}".format(pin))
+		GPIO.output(pin, not GPIO.input(pin))
 
 	def status(self, *pins):
 		displayString = "{:<2} : {}"

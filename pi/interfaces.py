@@ -7,7 +7,7 @@ description: Holder for all of the pi interfaces
 import beacon
 import cameraMux
 import gpio
-import i2c
+import gps
 import osd232
 import habip_osd
 import spi
@@ -23,8 +23,8 @@ class interfaces(object):
 	beacon = None
 	cameraMux = None
 	gpio = None
+	gps = None
 	habip_osd = None
-	i2c = None
 	spi = None
 	uart = None
 	osd232 = None
@@ -62,12 +62,18 @@ class interfaces(object):
 			return False
 
 	def openhabiposd(self):
-		interfaces.osd232 = osd232.osd232(port=port)
+		interfaces.osd232 = osd232.osd232(port="/dev/ttyAMA0")
 		self.logger.log.debug("Opened osd232")
 		
 		interfaces.uart = interfaces.osd232.connection
 		self.logger.log.debug("Opened uart")
 
-		interfaces.habip_osd = habip_osd.habip_osd(osd232=interfaces.osd232)
-		self.logger.log.debug("Opened osd232")
+		if interfaces.gpio is not None:
+			interfaces.habip_osd = habip_osd.habip_osd(osd232=interfaces.osd232, gpio=interfaces.gpio)
+			self.logger.log.debug("Opened osd232")
+		else:
+			self.logger.log.error("Must open GPIO interface before OSD")
 
+	def opengps(self):
+		interfaces.gps = gps.gps()
+		self.logger.log.debug("Opened GPS")
