@@ -12,7 +12,7 @@ import smbus
 
 import sys
 
-import time
+import common
 import logger
 
 # Custom i2c class
@@ -67,6 +67,15 @@ class pressSensorMS5607(i2c):
 		self.T_REF 		= None 		# constant C5 = Reference temperature
 		self.TEMPSENSE 	= None 		# constant C6 = Temp Coeff of the temperature
 
+		self.prev_temp_c = None
+		self.prev_temp_f = None
+		self.prev_press_mbar = None
+		self.prev_press_pa = None
+		self.prev_altitude_m = None
+		self.prev_altitude_ft = None
+
+		self.readSensorPROM()
+
 	def reset(self):
 		"""
 		Sends reset to the pressure sensor, ensures PROM is properly loaded to internal registers
@@ -77,7 +86,7 @@ class pressSensorMS5607(i2c):
 		self.deviceLogger.log.debug("Sending reset to ensure PROM is properly loaded into internal registers...")
 		write_status = self.sendWrite(pressSensorMS5607.REG_RESET)
 		# wait non-zero amount of time for reset
-		time.sleep(0.5)
+		common.msleep(50)
 
 		return write_status
 
@@ -164,7 +173,7 @@ class pressSensorMS5607(i2c):
 			return [None, None, None, None, None]
 
 		# wait longer than the max ADC conversion time (9.04ms for OSR=4096) or data will be corrupt
-		time.sleep(0.01)
+		common.msleep(10)
 
 		# read the 24-bit (3 byte) ADC pressure result
 		adc_pressure = self.readBlock(pressSensorMS5607.REG_ADC_READ, 3)
@@ -177,7 +186,7 @@ class pressSensorMS5607(i2c):
 			return [None, None, None, None, None]
 
 		# wait longer than the max ADC conversion time (9.04ms for OSR=4096) or data will be corrupt
-		time.sleep(0.01)
+		common.msleep(10)
 
 		# read the 24-bit (3 byte) ADC temperature result
 		adc_temperature = self.readBlock(pressSensorMS5607.REG_ADC_READ, 3)
@@ -229,6 +238,13 @@ class pressSensorMS5607(i2c):
 		# convert altitude to feet (1m ~= 3.28084 feet)
 		altitude_ft = altitude_m * 3.28084
 
+		self.prev_temp_c = temp_c
+		self.prev_temp_f = temp_f
+		self.prev_press_mbar = press_mbar
+		self.prev_press_pa = press_pa
+		self.prev_altitude_m = altitude_m
+		self.prev_altitude_ft = altitude_ft
+
 		#return [temp_c, temp_f, press_mbar, press_pa, altitude_m, altitude_ft]
 		return ["{:+08.3f}".format(temp_c),
 				"{:+08.3f}".format(temp_f),
@@ -260,6 +276,6 @@ if __name__ == "__main__":
 	print header
 	while (1):
 		print press0.readAll()
-		time.sleep(1)
+		common.msleep(1000)
 
 	sys.exit(1)

@@ -67,6 +67,8 @@ class pressSensorMS5803(i2c):
 		self.T_REF 		= None 		# constant C5 = Reference temperature
 		self.TEMPSENSE 	= None 		# constant C6 = Temp Coeff of the temperature
 
+		self.readSensorPROM()
+
 	def reset(self):
 		"""
 		Sends reset to the pressure sensor, ensures PROM is properly loaded to internal registers

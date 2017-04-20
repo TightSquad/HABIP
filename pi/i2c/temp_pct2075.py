@@ -41,6 +41,9 @@ class tempSensorPCT2075(i2c):
 		self.deviceLogger = self.baseLogger.getLogger(("tempSensorPCT2075_addr"+str(hex(address))))
 		self.deviceLogger.log.info("Instantiated tempSensorPCT2075_addr"+str(hex(address)))
 
+		self.prev_temp_f = None
+		self.prev_temp_c = None
+
 
 	def readTempCF(self):
 		"""
@@ -75,6 +78,9 @@ class tempSensorPCT2075(i2c):
 				temperature_c = temperature_shifted * 0.125
 				# convert celcius to fahrenheit
 				temperature_f = temperature_c * (9.0/5.0) + 32
+
+			self.prev_temp_f = temperature_f
+			self.prev_temp_c = temperature_c
 
 			return ["{:+08.3f}".format(temperature_c),
 					"{:+08.3f}".format(temperature_f)]

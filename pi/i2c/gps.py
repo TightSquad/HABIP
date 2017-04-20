@@ -62,7 +62,7 @@ class gps(i2c):
 		data = self.readWord(regAddress)
 
 		if data is None:
-			self.deviceLogger.log.error("Could not read register: {}".format(
+			self.deviceLogger.log.debug("Could not read register: {}".format(
 				hex(regAddress)))
 		else:
 			self.deviceLogger.log.debug("Read {} from register: {}".format(
@@ -77,7 +77,7 @@ class gps(i2c):
 		"""
 		data = data & 0xff
 		if not self.writeWord(regAddress, data):
-			self.deviceLogger.log.error("Could not write {} to register: {}"
+			self.deviceLogger.log.debug("Could not write {} to register: {}"
 				.format(hex(data), hex(regAddress)))
 			return False
 		else:
@@ -171,8 +171,8 @@ class gps(i2c):
 			try:
 				parsed.append(pynmea2.parse(command))
 			except Exception as e:
-				self.deviceLogger.log.error("Error parsing commands from GPS")
-				self.deviceLogger.log.error("Got exception: {}".format(e))
+				self.deviceLogger.log.debug("Error parsing commands from GPS")
+				self.deviceLogger.log.debug("Got exception: {}".format(e))
 				return gpsData()
 
 		# Check and see if the GPS is locked	
