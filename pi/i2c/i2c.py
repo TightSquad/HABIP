@@ -17,7 +17,7 @@ class i2c(object):
 	consistency
 	"""
 
-	def __init__(self, address=None, busID=None, interface=None, busLogger=None):
+	def __init__(self, address=None, busID=None, interface=None, busLogger=None, logDebug=False):
 		"""
 		address - The I2C address of the device you want to communicate with
 		busID - The I2C bus ID to use if not providing an interface
@@ -29,6 +29,9 @@ class i2c(object):
 			self.baseLogger = busLogger
 		else:
 			self.baseLogger = logger.logger("i2c")
+
+		if not logDebug:
+			self.baseLogger.changeLevel(logger.logger.INFO) # Don't log DEBUG level
 
 		if address is not None:
 			self.address = address

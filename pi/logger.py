@@ -10,6 +10,10 @@ import os
 
 
 class logger(object):
+	DEBUG = logging.DEBUG
+	INFO = logging.INFO
+	ERROR = logging.ERROR
+	WARNING = logging.WARNING
 
 	DEFAULT_FMT = "%(asctime)s.%(msecs)d : %(name)s : %(levelname)s : %(message)s"
 	DEFAULT_DATEFMT = "%Y-%m-%d_%H:%M:%S"
@@ -17,7 +21,7 @@ class logger(object):
 
 	def __init__(self, loggerName, logFileName=None, logFormat=None,
 			dateFormat=None, logFileHandler=None, baseLogger=True,
-			logErrorToConsole=True, useLogsDirectory=True):
+			logErrorToConsole=True, useLogsDirectory=True, fileLevel=logging.DEBUG):
 		self.loggerName = loggerName
 		self.logFileName = None
 		self.logFormat = None
@@ -27,6 +31,10 @@ class logger(object):
 		self.logErrorToConsole = logErrorToConsole
 		self.useLogsDirectory = useLogsDirectory
 		self.logDirectory = "logs"
+		self.fileLevel = fileLevel
+
+		self.consoleHandler = None
+		self.fileHandler = None
 
 		if logFileName is not None:
 			self.logFileName = logFileName
@@ -63,9 +71,9 @@ class logger(object):
 		formatter.converter = time.gmtime # set time to UTC
 
 		# Create the console handler
-		ch = logging.StreamHandler()
-		ch.setLevel(logging.ERROR)
-		ch.setFormatter(formatter)
+		self.consoleHandler = logging.StreamHandler()
+		self.consoleHandler.setLevel(logging.ERROR)
+		self.consoleHandler.setFormatter(formatter)
 
 		# Create logs directory
 		if self.useLogsDirectory:
@@ -79,17 +87,29 @@ class logger(object):
 
 		# File Handler
 		if self.logFileHandler is None:
-			fh = logging.FileHandler(filename=self.logFileName)
-			fh.setLevel(logging.DEBUG)
-			fh.setFormatter(formatter)
+			self.fileHandler = logging.FileHandler(filename=self.logFileName)
+			self.fileHandler.setLevel(self.fileLevel)
+			self.fileHandler.setFormatter(formatter)
 		else:
-			fh = self.logFileHandler
+			self.fileHandler = self.logFileHandler
 
 		# Add the handles to the logger
-		logger.addHandler(ch)
-		logger.addHandler(fh)
+		if self.logErrorToConsole:
+			logger.addHandler(self.consoleHandler)
+
+		logger.addHandler(self.fileHandler)
 
 		return logger
+
+	def changeLevel(self, level):
+		"""
+		Removes, changes the level of the file handler, then adds it back
+		"""
+		self.log.removeHandler(self.fileHandler)
+
+		self.fileLevel = level
+		self.fileHandler.setLevel(self.fileLevel)
+		self.log.addHandler(self.fileHandler)
 
 
 	def getLogger(self, name):
@@ -107,6 +127,14 @@ if __name__ == "__main__":
 	myLogger = logger("myLogger")
 
 	# Test Code
-	myLogger.log.debug("debug message!")
-	myLogger.log.error("error message!")
-	myLogger.log.warning("warning message!")
+	myLogger.log.debug("debug message 1")
+	myLogger.log.info("info message 1")
+	myLogger.log.warning("warning message 1")
+	myLogger.log.error("error message 1")
+
+	myLogger.changeLevel(logger.INFO)
+
+	myLogger.log.debug("debug message 2") # This won't get logged
+	myLogger.log.info("info message 2")
+	myLogger.log.warning("warning message 2")
+	myLogger.log.error("error message 2")

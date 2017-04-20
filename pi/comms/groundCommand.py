@@ -7,6 +7,7 @@ description: Abstract the ground commands format
 import subprocess # To change the system time
 
 import board
+import common
 import localCommand
 
 class groundCommand(object):
@@ -29,7 +30,7 @@ class groundCommand(object):
     def __init__(self, logger, commandString, fields):
         
         # Fields follows the following format:
-        # [index, mainCommand, subCommand, boardID, sensorID]
+        # [index, mainCommand, subCommand, num, sensorID]
 
         # The logger instance for the groundCommand
         self.logger = logger
@@ -172,7 +173,7 @@ class osdCommand(groundCommand):
         elif len(self.params) < 1:
             self.logger.log.error("Could not find board field in command")
         
-        elif self.params[0] not in board.board.boardID.keys():
+        elif self.params[0] not in board.board.num.keys():
             self.logger.log.error("Found invalid board ID: {}".format(fields[3]))
         else:
             self.board = self.params[0]
@@ -183,8 +184,8 @@ class osdCommand(groundCommand):
             elif len(self.params) < 2:
                 self.logger.log.error("Could not find sensor field in command")
             else:
-                targetBoard = board.board.getBoard(board.board.boardID[self.board])
-                if self.params[1] not in targetBoard.sensors.keys():
+                targetBoard = board.board.getBoard(board.board.num[self.board])
+                if self.params[1] not in targetBoard.sensors:
                     self.logger.log.error("Could not find sensor: {} on board: {}".format(self.params[1], self.board))
                 else:
                     self.sensor = self.params[1]
@@ -206,26 +207,29 @@ class osdCommand(groundCommand):
             # Reset OSD
             self.logger.log.info("Command executing to reset the OSD")
             interfaces.habip_osd.power_off()
-            common.msleep(100)
+            common.msleep(500)
             interfaces.habip_osd.power_on()
 
         elif osdCommand.subCommand[self.sub] == osdCommand.subCommand["TEMP"]:
             # Update OSD temp sensor
             self.logger.log.info("Command executing to update the OSD temp")
             sensorString = "{}:{}".format(self.board, self.sensor)
-            interfaces.habip_osd.update_temp(data_source=sensorString, data_value=0.00)
+            data = interfaces.boards[self.board].data[self.sensor]
+            interfaces.habip_osd.update_temp(data_source=sensorString, data_value=data)
 
         elif osdCommand.subCommand[self.sub] == osdCommand.subCommand["PRES"]:
             # Update OSD pressure sensor
             self.logger.log.info("Command executing to update the OSD pressure")
             sensorString = "{}:{}".format(self.board, self.sensor)
-            interfaces.habip_osd.update_pres(data_source=sensorString, data_value=0.00)
+            data = interfaces.boards[self.board].data[self.sensor]
+            interfaces.habip_osd.update_pres(data_source=sensorString, data_value=data)
 
         elif osdCommand.subCommand[self.sub] == osdCommand.subCommand["HUM"]:
             # Update OSD humidity sensor
             self.logger.log.info("Command executing to update the OSD humidity")
             sensorString = "{}:H".format(self.board)
-            interfaces.habip_osd.update_humid(data_source=sensorString, data_value=0.00)
+            data = interfaces.boards[self.board].data[self.sensor]
+            interfaces.habip_osd.update_humid(data_source=sensorString, data_value=data)
 
 class reactionWheelCommand(groundCommand):
     """
@@ -290,7 +294,7 @@ class resetCommand(groundCommand):
     Class for reset commands
     """
 
-    subCommand = board.board.boardID
+    subCommand = board.board.num
 
     def __init__(self, commandString, fields, commsLogger):
         # Call super constructor

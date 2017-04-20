@@ -29,17 +29,38 @@ def test(mainInterfaces):
 		mainInterfaces.habip_osd.update_cam_num(camNum)
 		common.msleep(5000)
 
-def main():
-	mainLogger = logger.logger("main")
-	mainLogger.log.info("Starting main")
+def getDataTest(mainInterfaces):
+	mainInterfaces.temperature.readTempCF()
+	mainInterfaces.boards["B5"].data["TB0"] = mainInterfaces.temperature.prev_temp_c
 
-	mainInterfaces = interfaces.interfaces()
+	mainInterfaces.pressure.readAll()
+	mainInterfaces.boards["B5"].data["P0"] = mainInterfaces.pressure.prev_press_mbar
+
+	gpsData = mainInterfaces.gps.get_data()
+	mainInterfaces.boards["B5"].data["LAT"] = gpsData.lat
+	mainInterfaces.boards["B5"].data["LON"] = gpsData.lon
+	mainInterfaces.boards["B5"].data["SPD"] = gpsData.speed
+	mainInterfaces.boards["B5"].data["ALT"] = gpsData.alt
+
+	if gpsData.lock is True:
+		mainInterfaces.habip_osd.update_gps(lat=mainInterfaces.boards["B5"].data["LAT"], lon=mainInterfaces.boards["B5"].data["LON"])
+
+def openInterfaces(mainInterfaces):
 	mainInterfaces.openbeacon()
 	mainInterfaces.opengpio()
 	mainInterfaces.opencameramux()
 	mainInterfaces.openhabiposd() # This will open the uart interface
 	mainInterfaces.openspi()
 	mainInterfaces.opengps()
+	mainInterfaces.opentemperature()
+	mainInterfaces.openpressure()
+
+def main():
+	mainLogger = logger.logger("main")
+	mainLogger.log.info("Starting main")
+
+	mainInterfaces = interfaces.interfaces()
+	openInterfaces(mainInterfaces)
 
 	# return test(mainInterfaces)
 
@@ -55,9 +76,7 @@ def main():
 		ground.update()
 		ground.executeCommands(withDelay=100)
 
-		gpsData = mainInterfaces.gps.get_data()
-		if gpsData.lock is True:
-			mainInterfaces.habip_osd.update_gps(lat=gpsData.lat, lon=gpsData.lon)
+		getDataTest(mainInterfaces)
 
 		common.msleep(1000)
 
