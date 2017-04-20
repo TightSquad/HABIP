@@ -72,7 +72,7 @@ class interfaces(object):
 		self.logger.log.debug("Opened uart")
 
 		if self.gpio is not None:
-			self.habip_osd = habip_osd.habip_osd(osd232=self.osd232, gpio=self.gpio)
+			self.habip_osd = habip_osd.habip_osd(osd232=self.osd232, gpio=self.gpio, boards=self.boards)
 			self.logger.log.debug("Opened osd232")
 		else:
 			self.logger.log.error("Must open GPIO interface before OSD")

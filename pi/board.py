@@ -4,6 +4,18 @@ project: High Altitude Balloon Instrumentation Platform
 description: Structures to store the sensor IDs and values
 """
 
+class sensor(object):
+    """
+    Holds a sensor's location
+    """
+
+    def __init__(self, boardID, sensorID):
+        self.boardID = boardID
+        self.sensorID = sensorID
+
+    def __str__(self):
+        return "{}:{}".format(self.boardID, self.sensorID)
+
 class board(object):
     """
     Represent a board

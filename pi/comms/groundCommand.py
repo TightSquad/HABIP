@@ -179,6 +179,7 @@ class osdCommand(groundCommand):
             self.board = self.params[0]
 
             if osdCommand.subCommand[self.sub] == osdCommand.subCommand["HUM"]:
+                    self.sensor = "H"
                     self.valid = True
             
             elif len(self.params) < 2:
@@ -213,23 +214,29 @@ class osdCommand(groundCommand):
         elif osdCommand.subCommand[self.sub] == osdCommand.subCommand["TEMP"]:
             # Update OSD temp sensor
             self.logger.log.info("Command executing to update the OSD temp")
-            sensorString = "{}:{}".format(self.board, self.sensor)
-            data = interfaces.boards[self.board].data[self.sensor]
-            interfaces.habip_osd.update_temp(data_source=sensorString, data_value=data)
+            # sensorString = "{}:{}".format(self.board, self.sensor)
+            # data = interfaces.boards[self.board].data[self.sensor]
+            # interfaces.habip_osd.update_temp(data_source=sensorString, data_value=data)
+            temperatureSensor = board.sensor(boardID=self.board, sensorID=self.sensor)
+            interfaces.habip_osd.temperatureSensor = temperatureSensor
 
         elif osdCommand.subCommand[self.sub] == osdCommand.subCommand["PRES"]:
             # Update OSD pressure sensor
             self.logger.log.info("Command executing to update the OSD pressure")
-            sensorString = "{}:{}".format(self.board, self.sensor)
-            data = interfaces.boards[self.board].data[self.sensor]
-            interfaces.habip_osd.update_pres(data_source=sensorString, data_value=data)
+            # sensorString = "{}:{}".format(self.board, self.sensor)
+            # data = interfaces.boards[self.board].data[self.sensor]
+            # interfaces.habip_osd.update_pres(data_source=sensorString, data_value=data)
+            pressureSensor = board.sensor(boardID=self.board, sensorID=self.sensor)
+            interfaces.habip_osd.pressureSensor = pressureSensor
 
         elif osdCommand.subCommand[self.sub] == osdCommand.subCommand["HUM"]:
             # Update OSD humidity sensor
             self.logger.log.info("Command executing to update the OSD humidity")
-            sensorString = "{}:H".format(self.board)
-            data = interfaces.boards[self.board].data[self.sensor]
-            interfaces.habip_osd.update_humid(data_source=sensorString, data_value=data)
+            # sensorString = "{}:H".format(self.board)
+            # data = interfaces.boards[self.board].data["H"]
+            # interfaces.habip_osd.update_humid(data_source=sensorString, data_value=data)
+            humiditySensor = board.sensor(boardID=self.board, sensorID=self.sensor)
+            interfaces.habip_osd.humiditySensor = humiditySensor
 
 class reactionWheelCommand(groundCommand):
     """

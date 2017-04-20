@@ -37,13 +37,11 @@ def getDataTest(mainInterfaces):
 	mainInterfaces.boards["B5"].data["P0"] = mainInterfaces.pressure.prev_press_mbar
 
 	gpsData = mainInterfaces.gps.get_data()
-	mainInterfaces.boards["B5"].data["LAT"] = gpsData.lat
-	mainInterfaces.boards["B5"].data["LON"] = gpsData.lon
-	mainInterfaces.boards["B5"].data["SPD"] = gpsData.speed
-	mainInterfaces.boards["B5"].data["ALT"] = gpsData.alt
-
 	if gpsData.lock is True:
-		mainInterfaces.habip_osd.update_gps(lat=mainInterfaces.boards["B5"].data["LAT"], lon=mainInterfaces.boards["B5"].data["LON"])
+		mainInterfaces.boards["B5"].data["LAT"] = gpsData.lat
+		mainInterfaces.boards["B5"].data["LON"] = gpsData.lon
+		mainInterfaces.boards["B5"].data["SPD"] = gpsData.speed
+		mainInterfaces.boards["B5"].data["ALT"] = gpsData.alt
 
 def openInterfaces(mainInterfaces):
 	mainInterfaces.openbeacon()
@@ -77,6 +75,7 @@ def main():
 		ground.executeCommands(withDelay=100)
 
 		getDataTest(mainInterfaces)
+		mainInterfaces.habip_osd.update_all()
 
 		common.msleep(1000)
 

@@ -4,24 +4,38 @@ project: High Altitude Balloon Instrumentation Platform
 description: Uses the osd232 class to format our data
 """
 
+import board
 import common
 
 class habip_osd(object):
 
 	POWER_CONTROL_PIN = 32
 
-	def __init__(self, osd232, gpio):
+	def __init__(self, osd232, gpio, boards):
 		self.osd232 = osd232
 		self.sleeptime = 100
 		self.osd_width = 28
 		self.osd_height = 11
 
 		self.gpio = gpio # Used for controlling the power
+		self.boards = boards # Used for getting sensor information
 
 		# Make sure the power is on
 		self.gpio.setPinMode(habip_osd.POWER_CONTROL_PIN, gpio.OUTPUT)
 		self.gpio.setHigh(habip_osd.POWER_CONTROL_PIN)
 
+		# Set default sensors
+		self.humiditySensor = board.sensor(boardID="B0", sensorID="H")
+		self.temperatureSensor = board.sensor(boardID="B5", sensorID="TB0")
+		self.pressureSensor = board.sensor(boardID="B5", sensorID="P0")
+		self.motorSpeed = board.sensor(boardID="B4", sensorID="MS")
+		self.xGyro = board.sensor(boardID="B4", sensorID="XGY")
+		self.yGyro = board.sensor(boardID="B4", sensorID="YGY")
+		self.zGyro = board.sensor(boardID="B4", sensorID="ZGY")
+		self.gpsLat = board.sensor(boardID="B5", sensorID="LAT")
+		self.gpsLon = board.sensor(boardID="B5", sensorID="LON")
+		self.callSign = "W2RIT-11"
+		self.camera = 0
 
 	def power_on(self):
 		"""
@@ -36,6 +50,38 @@ class habip_osd(object):
 		"""
 		self.gpio.setLow(habip_osd.POWER_CONTROL_PIN)
 
+
+	def update_all(self):
+		# Temperature
+		self.update_temp(data_source=str(self.temperatureSensor), 
+			data_value=self.boards[self.temperatureSensor.boardID].data[self.temperatureSensor.sensorID])
+
+		# Pressure
+		self.update_pres(data_source=str(self.pressureSensor), 
+			data_value=self.boards[self.pressureSensor.boardID].data[self.pressureSensor.sensorID])
+
+		# Humidity
+		self.update_humid(data_source=str(self.humiditySensor), 
+			data_value=self.boards[self.humiditySensor.boardID].data[self.humiditySensor.sensorID])
+
+		# Motor Speed
+		self.update_speed(data_source=str(self.motorSpeed), 
+			data_value=self.boards[self.motorSpeed.boardID].data[self.motorSpeed.sensorID])
+
+		# IMU X,Y,Z
+		self.update_accel(x=self.boards[self.xGyro.boardID].data[self.xGyro.sensorID],
+			y=self.boards[self.yGyro.boardID].data[self.yGyro.sensorID],
+			z=self.boards[self.zGyro.boardID].data[self.zGyro.sensorID])
+
+		# Lat, Lon
+		self.update_gps(lat=self.boards[self.gpsLat.boardID].data[self.gpsLat.sensorID],
+			lon=self.boards[self.gpsLon.boardID].data[self.gpsLon.sensorID])
+
+		# Call
+		self.update_callsign(callsign=self.callSign)
+
+		# Camera
+		self.update_cam_num(cam_num=self.camera)
 
 	def update_sensor(self, row_number, update_string):
 		"""	

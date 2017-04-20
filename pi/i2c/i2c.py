@@ -17,7 +17,8 @@ class i2c(object):
 	consistency
 	"""
 
-	def __init__(self, address=None, busID=None, interface=None, busLogger=None, logDebug=False):
+	def __init__(self, address=None, busID=None, interface=None, busLogger=None,
+		logDebug=False):
 		"""
 		address - The I2C address of the device you want to communicate with
 		busID - The I2C bus ID to use if not providing an interface
@@ -31,7 +32,7 @@ class i2c(object):
 			self.baseLogger = logger.logger("i2c")
 
 		if not logDebug:
-			self.baseLogger.changeLevel(logger.logger.INFO) # Don't log DEBUG level
+			self.baseLogger.changeLevel(logger.logger.INFO) # Don't log DEBUG
 
 		if address is not None:
 			self.address = address
@@ -119,13 +120,15 @@ class i2c(object):
 
 	def readBlock(self, regAddress, numBytes):
 		"""
-		Read block from I2C bus (returns list = [first_byte_received, second byte_received, ...]
+		Read block from I2C bus (returns list = [first_byte_received,
+		second byte_received, ...]
 		"""
 
 		attempts = 0
 		while attempts < self.maxReadAttempts:
 			try:
-				byte_list = self.interface.read_i2c_block_data(self.address, regAddress, numBytes)
+				byte_list = self.interface.read_i2c_block_data(self.address,
+					regAddress, numBytes)
 				self.baseLogger.log.debug(
 					"Received bytes: {}, from device: {}, register: {}".format(
 						map(hex, byte_list), hex(self.address), hex(regAddress)))
@@ -185,7 +188,8 @@ class i2c(object):
 
 	def writeWordSwapped(self, regAddress, data=0):
 		"""
-		Most I2C transmit MSByte first, so the transmitted word byte order needs to be swapped for most devices
+		Most I2C transmit MSByte first, so the transmitted word byte order
+		needs to be swapped for most devices
 		"""
 
 		# Swap bytes
@@ -194,7 +198,8 @@ class i2c(object):
 
 	def writeBlock (self, regAddress, dataList=[]):
 		"""
-		Write block to I2C bus (sends list = [first_byte_transmitted, second byte_transmitted, ...]
+		Write block to I2C bus (sends list = [first_byte_transmitted,
+		second byte_transmitted, ...]
 		"""
 
 		attempts = 0
