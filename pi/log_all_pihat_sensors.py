@@ -17,6 +17,7 @@ import time
 import csv
 import subprocess
 import os
+import glob
 import RPi.GPIO as GPIO
 
 # Custom logger class
@@ -72,6 +73,24 @@ GPIO.output(dbg_led0, 0x0) 		# drive low
 GPIO.output(wdt_pet, 0x0)
 
 ###########################
+# Initialize 1-wire sensors
+###########################
+subprocess.call('modprobe w1-gpio', shell=True)
+subprocess.call('modprobe w1-therm', shell=True)
+w1_base_dir = '/sys/bus/w1/devices/'
+w1_sensor_base_dirs = glob.glob(w1_base_dir + '28*')
+w1_sensors = [element + '/w1_slave' for element in w1_sensor_base_dirs]
+num_w1_sensors = len(w1_sensors)
+if (num_w1_sensors == 0):
+	print "No 1-Wire Sensors detected..."
+
+w1_header = []
+# build 1-wire header
+for i in range (0, num_w1_sensors):
+	w1_header.append("w1_{} Temp (C)".format(i))
+	w1_header.append("w1_{} Temp (F)".format(i))
+
+###########################
 # Log File Naming
 ###########################
 # NOTE: Use absolute paths since script will be called froma boot area
@@ -99,11 +118,15 @@ print "Log file index set to: {}".format(log_file_index)
 # csv data logs
 # 	use the unique log_file_index from the i2c_log_file search
 csv_logfile_name 	= "{}_all_sensors_logged.csv".format(log_file_index)
-csv_logfile_header 	= ["Sample Index", "Elapsed Time (s)", "Epoch Time (s)", "Power0 Shunt Voltage (mV)", "Power0 Bus Voltage (V)", "Power0 Current (mA)", "Power0 Power (mW)", "Temp0 Temp (C)", "Temp0 Temp (F)", "Temp1 Temp (C)", "Temp1 Temp (F)", "Press0 Temp (C)", "Press0 Temp (F)", "Press0 Press (mBar)", "Press0 Press (Pa)", "Press0 Alt (m)", "Press0 Alt (ft)", "Press1 Temp (C)", "Press1 Temp (F)", "Press1 Press (mBar)", "Press1 Press (Pa)", "Press1 Alt (m)", "Press1 Alt (ft)", "Humid0 RH (%%)", "Humid0 Temp (C)", "Humid0 Temp (F)", "ARM0 Core Temp (C)", "ARM0 Core Temp (F)", "ARM0 Core Voltage (V)", "ARM0 SDRAM_c Voltage (V)", "ARM0 SDRAM_i Voltage (V)", "ARM0 SDRAM_p Voltage (V)"]
+if (num_w1_sensors != 0):
+	csv_logfile_header 	= ["Sample Index", "Elapsed Time (s)", "Epoch Time (s)", "Date Time Stamp", "Power0 Shunt Voltage (mV)", "Power0 Bus Voltage (V)", "Power0 Current (mA)", "Power0 Power (mW)", "Temp0 Temp (C)", "Temp0 Temp (F)", "Temp1 Temp (C)", "Temp1 Temp (F)", "Press0 Temp (C)", "Press0 Temp (F)", "Press0 Press (mBar)", "Press0 Press (Pa)", "Press0 Alt (m)", "Press0 Alt (ft)", "Press1 Temp (C)", "Press1 Temp (F)", "Press1 Press (mBar)", "Press1 Press (Pa)", "Press1 Alt (m)", "Press1 Alt (ft)", "Humid0 RH (%%)", "Humid0 Temp (C)", "Humid0 Temp (F)", "ARM0 Core Temp (C)", "ARM0 Core Temp (F)", "ARM0 Core Voltage (V)", "ARM0 SDRAM_c Voltage (V)", "ARM0 SDRAM_i Voltage (V)", "ARM0 SDRAM_p Voltage (V)"] + w1_header
+else:
+	csv_logfile_header 	= ["Sample Index", "Elapsed Time (s)", "Epoch Time (s)", "Date Time Stamp", "Power0 Shunt Voltage (mV)", "Power0 Bus Voltage (V)", "Power0 Current (mA)", "Power0 Power (mW)", "Temp0 Temp (C)", "Temp0 Temp (F)", "Temp1 Temp (C)", "Temp1 Temp (F)", "Press0 Temp (C)", "Press0 Temp (F)", "Press0 Press (mBar)", "Press0 Press (Pa)", "Press0 Alt (m)", "Press0 Alt (ft)", "Press1 Temp (C)", "Press1 Temp (F)", "Press1 Press (mBar)", "Press1 Press (Pa)", "Press1 Alt (m)", "Press1 Alt (ft)", "Humid0 RH (%%)", "Humid0 Temp (C)", "Humid0 Temp (F)", "ARM0 Core Temp (C)", "ARM0 Core Temp (F)", "ARM0 Core Voltage (V)", "ARM0 SDRAM_c Voltage (V)", "ARM0 SDRAM_i Voltage (V)", "ARM0 SDRAM_p Voltage (V)"]
+
 csv_log_base_path 	= "/home/pi/habip/sensors_sw/logs/"
 
 # 	sensor headers and sensor log file names
-sample_time_header 	= ["Sample Index", "Elapsed Time (s)", "Epoch Time (s)"]
+sample_time_header 	= ["Sample Index", "Elapsed Time (s)", "Epoch Time (s)", "Date Time Stamp"]
 power0_header 		= ["Power0 Shunt Voltage (mV)", "Power0 Bus Voltage (V)", "Power0 Current (mA)", "Power0 Power (mW)"]
 power0_logfile_name = "{}_power0_sensor_logged.csv".format(log_file_index)
 temp0_header 		= ["Temp0 Temp (C)", "Temp0 Temp (F)"]
@@ -118,6 +141,8 @@ humid0_header 		= ["Humid0 RH (%%)", "Humid0 Temp (C)", "Humid0 Temp (F)"]
 humid0_logfile_name = "{}_humid0_sensor_logged.csv".format(log_file_index)
 arm0_header 		= ["ARM0 Core Temp (C)", "ARM0 Core Temp (F)", "ARM0 Core Voltage (V)", "ARM0 SDRAM_c Voltage (V)", "ARM0 SDRAM_i Voltage (V)", "ARM0 SDRAM_p Voltage (V)"]
 arm0_logfile_name 	= "{}_arm0_sensor_logged.csv".format(log_file_index)
+# 1-wire sensors
+w1_logfile_name 	= "{}_w1_sensors_logged.csv".format(log_file_index)
 
 # 	create log files
 if (logging_enabled):
@@ -153,6 +178,11 @@ if (logging_enabled):
 	with open(csv_log_base_path + arm0_logfile_name, 'w+') as f:
 		writer = csv.writer(f)
 		writer.writerow(sample_time_header + arm0_header)
+	# w1
+	if (num_w1_sensors != 0):
+		with open(csv_log_base_path + w1_logfile_name, 'w+') as f:
+			writer = csv.writer(f)
+			writer.writerow(sample_time_header + w1_header)
 
 ###########################
 # "Main"
@@ -164,22 +194,16 @@ bus = smbus.SMBus(1)
 # i2c logger object
 i2c_logger = logger.logger("i2c_logger", logFileName="{}{}_{}.log".format(i2c_log_base_path, log_file_index, i2c_log_file_base))
 
-# create and initialize sensor objects
+# create and initialize i2c sensor objects
 power0 	= powerMonitorINA219(power0_addr, None, bus, i2c_logger)
-power0.config()
-power0.calibrate()
 
 temp0 	= tempSensorPCT2075(temp0_addr, None, bus, i2c_logger)
 
 temp1 	= tempSensorPCT2075(temp1_addr, None, bus, i2c_logger)
 
 press0 	= pressSensorMS5607(press0_addr, None, bus, i2c_logger)
-press0.reset()
-press0.readSensorPROM()
 
 press1 	= pressSensorMS5803(press1_addr, None, bus, i2c_logger)
-press1.reset()
-press1.readSensorPROM()
 
 humid0 	= humidSensorSI7021(humid0_addr, None, bus, i2c_logger)
 
@@ -202,6 +226,7 @@ while(1):
 	press1_data = None
 	humid0_data = None
 	arm0_data 	= None
+	w1_data 	= []
 
 	# get power0 sensor data
 	while (power0.conversionNotValid()):
@@ -226,9 +251,29 @@ while(1):
 	# get humid0 sensor data
 	humid0_data = humid0.readHumidTemp()
 
-	## NEED TO ADD
-	# logging of 1-wire
-	# logging of internal voltage / temp sensors in the BCM chip
+	if (num_w1_sensors != 0):
+		# get all 1-wire sensor data
+		for w1_sensor in w1_sensors:
+			# read w1_sensor data
+			catdata = subprocess.Popen(['cat', w1_sensor], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			out,err = catdata.communicate()
+			out_decode = out.decode('utf-8')
+			lines = out_decode.split('\n')
+			
+			# check to make sure data is valid
+			if lines[0].strip()[-3:] != 'YES':
+				print "bad data 0"
+
+			# collect the temp data
+			equals_pos = lines[1].find('t=')
+			if equals_pos != -1:
+				temp_string = lines[1][equals_pos+2:]
+				temp_c = float(temp_string) / 1000.0
+				temp_f = temp_c * 9.0 / 5.0 + 32
+				w1_data.append("{:+08.3f}".format(temp_c))
+				w1_data.append("{:+08.3f}".format(temp_f))
+			else:
+				print "bad data 1"
 
 	# get internal BCM ARM0 sensor data
 	arm0_temp_c 		= subprocess.check_output(["vcgencmd", "measure_temp"]).split("\n")[0][5:][:-2]
@@ -244,16 +289,18 @@ while(1):
 							"{:07.3f}".format(float(arm0_sdrami_volt)),
 							"{:07.3f}".format(float(arm0_sdramp_volt))]
 
-	#end of loop epoch time
+	# end of loop epoch time
 	t_loop_end_epoch = time.time()
 	# end of loop relative time stamp
 	t_loop_end_rel = t_loop_end_epoch - t_start_rel
+	# date time stamp
+	date_time_stamp = time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime())
 	# loop index and time data
-	sample_time_data = [loop_index, t_loop_end_rel, t_loop_end_epoch]
+	sample_time_data = [loop_index, t_loop_end_rel, t_loop_end_epoch, date_time_stamp]
 	
 	# write all data to log files or print results
 	if (logging_enabled):
-		all_data = power0_data + temp0_data + temp1_data + press0_data + press1_data + humid0_data + arm0_data
+		all_data = power0_data + temp0_data + temp1_data + press0_data + press1_data + humid0_data + arm0_data + w1_data
 		# log all data
 		with open(csv_log_base_path + csv_logfile_name, 'a+') as f:
 			writer = csv.writer(f)
@@ -286,6 +333,11 @@ while(1):
 		with open(csv_log_base_path + arm0_logfile_name, 'a+') as f:
 			writer = csv.writer(f)
 			writer.writerow(sample_time_data + arm0_data)
+		# w1
+		if (num_w1_sensors != 0):
+			with open(csv_log_base_path + w1_logfile_name, 'a+') as f:
+				writer = csv.writer(f)
+				writer.writerow(sample_time_data + w1_data)
 
 	elif (printing_enabled):
 		print sample_time_header
@@ -304,10 +356,14 @@ while(1):
 		print humid0_data
 		print arm0_header
 		print arm0_data
+		if (num_w1_sensors != 0):
+			print w1_header
+			print w1_data
 		print "\n"
 
-	# delay between samples (want a sample period of ~1second)
-	time.sleep(0.78)
+	# delay between samples (want a sample period of ~1second). ONLY NEED THIS IF 1-wire sensors are not used
+	if (num_w1_sensors == 0):
+		time.sleep(0.78)
 
 	# toggle the DGB0 LED to show script is still running
 	dbg_led0_value = dbg_led0_value ^ 0x1

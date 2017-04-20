@@ -74,6 +74,10 @@ class powerMonitorINA219(i2c):
 		self.deviceLogger = self.baseLogger.getLogger(("powerMonitorINA219_addr"+str(hex(address))))
 		self.deviceLogger.log.info("Instantiated powerMonitorINA219_addr"+str(hex(address)))
 
+		# config and calibrate
+		self.config()
+		self.calibrate()
+
 	def config(self):
 		"""
 		Sets the INA219 configuration register

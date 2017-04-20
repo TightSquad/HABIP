@@ -74,6 +74,8 @@ class pressSensorMS5607(i2c):
 		self.prev_altitude_m = None
 		self.prev_altitude_ft = None
 
+		# reset and read PROM
+		self.reset()
 		self.readSensorPROM()
 
 	def reset(self):
