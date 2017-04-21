@@ -5,9 +5,10 @@ description: The main executable
 """
 
 import common
+import dataManager
+import groundComms
 import interfaces
 import logger
-import groundComms
 
 def test(mainInterfaces):
 	data = mainInterfaces.gps.get_data()
@@ -29,25 +30,11 @@ def test(mainInterfaces):
 		mainInterfaces.habip_osd.update_cam_num(camNum)
 		common.msleep(5000)
 
-def getDataTest(mainInterfaces):
-	mainInterfaces.temperature.readTempCF()
-	mainInterfaces.boards["B5"].data["TB0"] = mainInterfaces.temperature.prev_temp_c
-
-	mainInterfaces.pressure.readAll()
-	mainInterfaces.boards["B5"].data["P0"] = mainInterfaces.pressure.prev_press_mbar
-
-	gpsData = mainInterfaces.gps.get_data()
-	if gpsData.lock is True:
-		mainInterfaces.boards["B5"].data["LAT"] = gpsData.lat
-		mainInterfaces.boards["B5"].data["LON"] = gpsData.lon
-		mainInterfaces.boards["B5"].data["SPD"] = gpsData.speed
-		mainInterfaces.boards["B5"].data["ALT"] = gpsData.alt
-
 def openInterfaces(mainInterfaces):
 	mainInterfaces.openbeacon()
 	mainInterfaces.opengpio()
 	mainInterfaces.opencameramux()
-	mainInterfaces.openhabiposd() # This will open the uart interface
+	mainInterfaces.openhabiposd() # This will also open the uart interface
 	mainInterfaces.openspi()
 	mainInterfaces.opengps()
 	mainInterfaces.opentemperature()
@@ -60,7 +47,7 @@ def main():
 	mainInterfaces = interfaces.interfaces()
 	openInterfaces(mainInterfaces)
 
-	# return test(mainInterfaces)
+	mainDataManager = dataManager.dataManager(interfaces=mainInterfaces)
 
 	axLogPath = "/home/pi/axlisten.log"
 	ground = groundComms.groundComms(axLogPath=axLogPath, interfaces=mainInterfaces)
@@ -74,10 +61,10 @@ def main():
 		ground.update()
 		ground.executeCommands(withDelay=100)
 
-		getDataTest(mainInterfaces)
-		mainInterfaces.habip_osd.update_all()
+		mainDataManager.update()
 
-		common.msleep(1000)
+		mainInterfaces.habip_osd.update_all() # This takes about a second to process
+		# common.msleep(1000)
 
 	mainLogger.log.info("main loop terminating")
 

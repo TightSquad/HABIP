@@ -73,7 +73,7 @@ class i2c(object):
 					"Received byte: {}, from device: {}, register: {}".format(
 						hex(byte), hex(self.address), hex(regAddress)))
 				return byte
-			except IOError as e:
+			except Exception as e:
 				self.baseLogger.log.warning("IOError: {}".format(e))
 				attempts += 1
 
@@ -95,7 +95,7 @@ class i2c(object):
 					"Received word: {}, from device: {}, register: {}".format(
 						hex(word), hex(self.address), hex(regAddress)))
 				return word
-			except IOError as e:
+			except Exception as e:
 				self.baseLogger.log.warning("IOError: {}".format(e))
 				attempts += 1
 

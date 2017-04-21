@@ -52,6 +52,10 @@ class habip_osd(object):
 
 
 	def update_all(self):
+		"""
+		Update the entire OSD with the most recent information that we have
+		"""
+
 		# Temperature
 		self.update_temp(data_source=str(self.temperatureSensor), 
 			data_value=self.boards[self.temperatureSensor.boardID].data[self.temperatureSensor.sensorID])
@@ -242,6 +246,8 @@ class habip_osd(object):
 		
 		Spacing: source: 4, blank space: 16, data: 8 (typ)
 		"""
+		self.callSign = callsign
+
 		row_number = 10
 		data_source_formatted = "CALL"
 
@@ -263,6 +269,8 @@ class habip_osd(object):
 		
 		Spacing: source: 3, blank space: 24, data: 1
 		"""
+		self.camera = cam_num
+
 		row_number = 11
 
 		# Truncate the input data

@@ -122,3 +122,17 @@ class commsHost(board):
 
     def __init__(self, num):
         super(commsHost, self).__init__(num)
+
+
+#### Test
+
+if __name__ == '__main__':
+    data = []
+    boards = [board.getBoard(i) for i in range(0,5)]
+    for b in boards:
+        for sensor in b.sensors:
+            data.append("B{}:{}:{}".format(b.number,sensor,"value"))
+
+    ds = ";".join(data)
+    print "Items: {}, Chars: {}".format(len(data), len(ds))
+    print ds
