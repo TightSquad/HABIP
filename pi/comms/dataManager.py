@@ -65,9 +65,3 @@ class dataManager(object):
 			except Exception as e:
 				self.logger.log.warning("Could not convert die temp to float: {}".format(dieTemp))
 
-
-	def updateDaqcs(self):
-		"""
-		Update sensor values from daqcs
-		"""
-		pass

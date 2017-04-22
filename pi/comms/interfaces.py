@@ -9,6 +9,7 @@ import logger
 import beacon
 import board
 import cameraMux
+import daqcsComms
 import gpio
 import gps
 import osd232
@@ -30,6 +31,7 @@ class interfaces(object):
 		self.beacon = None
 		self.boards = None
 		self.cameraMux = None
+		self.daqcs = None
 		self.gpio = None
 		self.gps = None
 		self.habip_osd = None
@@ -55,6 +57,13 @@ class interfaces(object):
 			self.cameraMux.selectCamera(0)
 		else:
 			self.logger.log.error("Cannot open camera mux interface before GPIO")
+
+	def opendaqcs(self):
+		if self.spi is not None:
+			self.daqcs = daqcsComms.daqcsComms(spi=self.spi, boards=self.boards)
+			self.logger.log.debug("Opened daqcs interface")
+		else:
+			self.logger.log.error("Cannot open daqcs interface before SPI")
 
 	def opengpio(self):
 		self.gpio = gpio.gpio()

@@ -39,6 +39,7 @@ def openInterfaces(mainInterfaces):
 	mainInterfaces.opengps()
 	mainInterfaces.opentemperature()
 	mainInterfaces.openpressure()
+	mainInterfaces.opendaqcs()
 
 def main():
 	mainLogger = logger.logger("main")
@@ -62,6 +63,8 @@ def main():
 		ground.executeCommands(withDelay=100)
 
 		mainDataManager.update()
+
+		mainInterfaces.daqcs.update()
 
 		mainInterfaces.habip_osd.update_all() # This takes about a second to process
 		# common.msleep(1000)
