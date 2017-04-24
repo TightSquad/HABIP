@@ -13,8 +13,14 @@ for dir in ${rootPythonPath}/*; do
 done
 export PYTHONPATH="${rootPythonPath}"
 
-sudo nohup python /home/pi/habip/sensors_sw/log_all_pihat_sensors.py &
+sudo nohup python /home/pi/habip/sensors_sw/log_i2c_pihat_sensors.py &
+sleep 1
+
+sudo nohup python /home/pi/habip/sensors_sw/log_w1_pihat_sensors.py &
 sleep 1
 
 sudo nohup python /home/pi/habip/photo_video_sw/log_photo_video.py &
 sleep 1
+
+#sudo nohup python /home/pi/habip/uart_monitor/uart_monitor.py &
+#sleep 1
