@@ -214,7 +214,7 @@ while(1):
 	press0_data = press0.readAll()
 
 	# get press1 sensor data
-	press1_data = press0.readAll()
+	press1_data = press1.readAll()
 
 	# get humid0 sensor data
 	humid0_data = humid0.readHumidTemp()
