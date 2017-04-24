@@ -39,6 +39,9 @@ class daqcsComms(object):
 		self.logger.log.info("Started daqcsComms")
 
 	def queueCommand(self, command):
+		"""
+		Add a command to the beginning of the queue
+		"""
 		self.queue.insert(0, command)
 
 	def update(self):
@@ -50,7 +53,7 @@ class daqcsComms(object):
 		resp = self.checkState()
 		
 		if resp is False:
-			self.logger.log.warning("Did not get response from daqcs when checking state")
+			self.logger.log.debug("Did not get response from daqcs when checking state")
 			return
 		elif type(resp) is str:
 			self.logger.log.warning("Got data to parse unexpectedly")
@@ -64,7 +67,7 @@ class daqcsComms(object):
 
 			self.currentState = daqcsComms.state["READ"]
 			if self.daqcsState != daqcsComms.daqcsStates["L"]:
-				self.logger.log.warning("DAQCS not listening")
+				self.logger.log.debug("DAQCS not listening")
 				return
 			else:
 				self.logger.log.debug("Sending get all data command to DAQCS")
@@ -113,7 +116,6 @@ class daqcsComms(object):
 
 		return False
 
-
 	def readString(self, maxCharsSent=2000, validOverride=False):
 		"""
 		Read a string from the SPI interface by sending bytes one at a time
@@ -147,7 +149,6 @@ class daqcsComms(object):
 		string = "".join(response)
 		self.logger.log.debug("received string: {}".format(string))
 		return string
-
 
 	def parseData(self, dataString):
 		"""

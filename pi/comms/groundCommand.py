@@ -108,6 +108,7 @@ class groundCommand(object):
                 commsLogger.log.error("Did not implement class for {} command".format(fields[1]))
                 return None
 
+
 class camCommand(groundCommand):
     """
     Class for camera commands
@@ -208,7 +209,7 @@ class osdCommand(groundCommand):
             # Reset OSD
             self.logger.log.info("Command executing to reset the OSD")
             interfaces.habip_osd.power_off()
-            common.msleep(500)
+            common.msleep(1000)
             interfaces.habip_osd.power_on()
 
         elif osdCommand.subCommand[self.sub] == osdCommand.subCommand["TEMP"]:
@@ -237,6 +238,7 @@ class osdCommand(groundCommand):
             # interfaces.habip_osd.update_humid(data_source=sensorString, data_value=data)
             humiditySensor = board.sensor(boardID=self.board, sensorID=self.sensor)
             interfaces.habip_osd.humiditySensor = humiditySensor
+
 
 class reactionWheelCommand(groundCommand):
     """
@@ -279,7 +281,6 @@ class reactionWheelCommand(groundCommand):
                 except Exception as e:
                     self.logger.log.error("Could not convert {} to degrees".format(split[1]))
 
-
     def execute(self, interfaces):
         # Execute reaction wheel command
         lc = None
@@ -292,8 +293,8 @@ class reactionWheelCommand(groundCommand):
             localCommandID = "04"
             lc = localCommand.localCommand(logger=self.logger, commandID=localCommandID, data=[self.sub, str(self.degrees)])
 
-        self.logger.log.info("Sending SPI command: {}".format(lc))
-        interfaces.spi.sendString(str(lc))
+        self.logger.log.info("Queueing SPI command: {}".format(lc))
+        interfaces.daqcs.queueCommand(lc)
 
 
 class resetCommand(groundCommand):
@@ -319,8 +320,9 @@ class resetCommand(groundCommand):
         localCommandID = "05"
         lc = localCommand.localCommand(logger=self.logger, commandID=localCommandID, data=self.sub)
 
-        self.logger.log.info("Sending SPI command: {}".format(lc))
-        interfaces.spi.sendString(str(lc))
+        self.logger.log.info("Queueing SPI command: {}".format(lc))
+        interfaces.daqcs.queueCommand(lc)
+
 
 class atvCommand(groundCommand):
     """
@@ -383,14 +385,15 @@ class timeCommand(groundCommand):
         # Execute time command
         command = localCommand.timeCommand(logger=self.logger, secondsString=str(self.seconds))
 
-        self.logger.log.info("Sending SPI command: {}".format(lc))
-        interfaces.spi.sendString(str(lc))
+        self.logger.log.info("Queueing SPI command: {}".format(lc))
+        interfaces.daqcs.queueCommand(lc)
 
         # Set our local time
         cmd = ["sudo", "date", "-s", "@{}".format(self.seconds)]
         resp = subprocess.Popen(cmd)
 
         self.logger.log.info("Set local datetime to: {}".format(resp))
+
 
 class cutdownCommand(groundCommand):
     """
@@ -407,5 +410,5 @@ class cutdownCommand(groundCommand):
         localCommandID = "FF"
         lc = localCommand.localCommand(logger=self.logger, commandID=localCommandID)
 
-        self.logger.log.info("Sending SPI command: {}".format(lc))
-        interfaces.spi.sendString(str(lc))
+        self.logger.log.info("Queueing SPI command: {}".format(lc))
+        interfaces.daqcs.queueCommand(lc)

@@ -4,6 +4,7 @@ project: High Altitude Balloon Instrumentation Platform
 description: Manages retrieving, storing, and logging sensor data
 """
 
+import datetime
 import subprocess
 
 import localCommand
@@ -35,6 +36,16 @@ class dataManager(object):
 		gpsData = self.interfaces.gps.get_data()
 		
 		if gpsData.lock is True:
+			# Set the date and time right away
+			date = datetime.datetime.combine(gpsData.date, gpsData.time)
+			cmd = ["sudo", "date", "-s", "{}".format(date)]
+			
+			try:
+				resp = subprocess.check_output(cmd)
+				self.logger.log.debug("Set time to: {}".format(resp))
+			except Exception as e:
+				self.logger.log.warning("Could not set time from GPS: {}".format(e))
+
 			self.interfaces.boards["B5"].data["LAT"] = gpsData.lat
 			self.interfaces.boards["B5"].data["LON"] = gpsData.lon
 			self.interfaces.boards["B5"].data["SPD"] = gpsData.speed
@@ -55,7 +66,12 @@ class dataManager(object):
 		self.interfaces.boards["B5"].data["P0"] = self.interfaces.pressure.prev_press_mbar
 
 		# Die temp
-		dieTemp = subprocess.check_output(["vcgencmd","measure_temp"])
+		try:
+			dieTemp = subprocess.check_output(["vcgencmd","measure_temp"])
+		except Exception as e:
+			self.logger.log.warning("Could not read die temp: {}".format(e))
+			return
+
 		dieTemp = dieTemp.strip().split("=")
 		if len(dieTemp) == 2 and dieTemp[1].endswith("'C"):
 			dieTemp = dieTemp[1].strip("'C")

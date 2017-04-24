@@ -34,6 +34,7 @@ class gpsData(object):
 	def __repr__(self):
 		return str(self)
 
+
 class gps(i2c):
 	def __init__(self, address=0x42, busID=0, interface=None):
 		# Call super init
