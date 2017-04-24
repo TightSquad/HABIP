@@ -4,7 +4,7 @@
 file: log_photo_video.py
 author: Chris Schwab
 project: High Altitude Balloon Instrumentation Platform
-description: Script to capture 60seconds of video and then 4 photos FOREVER
+description: Script to capture set amount of video and then a set amount of photos FOREVER
 """
 
 ###########################
@@ -18,17 +18,19 @@ import csv
 import subprocess
 import os
 import RPi.GPIO as GPIO
+from fractions import Fraction
 
 # Custom logger class
 import logger
 
 ###########################
-# LOGGING / PRINTING CONFIG
+# QUICK SETUP
 ###########################
-# enable printing to terminal
-printing_enabled = 0
-# enable csv logging
-logging_enabled = 1
+photo_burst_amount 		= 4			# number of photos to take
+video_capture_time 		= 60 		# length of video to capture
+
+printing_enabled 		= False		# enable printing of log data to terminal
+logging_enabled 		= True		# enable csv logging
 
 ###########################
 # GPIO Pins
@@ -74,6 +76,22 @@ print "Log file index set to: {}".format(log_file_index)
 # photo_video logger object
 ###########################
 photo_video_logger = logger.logger("photo_video_logger", logFileName="{}{}_{}.log".format(log_base_path, log_file_index, log_file_base))
+
+###########################
+# CSV Camera Settings
+###########################
+# 	use the unique log_file_index from the script_log search
+csv_logfile_name 	= "{}_camera_settings_logged.csv".format(log_file_index)
+csv_logfile_base_path = "/home/pi/habip/photo_video_sw/logs/"
+
+csv_logfile_header 	= ["Sample Index", "Elapsed Time (s)", "Epoch Time (s)", "Date Time Stamp", "File Name", "analog_gain", "digital_gain", "exposure_speed", "shutter_speed", "hflip", "vflip", "rotation", "resolution", "framerate", "meter_mode"]
+
+# 	create log file
+if (logging_enabled):
+	# camera settings
+	with open(csv_logfile_base_path + csv_logfile_name, 'w+') as f:
+		writer = csv.writer(f)
+		writer.writerow(csv_logfile_header)
 
 ###########################
 # Photo/Video Dirs
@@ -125,36 +143,51 @@ print "Video file index set to: {}".format(video_file_index_padded)
 photo_video_logger.log.warning("Video file index set to: {}".format(video_file_index_padded))
 
 ###########################
-# Amount of Photos/Videos
-###########################
-photo_burst_amount 		= 4			# number of photos to take
-video_capture_time 		= 60 		# length of video to capture
-
-###########################
 # "Main"
 ###########################
 
-# camera object
+# #	Resolution	AspRat	Framerates	Video	Image	FoV			Binning
+# 1	1920x1080	16:9	0.1-30fps	x	 			Partial		None
+# 2	3280x2464	4:3		0.1-15fps	x		x		Full		None
+# 3	3280x2464	4:3		0.1-15fps	x		x		Full		None
+# 4	1640x1232	4:3		0.1-40fps	x	 			Full		2x2
+# 5	1640x922	16:9	0.1-40fps	x	 			Full		2x2
+# 6	1280x720	16:9	40-90fps	x	 			Partial		2x2
+# 7	640x480		4:3		40-90fps	x	 			Partial		2x2
+
 camera = picamera.PiCamera()
 
 # configure camera settings
-camera.sharpness 			= 0 						# defualt
-camera.contrast 			= 0 						# defualt
-camera.brightness 			= 50 						# defualt
-camera.saturation 			= 0 						# defualt
-camera.ISO 					= 0 						# defualt
-camera.video_stabilization 	= True 						# defualt = False
-camera.exposure_compensation= 0 						# defualt
-camera.exposure_mode 		= 'auto' 					# default
-camera.meter_mode 			= 'average' 				# default
-camera.awb_mode 			= 'auto' 					# default
-camera.image_effect 		= 'none' 					# default
-camera.color_effects 		= None 						# default
-camera.rotation 			= 0 						# default
-camera.hflip 				= False 					# default
-camera.vflip 				= False 					# default
-camera.crop 				= (0.0, 0.0, 1.0, 1.0) 		# default
-camera.led 					= False 					# disable camera LED
+#camera.resolution 				= (1280, 720) 				# default
+#camera.framerate 				= 30 						# default
+#camera.sharpness 				= 0 						# defualt
+#camera.contrast 				= 0 						# defualt
+#camera.brightness 				= 50 						# defualt
+#camera.drc_strength 			= 'off' 					# default
+#camera.saturation 				= 0 						# defualt
+#camera.iso 					= 0 						# defualt (0 = auto mode)
+#camera.exposure_compensation	= 0 						# defualt
+#camera.exposure_mode 			= 'auto' 					# default
+#camera.exposure_speed 			= 0 						# defualt
+#camera.flash_mode 				= 'off' 					# default
+#camera.awb_mode 				= 'auto' 					# default
+#camera.image_effect 			= 'none' 					# default
+#camera.color_effects 			= None 						# default
+#camera.zoom 					= (0.0, 0.0, 1.0, 1.0) 		# default
+
+# Disable camera LED to save power
+camera.led 						= False 					# disable camera LED
+
+# Set metering mode for multi-spot (spot mode is bad since the camera center will not always be on the target object aka earth)
+camera.meter_mode 				= 'matrix' 					# default = 'average'
+
+# Eanbling this reduces FOV
+camera.video_stabilization 		= False 					# defualt = False
+
+# NEED TO CHANGE based on camera orientation
+camera.rotation 				= 270 						# default
+camera.hflip 					= False 					# default
+camera.vflip 					= False 					# default
 
 # loop counter
 loop_index = 0
@@ -167,6 +200,8 @@ t_start_rel = time.time()
 
 # main logging loop
 while(1):
+	# configure for photo capture
+	camera.resolution 	= (3280, 2464)	# highest resolution --> uses entire sensor
 	# capture set amount of photos
 	for x in range (0, photo_burst_amount):
 		# set save file name: photoXXXX_DATE_TIME.jpeg
@@ -175,6 +210,22 @@ while(1):
 		
 		print "capturing photo..."
 		photo_video_logger.log.warning("Capturing photo: {}".format(photo_file_name))
+		# log camera settings
+		if (logging_enabled):
+			# epoch time
+			t_photo_epoch = time.time()
+			# relative time stamp
+			t_photo_rel = t_photo_epoch - t_start_rel
+			# date time stamp
+			date_time_stamp = time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime())
+			# loop index and time data
+			sample_time_data = [loop_index, t_photo_rel, t_photo_epoch, date_time_stamp]
+			# read camera config data
+			all_data = [photo_file_name, float(camera.analog_gain), float(camera.digital_gain), float(camera.exposure_speed), float(camera.shutter_speed), str(camera.hflip), str(camera.vflip), str(camera.rotation), str(camera.resolution), str(camera.framerate), str(camera.meter_mode)]
+			# log all data
+			with open(csv_logfile_base_path + csv_logfile_name, 'a+') as f:
+				writer = csv.writer(f)
+				writer.writerow(sample_time_data + all_data)
 		# capture photo
 		camera.capture(photo_file_name, format='jpeg')
 		
@@ -185,9 +236,13 @@ while(1):
 		dbg_led1_value = dbg_led1_value ^ 0x1
 		GPIO.output(dbg_led1, dbg_led1_value)
 		
-		# wait 0.5 seconds
-		time.sleep(0.5)
+		# wait 0.1 seconds
+		time.sleep(0.1)
 
+	# configure for video
+	camera.resolution 	= (1920, 1080)
+	#camera.resolution 	= (1280, 720)
+	camera.framerate 	= 30 			# 30fps is smooth enough
 	# record video
 	# set save file name: videoXXXX_DATE_TIME.h264
 	video_file_index_padded = "{:05d}".format(video_file_index)
@@ -195,6 +250,22 @@ while(1):
 	
 	print "capturing video..."
 	photo_video_logger.log.warning("Capturing video: {}".format(video_file_name))
+	# log camera settings
+	if (logging_enabled):
+		# epoch time
+		t_video_epoch = time.time()
+		# relative time stamp
+		t_video_rel = t_video_epoch - t_start_rel
+		# date time stamp
+		date_time_stamp = time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime())
+		# loop index and time data
+		sample_time_data = [loop_index, t_video_rel, t_video_epoch, date_time_stamp]
+		# read camera config data
+		all_data = [video_file_name, float(camera.analog_gain), float(camera.digital_gain), float(camera.exposure_speed), float(camera.shutter_speed), str(camera.hflip), str(camera.vflip), str(camera.rotation), str(camera.resolution), str(camera.framerate), str(camera.meter_mode)]
+		# log all data
+		with open(csv_logfile_base_path + csv_logfile_name, 'a+') as f:
+			writer = csv.writer(f)
+			writer.writerow(sample_time_data + all_data)
 	# record
 	camera.start_recording(video_file_name)
 	camera.wait_recording(video_capture_time)
