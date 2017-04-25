@@ -281,7 +281,7 @@ while(1):
 			writer = csv.writer(f)
 			writer.writerow(sample_time_data + arm0_data)
 
-	elif (printing_enabled):
+	if (printing_enabled):
 		print sample_time_header
 		print sample_time_data
 		print power0_header

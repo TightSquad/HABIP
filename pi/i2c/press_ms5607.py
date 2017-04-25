@@ -48,9 +48,6 @@ class pressSensorMS5607(i2c):
 	REG_PROM_C6       	= 0xAC 		# W: r  : PROM addr_6, constant C6 = Temp Coeff of the temperature = TEMPSENS
 	REG_PROM_CRC      	= 0xAE 		# W: r  : PROM addr_7, CRC value, bitd [3:0]
 
-	# Constants
-	PRESSURE0 			= 101325 	# 	average pressure at sea level = 101325 Pa
-
 	def __init__(self, address=None, busID=None, interface=None, busLogger=None):
 		# Call super init
 		super(self.__class__, self).__init__(address, busID, interface, busLogger)
@@ -65,7 +62,7 @@ class pressSensorMS5607(i2c):
 		self.TCS 		= None 		# constant C3 = Temp Coeff of Pressure Sensitivity
 		self.TCO 		= None 		# constant C4 = Temp Coeff of Pressure Offset
 		self.T_REF 		= None 		# constant C5 = Reference temperature
-		self.TEMPSENSE 	= None 		# constant C6 = Temp Coeff of the temperature
+		self.TEMPSENS 	= None 		# constant C6 = Temp Coeff of the temperature
 
 		self.prev_temp_c = None
 		self.prev_temp_f = None
@@ -78,6 +75,14 @@ class pressSensorMS5607(i2c):
 		self.reset()
 		self.readSensorPROM()
 
+		# # Sensor PROM Constants
+		# print "self.SENS_T1: " + str(self.SENS_T1)
+		# print "self.OFF_T1: " + str(self.OFF_T1)
+		# print "self.TCS: " + str(self.TCS)
+		# print "self.TCO: " + str(self.TCO)
+		# print "self.T_REF: " + str(self.T_REF)
+		# print "self.TEMPSENS: " + str(self.TEMPSENS)
+
 	def reset(self):
 		"""
 		Sends reset to the pressure sensor, ensures PROM is properly loaded to internal registers
@@ -88,7 +93,7 @@ class pressSensorMS5607(i2c):
 		self.deviceLogger.log.debug("Sending reset to ensure PROM is properly loaded into internal registers...")
 		write_status = self.sendWrite(pressSensorMS5607.REG_RESET)
 		# wait non-zero amount of time for reset
-		common.msleep(50)
+		common.msleep(10)
 
 		return write_status
 
@@ -229,16 +234,13 @@ class pressSensorMS5607(i2c):
 		SENS = self.SENS_T1 + ((self.TCS * dT) >> 7) 		# Sensitivity at actual temperature
 		SENS = SENS - SENS2 								# Adjusting SENS with second order compensation (if no compensation then SENS2 = 0)
 		P = (((d1_pressure * SENS) >> 21) - OFF) >> 15 		# Temperature compensated pressure (0...6000mbar with 0.03mbar resolution)
+		press_pa = P 										# Pressure in Pascals
 
-		# convert pressure to proper sensor units
+		# convert pressure to mBar
 		press_mbar = P / 100.0 								# Pressur in mBar
-		press_pa = press_mbar * 100							# Pressure in Pascals (1Bar = 100,000Pa) --> (1mBar = 100Pa)
 
-		# calculate altitude (in meters) from the pressure reading
-		altitude_m = 44330 * (1 - ((press_pa/pressSensorMS5607.PRESSURE0)**(1/5.255)))
-
-		# convert altitude to feet (1m ~= 3.28084 feet)
-		altitude_ft = altitude_m * 3.28084
+		# calculate altitude (in meters and feet) from the pressure reading
+		altitude_m, altitude_ft = self.calculate_altitude(press_pa)
 
 		self.prev_temp_c = temp_c
 		self.prev_temp_f = temp_f
@@ -254,6 +256,37 @@ class pressSensorMS5607(i2c):
 				"{:08.1f}".format(press_pa),
 				"{:010.3f}".format(altitude_m),
 				"{:010.3f}".format(altitude_ft)]
+
+	def calculate_altitude(self, pressure_pa):
+		"""
+		Calculate altitude based on pressure reading (in Pascals)
+			RETURNS list of floats: [altitude_m, altitude_f]
+		"""
+
+		# 	Using Equation 1 from here: http://www.mide.com/pages/air-pressure-at-altitude-calculator
+		#		h_b = 0 [m] 				: height about sea level (m)
+		# 		T_b = 288.15 [K] (=15C)		: standard temperature at sea level (K)
+		# 		L_b = -0.0065 [K/m]			: standard temperature lapse rate (K/m)
+		# 		P_b = 101325 [Pa] 			: standard pressure at sea level (Pa)
+		# 		R   = 8.31432 [N*m / mol*K] : universal gas constant [N*m / mol*K]
+		# 		g_0 = 9.80665 [m/s^2] 		: gravitational acceleration constant [m/s^2]
+		# 		M 	= 0.0289644 [kg/mol] 	: molar mass of earth's air [kg/mol]
+		# 		P 	= pressure sensor measurement in Pascals [Pa]
+		#
+		# 		A1 = T_b / L_b 				= -44330.76923076923
+		# 		A2 	= (-R*L_b)/(g_0*M) 		= 0.1902632365084836
+		#		Since A1 is always negative, we can re-arrange the equation and use A1 as positive:
+		#			altitude [m] = A1(1 + (P/P_b)^A2)
+		# 		
+		#
+		# 		h 	= calculated [m] 		: calculated altitude [m] from |A1|(1 + (P/P_b)^A2)
+
+		altitude_m = 44330.769 * (1 - (pressure_pa/101325.0)**0.190263)
+
+		# convert altitude to feet (1m ~= 3.28084 feet)
+		altitude_ft = altitude_m * 3.28084
+
+		return [altitude_m, altitude_ft]
 
 ################################################################################
 
