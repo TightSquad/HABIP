@@ -18,7 +18,7 @@ import pynmea2
 from i2c import i2c
 
 # For while loop timeouts
-from time import time
+import time
 
 class gpsData(object):
 
@@ -30,7 +30,6 @@ class gpsData(object):
 		self.alt = None
 		self.speed = None
 		self.lock = False
-		self.timeout = 2
 
 	def __str__(self):
 		return "lat: {}, lon: {}, date: {}, time: {}, alt: {}, speed: {}, lock: {}".format(self.lat, self.lon, self.date, self.time, self.alt, self.speed, self.lock)
@@ -48,6 +47,9 @@ class gps(i2c):
 		self.deviceLogger = self.baseLogger.getLogger("gps")
 		self.deviceLogger.log.info("Instantiated the gps")
 
+		# Default timeout in seconds
+		self.timeout = 2
+
 		# Following configs taken from u-blox M8 receiver description, Protocol Specification PDF
 		# https://www.u-blox.com/sites/default/files/products/documents/u-blox8-M8_ReceiverDescrProtSpec_(UBX-13003221)_Public.pdf
 		self.disable_i2c_gsa = [0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x02, 0x00, 0x01, 0x00, 0x01, 0x01, 0x00, 0x04, 0x3B]
@@ -56,6 +58,7 @@ class gps(i2c):
 		#self.disable_i2c_vtg = [0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x05, 0x00, 0x01, 0x00, 0x01, 0x01, 0x00, 0x07, 0x50]
 
 		self.config()
+
 
 	def readRegister(self, regAddress):
 		"""
@@ -99,7 +102,7 @@ class gps(i2c):
 
 		# Read that data stream register
 		data_read = self.readRegister(0xff)
-		timeout_start = time()
+		timeout_start = time.time()
 
 		# Wait until there's only 0xffff
 		# i.e. done reading previous stream
@@ -107,9 +110,9 @@ class gps(i2c):
 			data_read = self.readRegister(0xff)
 
 			# Timeout condition
-			if (time() > timeout_start + self.timeout):
-				self.deviceLogger.log.debug("GPS Data Acquisition Timeout")
-				break;
+			if (time.time() > timeout_start + self.timeout):
+				self.deviceLogger.log.warning("GPS Data Acquisition Timeout")
+				return
 
 		# Loop until there's no more 0xffff
 		# Meaning the next stream is ready
@@ -117,9 +120,9 @@ class gps(i2c):
 			data_read = self.readRegister(0xff)
 	
 			# Timeout condition
-			if (time() > timeout_start + self.timeout):
-				self.deviceLogger.log.debug("GPS Data Acquisition Timeout")
-				break;
+			if (time.time() > timeout_start + self.timeout):
+				self.deviceLogger.log.warning("GPS Data Acquisition Timeout")
+				return
 
 		# Now we're into actual data, make a list
 		byte_stream = [data_read]
@@ -132,9 +135,9 @@ class gps(i2c):
 			byte_stream.append(data_read)
 			
 			# Timeout condition
-			if (time() > timeout_start + self.timeout):
-				self.deviceLogger.log.debug("GPS Data Acquisition Timeout")
-				break;
+			if (time.time() > timeout_start + self.timeout):
+				self.deviceLogger.log.warning("GPS Data Acquisition Timeout")
+				return
 				
 		byte_stream = byte_stream[:-1]
 		byte_stream_string = ""
@@ -180,7 +183,10 @@ class gps(i2c):
 		byte_stream = self.readByteStream()
 
 		# Convert continuous string to list of string of messages
-		commands = byte_stream.splitlines()
+		if byte_stream:
+			commands = byte_stream.splitlines()
+		else:
+			return gpsData()
 
 		# Blank line
 		if commands[-1] == '\x7f':

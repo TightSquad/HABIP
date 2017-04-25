@@ -1,5 +1,5 @@
 """
-author: Matt Zachary 
+author: Matt Zachary, Connor Goldberg
 project: High Altitude Balloon Instrumentation Platform
 description: Uses the osd232 class to format our data
 """

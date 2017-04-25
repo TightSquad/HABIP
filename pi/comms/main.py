@@ -33,6 +33,7 @@ def test(mainInterfaces):
 def openInterfaces(mainInterfaces):
 	mainInterfaces.openbeacon()
 	mainInterfaces.opengpio()
+	mainInterfaces.openwatchdog()
 	mainInterfaces.opencameramux()
 	mainInterfaces.openhabiposd() # This will also open the uart interface
 	mainInterfaces.openspi()
@@ -57,6 +58,9 @@ def main():
 
 	run = True
 	while run:
+
+		mainInterfaces.watchdog.pet() # Pet the watchdog
+
 		mainInterfaces.gpio.toggleOutput(18) # Status LED
 
 		ground.update()

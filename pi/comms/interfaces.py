@@ -18,6 +18,7 @@ import spi
 import temp_pct2075
 import press_ms5607
 import uart
+import watchdog
 
 
 class interfaces(object):
@@ -40,6 +41,7 @@ class interfaces(object):
 		self.pressure = None
 		self.uart = None
 		self.osd232 = None
+		self.watchdog = None
 
 		# Initalize the boards and the data
 		self.boards = {}
@@ -106,3 +108,9 @@ class interfaces(object):
 		else:
 			self.logger.log.error("Could not open UART interface")
 			return False
+
+	def openwatchdog(self):
+		if self.gpio is not None:
+			self.watchdog = watchdog.watchdog(gpio=self.gpio)
+		else:
+			self.logger.log.error("Cannot open watchdog interface before GPIO")
