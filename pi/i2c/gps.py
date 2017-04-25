@@ -17,6 +17,9 @@ import pynmea2
 # Custom i2c class
 from i2c import i2c
 
+# For while loop timeouts
+from time import time
+
 class gpsData(object):
 
 	def __init__(self):
@@ -27,6 +30,7 @@ class gpsData(object):
 		self.alt = None
 		self.speed = None
 		self.lock = False
+		self.timeout = 2
 
 	def __str__(self):
 		return "lat: {}, lon: {}, date: {}, time: {}, alt: {}, speed: {}, lock: {}".format(self.lat, self.lon, self.date, self.time, self.alt, self.speed, self.lock)
@@ -95,27 +99,43 @@ class gps(i2c):
 
 		# Read that data stream register
 		data_read = self.readRegister(0xff)
+		timeout_start = time()
 
 		# Wait until there's only 0xffff
 		# i.e. done reading previous stream
-		while data_read != 0xffff:
+		while (data_read != 0xffff):
 			data_read = self.readRegister(0xff)
+
+			# Timeout condition
+			if (time() > timeout_start + self.timeout):
+				self.deviceLogger.log.debug("GPS Data Acquisition Timeout")
+				break;
 
 		# Loop until there's no more 0xffff
 		# Meaning the next stream is ready
-		while data_read == 0xffff:
+		while (data_read == 0xffff):
 			data_read = self.readRegister(0xff)
 	
+			# Timeout condition
+			if (time() > timeout_start + self.timeout):
+				self.deviceLogger.log.debug("GPS Data Acquisition Timeout")
+				break;
+
 		# Now we're into actual data, make a list
 		byte_stream = [data_read]
 		data_read = 0x0000
 
 		# Now, wait until theres no more 0xffff
 		# End of stream
-		while data_read != 0xffff:
+		while (data_read != 0xffff):
 			data_read = self.readRegister(0xff)
 			byte_stream.append(data_read)
-		
+			
+			# Timeout condition
+			if (time() > timeout_start + self.timeout):
+				self.deviceLogger.log.debug("GPS Data Acquisition Timeout")
+				break;
+				
 		byte_stream = byte_stream[:-1]
 		byte_stream_string = ""
 
