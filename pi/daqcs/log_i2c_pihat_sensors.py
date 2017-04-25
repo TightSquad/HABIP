@@ -34,9 +34,9 @@ from humid_si7021 import humidSensorSI7021
 # LOGGING / PRINTING CONFIG
 ###########################
 # enable printing to terminal
-printing_enabled = 0
+printing_enabled 	= 0
 # enable csv logging
-logging_enabled = 1
+logging_enabled 	= 1
 
 ###########################
 # Sensor Addresses
@@ -302,8 +302,8 @@ while(1):
 
 	# add IMU reading here
 
-	# delay between samples (want a sample period of ~1second)
-	time.sleep(0.78)
+	# delay between samples (want a sample period of ~1second --> 0.78s)
+	time.sleep(0.28)
 
 	# toggle the DGB0 LED to show script is still running
 	dbg_led0_value = dbg_led0_value ^ 0x1
