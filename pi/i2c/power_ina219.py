@@ -66,7 +66,7 @@ class powerMonitorINA219(i2c):
 	REG_CALIB 			= 0x5	# W: r/w, Sets full-scale range and LSB of current and power measurements. Overall system calibration.
 
 
-	def __init__(self, address=None, busID=None, interface=None, busLogger=None):
+	def __init__(self, address=None, busID=None, interface=None, busLogger=None, calibrateIP=False):
 		# Call super init
 		super(self.__class__, self).__init__(address, busID, interface, busLogger)
 
@@ -74,9 +74,14 @@ class powerMonitorINA219(i2c):
 		self.deviceLogger = self.baseLogger.getLogger(("powerMonitorINA219_addr"+str(hex(address))))
 		self.deviceLogger.log.info("Instantiated powerMonitorINA219_addr"+str(hex(address)))
 
-		# config and calibrate
+		# config
 		self.config()
-		self.calibrate()
+
+		# only needed if using the internal current and power calculations
+		self.calibrateIPRegs = calibrateIP
+		if (self.calibrateIPRegs):
+			self.calibrate()
+			self.deviceLogger.log.info("Calibrating the internal Current and Power Registers...")
 
 	def config(self):
 		"""
@@ -143,7 +148,7 @@ class powerMonitorINA219(i2c):
 	def readVIP (self):
 		"""
 		Read the shunt voltage (mV), bus voltage (V), current (mA), and power (mW)
-			RETURNS list of floats: [shunt_voltage_mv, bus_voltage_V, current_ma, power_mw]
+			RETURNS list of floats: [shunt_voltage_mv, bus_voltage_v, current_ma, power_mw]
 		"""
 
 		# log warning if power or current calculations are out of range
@@ -187,35 +192,53 @@ class powerMonitorINA219(i2c):
 		bus_voltage_v = bus_voltage_mv / 1000.0
 
 		######
-		# read the current
+		# calculate or read the bus current and power
 		######
-		current_ua = None # variable for current
-		current = self.readWordSwapped(powerMonitorINA219.REG_CURRENT)
-		if (current == None):
-			return [None, None, None, None]
-		# if current is negative
-		if (current & 0x8000):
-			self.deviceLogger.log.debug("WARNING: current is negative")
-			# convert from 2s comp --> invert (aka XOR with all 1s) then add 1
-			current_2s_comp = (current ^ 0xFFFF) + 1
-			# convert to uV and throw on a minus sign
-			current_ua = (-1) * (current_2s_comp * powerMonitorINA219.CURRENT_PRECISION)
-		# else, convert register value to uV
-		else:
-			current_ua = current * powerMonitorINA219.CURRENT_PRECISION
-		# convert to mA
-		current_ma = current_ua / 1000.0
+		current_ma 	= None 	# variable for current (mA)
+		power_mw 	= None 	# variable for bus voltage (mW)
 
-		######
-		# read the power (current_units * bus_voltage_mv)
-		#	NOTE: reading reg_power CLEARS the CNVR bit of reg_bus_voltage
-		######
-		power_mw = None # variable for bus voltage
-		power = self.readWordSwapped(powerMonitorINA219.REG_POWER)
-		if (power == None):
-			return [None, None, None, None]	
-		# convert bus voltage to mV (voltage is in reg_bus_voltage bits [15:3])
-		power_mw = power * powerMonitorINA219.POWER_PRECISION
+		if (self.calibrateIPRegs):
+			### NEED TO FIX CALIBRATION SETTINGS :(
+			######
+			# read the current
+			######
+			current_ua 	= None 	# variable for current (uA)
+			current = self.readWordSwapped(powerMonitorINA219.REG_CURRENT)
+			if (current == None):
+				return [None, None, None, None]
+			# if current is negative
+			if (current & 0x8000):
+				self.deviceLogger.log.debug("WARNING: current is negative")
+				# convert from 2s comp --> invert (aka XOR with all 1s) then add 1
+				current_2s_comp = (current ^ 0xFFFF) + 1
+				# convert to uV and throw on a minus sign
+				current_ua = (-1) * (current_2s_comp * powerMonitorINA219.CURRENT_PRECISION)
+			# else, convert register value to uV
+			else:
+				current_ua = current * powerMonitorINA219.CURRENT_PRECISION
+			# convert to mA
+			current_ma = current_ua / 1000.0
+
+			######
+			# read the power (current_units * bus_voltage_mv)
+			#	NOTE: reading reg_power CLEARS the CNVR bit of reg_bus_voltage
+			######
+			power = self.readWordSwapped(powerMonitorINA219.REG_POWER)
+			if (power == None):
+				return [None, None, None, None]	
+			# convert bus voltage to mV (voltage is in reg_bus_voltage bits [15:3])
+			power_mw = power * powerMonitorINA219.POWER_PRECISION
+		else:
+			######
+			# calculate the current from the shunt voltage
+			######
+			r_shunt 	= 0.033 		#33mOHM sense resistor
+			current_ma 	= shunt_voltage_mv / r_shunt
+
+			######
+			# calculate the power from the calculated current
+			######
+			power_mw 	= current_ma * bus_voltage_v
 
 		return ["{:+08.3f}".format(shunt_voltage_mv),
 				"{:07.3f}".format(bus_voltage_v),
