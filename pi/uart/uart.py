@@ -84,7 +84,6 @@ class uart(object):
                 data += self.interface.read()
                 for item in seq:
                     if data.endswith(item):
-                        data = data.strip(item)
                         run = False
             except Exception as e:
                 run = False

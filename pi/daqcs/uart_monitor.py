@@ -19,7 +19,8 @@ import time
 # Config
 ###########################
 PORT = "/dev/ttyAMA0"
-BAUDRATE = 115200
+#BAUDRATE = 115200
+BAUDRATE = 9600
 
 i2c_csv_file_base 	= "i2c_sensors_logged.csv"
 i2c_csv_base_path 	= "/home/pi/habip/sensors_sw/data_i2c"
@@ -98,62 +99,7 @@ def get_csv_log_header(absolute_filename):
 
 	return header_string.split(',')
 
-
-# def send(con):
-# 	con.sendRaw("Testing!!"+uart.EOT)
-
-def recv(con):
-	data = con.readUntil(uart.uart.EOT)
-	return data
-
-
-###########################
-# MAIN
-###########################
-
-# dictionaries to hold the column index of the required send data
-i2c_cmd_to_header_index = {	'TD0'	: None,
-							'TB0'	: None,
-							'TB1'	: None,
-							'P0'	: None,
-							'P1'	: None,
-							'H'		: None,
-							'V'		: None,
-							'C'		: None
-						  }
-
-w1_cmd_to_header_index 	= {	'TE0'	: None,
-							'TE1'	: None
-						  }
-
-combined_tx_data 		= {	'TD0'	: None,
-							'TB0'	: None,
-							'TB1'	: None,
-							'P0'	: None,
-							'P1'	: None,
-							'H'		: None,
-							'V'		: None,
-							'C'		: None,
-							'TE0'	: None,
-							'TE1'	: None
-						  }
-
-# open UART port
-con = uart.uart(port=PORT, baudrate=BAUDRATE)
-con.open()
-
-while (1):
-# 	rx_string = recv(con)
-
-# 	if (rx_string == '{01}'):
-# 		print "Received 01"
-# 	elif (rx_string == '{05}'):
-# 		print "Received 01"
-# 	elif (rx_string == '{06}'):
-# 		print "Received 01"
-# 	else:
-# 		print "Recieved bad data: " + rx_string
-	
+def get_all_sensor_data():
 	# find latest csv data logs
 	i2c_csv_filename 	= find_last_csv_log(i2c_csv_base_path, i2c_csv_file_base)
 	w1_csv_filename 	= find_last_csv_log(w1_csv_base_path, w1_csv_file_base)
@@ -191,10 +137,73 @@ while (1):
 		tx_string = tx_string + str(key) + ':' + str(value) + ';'
 	tx_string = tx_string[:-1] + uart.uart.EOT 		# remove last ';' and at END character
 
-	print tx_string
+	return tx_string
 
-	time.sleep(5)
+###########################
+# MAIN
+###########################
 
-# con.close()
+# dictionaries to hold the column index of the required send data
+i2c_cmd_to_header_index = {	'TD0'	: None,
+							'TB0'	: None,
+							'TB1'	: None,
+							'P0'	: None,
+							'P1'	: None,
+							'H'		: None,
+							'V'		: None,
+							'C'		: None
+						  }
+
+w1_cmd_to_header_index 	= {	'TE0'	: None,
+							'TE1'	: None
+						  }
+
+combined_tx_data 		= {	'TD0'	: None,
+							'TB0'	: None,
+							'TB1'	: None,
+							'P0'	: None,
+							'P1'	: None,
+							'H'		: None,
+							'V'		: None,
+							'C'		: None,
+							'TE0'	: None,
+							'TE1'	: None
+						  }
+
+# open UART port
+con = uart.uart(port=PORT, baudrate=BAUDRATE)
+con.open()
+
+print "connection opened"
+
+# i2c logger object
+#i2c_logger = logger.logger("i2c_logger", logFileName="{}{}_{}.log".format(i2c_log_base_path, log_file_index, i2c_log_file_base))
+
+while (1):
+	# read until end of command character is Rx'd
+	rx_string = con.readUntil(uart.uart.EOT)
+	print "Received: " + rx_string
+
+	# if requesting all sensor data
+	if (rx_string == '{01}'):
+		print "HOST is requesting ALL sensor data"
+		#tx_string = get_all_sensor_data()
+		#con.sendRaw(tx_string)
+
+	# else if sending an epoch time sync (ex: {06:1491592543})
+	elif (rx_string == '{06}'):
+		print "HOST is sending an epoch time sync"
+		epoch_time_rxd = int(rx_string[4:15])
+		set_epoch_command = ['date', '--set', '\'@{}\''.format(epoch_time_rxd)]
+		set_spoch_status = subprocess.check_output(set_epoch_command)
+
+	# else if recieved a ready status from the HOST
+	elif (rx_string == '{RDY?}'):
+		con.sendRaw('{RDY}')
+
+	else:
+		print "Recieved bad data: " + rx_string
+
+con.close()
 
 sys.exit(1)
