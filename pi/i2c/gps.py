@@ -72,11 +72,11 @@ class gps(i2c):
 		if data is None:
 			self.deviceLogger.log.debug("Could not read register: {}".format(
 				hex(regAddress)))
+			return None
 		else:
 			self.deviceLogger.log.debug("Read {} from register: {}".format(
 				hex(data), hex(regAddress)))
-		
-		return ((data << 8) & 0xff00) | ((data >> 8) & 0xff) 
+			return ((data << 8) & 0xff00) | ((data >> 8) & 0xff) 
 
 
 	def writeRegister(self, regAddress, data):

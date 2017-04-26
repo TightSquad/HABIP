@@ -34,6 +34,8 @@ class daqcsComms(object):
 		self.daqcsState = daqcsComms.daqcsStates["U"]
 		self.currentState = daqcsComms.state["REQ"]
 
+		self.badStateCount = 0
+
 		self.queue = []
 
 		self.logger.log.info("Started daqcsComms")
@@ -49,17 +51,25 @@ class daqcsComms(object):
 		Process the state machine
 		"""
 
+		if self.badStateCount > 3:
+			self.logger.log.debug("Got bad state {} times in a row, attempting to clear data stream".format(self.badStateCount))
+			print "Got bad state {} times in a row, attempting to clear data stream".format(self.badStateCount)
+			self.readString()
+
 		# First get the state of daqcs
 		resp = self.checkState()
 		
 		if resp is False:
+			self.badStateCount += 1
 			self.logger.log.debug("Did not get response from daqcs when checking state")
 			return
 		elif type(resp) is str:
-			self.logger.log.warning("Got data to parse unexpectedly")
+			# If we get data back when checking the state
 			self.parseData(resp)
 			self.currentState = daqcsComms.state["EXE"]
 			return
+
+		self.badStateCount = 0
 
 		if self.currentState == daqcsComms.state["REQ"]:
 			self.logger.log.debug("Entered REQ state")
@@ -90,9 +100,13 @@ class daqcsComms(object):
 			self.currentState = daqcsComms.state["REQ"]
 			
 			if self.queue:
-				command = self.queue.pop()
-				self.logger.log.debug("About to send command: {}".format(command))
-				self.spi.sendString(str(command))
+				if self.daqcsState != daqcsComms.daqcsStates["L"]:
+					self.logger.log.debug("DAQCS not listening")
+				else:
+					command = self.queue.pop()
+					print "About to send command: {}".format(command)
+					self.logger.log.debug("About to send command: {}".format(command))
+					self.spi.sendString(str(command))
 			else:
 				self.logger.log.debug("Queue empty")
 
@@ -161,12 +175,11 @@ class daqcsComms(object):
 			pieces = item.split(":")
 			if len(pieces) != 3:
 				self.logger.log.warning("Could not parse data: {}".format(item))
-				continue
 			else:
 				if pieces[0] in board.board.num.keys():
-					if pieces[1] in self.boards[pieces[0]].sensors():
+					if pieces[1] in self.boards[pieces[0]].sensors:
 						try:
-							val = float(pieces[3])
+							val = float(pieces[2])
 							self.boards[pieces[0]].data[pieces[1]] = val
 						except Exception as e:
 							self.logger.log.warning("Could not convert value {} in {}".format(pieces[2], item))
