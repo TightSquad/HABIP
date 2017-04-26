@@ -5,6 +5,8 @@ project: High Altitude Balloon Instrumentation Platform
 description: Abstracts some functionality of the uart interface
 """
 
+# sudo apt-get install python-pip
+# sudo pip install pyserial
 import serial
 
 import common
@@ -15,7 +17,8 @@ class uart(object):
     Abstracts some basic uart functionality from the pyserial module
     """
 
-    EOT = chr(4) # ASCII End of Transmission character
+    SOT = '{' # ASCII Start of Transmission character
+    EOT = '}' # ASCII End of Transmission character
     CR = '\r'
     LF = '\n'
     CRLF = CR+LF
