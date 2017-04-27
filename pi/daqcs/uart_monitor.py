@@ -14,6 +14,7 @@ import uart
 import os
 import subprocess
 import time
+import logger
 
 ###########################
 # Config
@@ -42,6 +43,31 @@ w1_cmd_to_header = 	{	'TE0'	: 'w1_0 Temp (C)',
 						'TE1'	: 'w1_1 Temp (C)'
 					}
 
+uart_log_file_base = "uart_logger"
+uart_log_base_path = "/home/pi/habip/uart_monitor/logs_uart/"
+
+###########################
+# Log File Naming
+###########################
+# NOTE: Use absolute paths since script will be called froma boot area
+
+# uart_log
+# 	check for already used log names (aka if the RasPi had been previously booted or crashed --> XXXXX_uart_logger.log)
+# 	start log index at 0
+log_file_index = 0
+log_files_found = False
+# check for all uart_log_file_base files and increment the index to the next unique number
+for file in os.listdir(uart_log_base_path):
+	if (file[6:].startswith(uart_log_file_base) and file.endswith('.log')):
+		log_files_found = True
+		number_in_use = int(file[0:5])
+		if (number_in_use > log_file_index):
+			log_file_index = number_in_use
+if (log_files_found):
+	log_file_index = log_file_index + 1
+# pad index to 5 places
+log_file_index = "{:05d}".format(log_file_index)
+print "Log file index set to: {}".format(log_file_index)
 
 ###########################
 # Functions
@@ -100,6 +126,40 @@ def get_csv_log_header(absolute_filename):
 	return header_string.split(',')
 
 def get_all_sensor_data():
+	"""
+    inputs:
+        none
+    outputs:
+        list - returns list of all data sequences to send to the host board: ex, {TE0:+101.000}
+    """
+
+	# dictionaries to hold the column index of the required send data
+	i2c_cmd_to_header_index = {	'TD0'	: None,
+								'TB0'	: None,
+								'TB1'	: None,
+								'P0'	: None,
+								'P1'	: None,
+								'H'		: None,
+								'V'		: None,
+								'C'		: None
+							  }
+	w1_cmd_to_header_index 	= {	'TE0'	: None,
+								'TE1'	: None
+							  }
+
+	# dictionary for i2c and w1 combined data
+	combined_tx_data 		= {	'TD0'	: None,
+								'TB0'	: None,
+								'TB1'	: None,
+								'P0'	: None,
+								'P1'	: None,
+								'H'		: None,
+								'V'		: None,
+								'C'		: None,
+								'TE0'	: None,
+								'TE1'	: None
+							  }
+
 	# find latest csv data logs
 	i2c_csv_filename 	= find_last_csv_log(i2c_csv_base_path, i2c_csv_file_base)
 	w1_csv_filename 	= find_last_csv_log(w1_csv_base_path, w1_csv_file_base)
@@ -131,78 +191,74 @@ def get_all_sensor_data():
 	for key, value in sorted(w1_cmd_to_header_index.iteritems()):
 		combined_tx_data[key] = w1_sensor_data[value]
 
-	# build tx_string (sorted alpha-numerically based on CMD name)
-	tx_string = uart.uart.SOT
-	for key, value in sorted(combined_tx_data.iteritems()):
-		tx_string = tx_string + str(key) + ':' + str(value) + ';'
-	tx_string = tx_string[:-1] + uart.uart.EOT 		# remove last ';' and at END character
+	# # build tx_string (sorted alpha-numerically based on CMD name)
+	# tx_string = uart.uart.SOT
+	# for key, value in sorted(combined_tx_data.iteritems()):
+	# 	tx_string = tx_string + str(key) + ':' + str(value) + ';'
+	# tx_string = tx_string[:-1] + uart.uart.EOT 		# remove last ';' and at END character
 
-	return tx_string
+	# build tx_string_list
+	tx_string_list = []
+	for key, value in sorted(combined_tx_data.iteritems()):
+		tx_string_list = tx_string_list + ['{' + key + ':' + value + '}']
+
+	print tx_string_list
+	return tx_string_list
 
 ###########################
 # MAIN
 ###########################
 
-# dictionaries to hold the column index of the required send data
-i2c_cmd_to_header_index = {	'TD0'	: None,
-							'TB0'	: None,
-							'TB1'	: None,
-							'P0'	: None,
-							'P1'	: None,
-							'H'		: None,
-							'V'		: None,
-							'C'		: None
-						  }
-
-w1_cmd_to_header_index 	= {	'TE0'	: None,
-							'TE1'	: None
-						  }
-
-combined_tx_data 		= {	'TD0'	: None,
-							'TB0'	: None,
-							'TB1'	: None,
-							'P0'	: None,
-							'P1'	: None,
-							'H'		: None,
-							'V'		: None,
-							'C'		: None,
-							'TE0'	: None,
-							'TE1'	: None
-						  }
+# uart logger object
+uart_logger = logger.logger("uart_logger", logFileName="{}{}_{}.log".format(uart_log_base_path, log_file_index, uart_log_file_base), useLogsDirectory=False)
 
 # open UART port
+uart_logger.log.info("Opening UART comm at {} baud".format(BAUDRATE))
+uart_logger.log.info("Opening UART comm on port {}".format(PORT))
+
 con = uart.uart(port=PORT, baudrate=BAUDRATE)
 con.open()
 
-print "connection opened"
+uart_logger.log.info("UART port is open!")
 
-# i2c logger object
-#i2c_logger = logger.logger("i2c_logger", logFileName="{}{}_{}.log".format(i2c_log_base_path, log_file_index, i2c_log_file_base))
-
+# main while loop
 while (1):
 	# read until end of command character is Rx'd
 	rx_string = con.readUntil(uart.uart.EOT)
-	print "Received: " + rx_string
+	if (printing_enabled):
+		print "Received: " + rx_string
+	uart_logger.log.info("Received: {}".format(rx_string))
 
 	# if requesting all sensor data
 	if (rx_string == '{01}'):
-		print "HOST is requesting ALL sensor data"
-		#tx_string = get_all_sensor_data()
-		#con.sendRaw(tx_string)
+		if (printing_enabled):
+			print "HOST is requesting ALL sensor data..."
+		uart_logger.log.info("HOST is requesting ALL sensor data...")
+		tx_string_list = get_all_sensor_data()
+		for item in tx_string_list:
+			con.sendRaw(item)
 
 	# else if sending an epoch time sync (ex: {06:1491592543})
-	elif (rx_string == '{06}'):
-		print "HOST is sending an epoch time sync"
-		epoch_time_rxd = int(rx_string[4:15])
-		set_epoch_command = ['date', '--set', '\'@{}\''.format(epoch_time_rxd)]
-		set_spoch_status = subprocess.check_output(set_epoch_command)
+	elif (rx_string.startswith('{06:') and rx_string.endswith('}')):
+		if (printing_enabled):
+			print "HOST is sending an epoch time sync..."
+		uart_logger.log.info("HOST is sending an epoch time sync...")
+
+		epoch_time_rxd = int(rx_string[4:14])
+		set_epoch_command = ['sudo', 'date', '--set', '@{}'.format(epoch_time_rxd)]
+		set_epoch_status = subprocess.check_output(set_epoch_command)
 
 	# else if recieved a ready status from the HOST
 	elif (rx_string == '{RDY?}'):
+		if (printing_enabled):
+			print "HOST is sending a READY request..."
+		uart_logger.log.info("HOST is sending a READY request...")
 		con.sendRaw('{RDY}')
 
 	else:
-		print "Recieved bad data: " + rx_string
+		if (printing_enabled):
+			print "Recieved bad data: " + rx_string
+		uart_logger.log.info("Recieved bad data: " + rx_string)
 
 con.close()
 
