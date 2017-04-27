@@ -36,11 +36,11 @@ def main():
 
 
 	######## GENERATE FAKE DATA DONT FORGET TO REMOVE THIS #####################
-	mainDataManager.genFakeData()
+	# mainDataManager.genFakeData()
 	############################################################################
 
 
-	axLogPath = "/home/pi/axlisten.log"
+	axLogPath = "/logs/axlisten.log"
 	ground = groundComms.groundComms(axLogPath=axLogPath, interfaces=mainInterfaces, dataManager=mainDataManager)
 
 	mainInterfaces.gpio.setPinMode(pin=18, mode=mainInterfaces.gpio.OUTPUT) # Status LED

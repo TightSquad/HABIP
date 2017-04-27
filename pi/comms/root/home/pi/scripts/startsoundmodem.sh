@@ -1,7 +1,15 @@
 #!/bin/bash
 
-echo "=====" >> /home/pi/soundmodem.log
-echo "Starting /home/pi/soundmodem: $(date)" >> /home/pi/soundmodem.log
-echo "=====" >> /home/pi/soundmodem.log
+LOG_PATH="/logs/soundmodem.log"
 
-/home/pi/soundmodem >> /home/pi/soundmodem.log 2>&1
+mkdir -p /logs
+
+echo "=====" >> $LOG_PATH
+echo "Starting /home/pi/soundmodem: $(date)" >> $LOG_PATH
+echo "=====" >> $LOG_PATH
+
+/home/pi/soundmodem >> $LOG_PATH 2>&1
+
+echo "=====" >> $LOG_PATH
+echo "Closing /home/pi/soundmodem: $(date)" >> $LOG_PATH
+echo "=====" >> $LOG_PATH

@@ -51,6 +51,13 @@ class habip_osd(object):
 		self.gpio.setLow(habip_osd.POWER_CONTROL_PIN)
 
 
+	def cycle_sensors(self):
+		"""
+		Cycle through sensors if they weren't set manually
+		"""
+		pass
+
+
 	def update_all(self):
 		"""
 		Update the entire OSD with the most recent information that we have
@@ -86,6 +93,7 @@ class habip_osd(object):
 
 		# Camera
 		self.update_cam_num(cam_num=self.camera)
+
 
 	def update_sensor(self, row_number, update_string):
 		"""	

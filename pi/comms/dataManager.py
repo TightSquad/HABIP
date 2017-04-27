@@ -47,6 +47,7 @@ class dataManager(object):
 		logFile = os.path.join(dataManager.LOG_BASE_DIR, dataManager.LOG_FILE_NAME)
 		self.logFileHandle = open(logFile, "a")
 		self.csvWriter = csv.writer(self.logFileHandle)
+		self.logger.log.info("Initialized data logger: {}".format(logFile))
 
 		for boardID in board.board.boardIDs:
 			if boardID in self.interfaces.boards.keys():
@@ -55,7 +56,11 @@ class dataManager(object):
 					self.sensorOrder.append((boardID, sensor))
 
 		header = ["{}:{}".format(boardID,sensor) for boardID,sensor in self.sensorOrder]
-		self.csvWriter.writerow(header)
+		try:
+			self.csvWriter.writerow(header)
+			self.logger.log.info("Wrote csv header")
+		except Exception as e:
+			self.logger.log.warning("Could not write csv header: {}".format(e))
 
 
 	def genFakeData(self):
@@ -92,7 +97,11 @@ class dataManager(object):
 			for boardID, sensor in self.sensorOrder:
 				data.append(self.interfaces.boards[boardID].data[sensor])
 
-			self.csvWriter.writerow(data)
+			try:
+				self.csvWriter.writerow(data)
+				self.logger.log.debug("Logging sensor data to csv")
+			except Exception as e:
+				self.logger.log.warning("Could not log sensor data: {}".format(e))
 
 
 	def setTimeSync(self):

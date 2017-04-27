@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Set python path
-rootPythonPath="/home/pi/py"
+rootPath="/home/pi/py"
+rootPythonPath="$rootPath"
 
 for dir in ${rootPythonPath}/*; do
     if [ -d $dir ]; then
@@ -10,13 +11,13 @@ for dir in ${rootPythonPath}/*; do
 done
 export PYTHONPATH="${rootPythonPath}"
 
-sudo ${rootPythonPath}/scripts/startsoundmodem.sh &
+sudo ${rootPath}/scripts/startsoundmodem.sh &
 sleep 1
 
-sudo /${rootPythonPath}/scripts/startaxlisten.sh &
+sudo /${rootPath}/scripts/startaxlisten.sh &
 sleep 1
 
 sleep 15 # Need to wait for soundmodem to start before main for some reason
 
-sudo python ${rootPythonPath}/scripts/startmain.sh &
+sudo ${rootPath}/scripts/startmain.sh &
 sleep 1
