@@ -45,7 +45,7 @@ int main(void) {
 	// previously configured port settings
 	PM5CTL0 &= ~LOCKLPM5;
 
-	P1DIR |= 0x01;                          // Set P1.0 to output direction
+	//P1DIR |= 0x01;                          // Set P1.0 to output direction
 
 	// Initialize i2c
 	initI2C();
