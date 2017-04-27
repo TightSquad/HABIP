@@ -12,6 +12,8 @@ class beacon(object):
 	Send data over the soundmodem beacon interface
 	"""
 
+	MAX_PACKET_LEN = 255
+
 	def __init__(self, interface, source, destination):
 
 		self.logger = logger.logger("beacon")

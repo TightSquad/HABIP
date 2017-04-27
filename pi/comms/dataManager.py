@@ -19,14 +19,16 @@ class dataManager(object):
 	"""
 
 	LOG_BASE_DIR = "logs"
-	LOG_FILE_NAME = "dataStorage.log"
+	LOG_FILE_NAME = "dataStorage.csv"
 
 	def __init__(self, interfaces):
 		self.logger = logger.logger("dataManager")
+		self.logger.log.info("Started dataManager")
 		self.interfaces = interfaces
 		self.shouldSyncTime = False
 
 		self.sensorOrder = []
+		self.csvWriter = None
 		self.initLog()
 
 
@@ -39,7 +41,8 @@ class dataManager(object):
 			try:
 				os.mkdir(dataManager.LOG_BASE_DIR)
 			except Exception as e:
-				print "ERROR: {}".format(e)
+				self.logger.log.warning("Could not make directory: {}".format(e))
+				return
 
 		logFile = os.path.join(dataManager.LOG_BASE_DIR, dataManager.LOG_FILE_NAME)
 		self.logFileHandle = open(logFile, "a")
@@ -55,16 +58,49 @@ class dataManager(object):
 		self.csvWriter.writerow(header)
 
 
+	def genFakeData(self):
+		fakeData = 0.0
+
+		for boardID, sensor in self.sensorOrder:
+			data = self.interfaces.boards[boardID].data[sensor]
+			if data is None:
+				self.interfaces.boards[boardID].data[sensor] = fakeData
+				fakeData += 1.0
+
+
+	def getTelemetryStream(self):
+		"""
+		Get the string to send all the sensor data
+		"""
+
+		allData = []
+		for boardID, sensor in self.sensorOrder:
+			data = self.interfaces.boards[boardID].data[sensor]
+			if data is not None:
+				allData.append("{}:{}:{}".format(boardID, sensor, data))
+
+		return allData
+
+
 	def log(self):
 		"""
 		Log all the data to the log
 		"""
 
-		data = []
-		for boardID, sensor in self.sensorOrder:
-			data.append(self.interfaces.boards[boardID].data[sensor])
+		if self.csvWriter:
+			data = []
+			for boardID, sensor in self.sensorOrder:
+				data.append(self.interfaces.boards[boardID].data[sensor])
 
-		self.csvWriter.writerow(data)
+			self.csvWriter.writerow(data)
+
+
+	def setTimeSync(self):
+		"""
+		Sets the option to sync the time next time the GPS is updated
+		"""
+
+		self.shouldSyncTime = True
 
 
 	def update(self):
@@ -114,14 +150,6 @@ class dataManager(object):
 			self.interfaces.boards["B5"].data["ALT"] = gpsData.alt
 
 
-	def setTimeSync(self):
-		"""
-		Sets the option to sync the time next time the GPS is updated
-		"""
-
-		self.shouldSyncTime = True
-
-
 	def updateComms(self):
 		"""
 		Update the sensors on the Comms board
@@ -147,7 +175,7 @@ class dataManager(object):
 			dieTemp = dieTemp[1].strip("'C")
 			try:
 				dieTemp = float(dieTemp)
-				self.interfaces.boards["B5"].data["TD0"]
+				self.interfaces.boards["B5"].data["TD0"] = dieTemp
 			except Exception as e:
 				self.logger.log.warning("Could not convert die temp to float: {}".format(dieTemp))
 

@@ -33,4 +33,3 @@ def reverseBits(byte):
 	byte = ((byte & 0xCC) >> 2) | ((byte & 0x33) << 2)
 	byte = ((byte & 0xAA) >> 1) | ((byte & 0x55) << 1)
 	return byte
-

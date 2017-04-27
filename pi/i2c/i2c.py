@@ -74,7 +74,7 @@ class i2c(object):
 						hex(byte), hex(self.address), hex(regAddress)))
 				return byte
 			except Exception as e:
-				self.baseLogger.log.warning("IOError: {}".format(e))
+				self.baseLogger.log.warning("IOError in readByte: {}".format(e))
 				attempts += 1
 
 		self.baseLogger.log.error("Failed to read byte from device: \
@@ -96,7 +96,7 @@ class i2c(object):
 						hex(word), hex(self.address), hex(regAddress)))
 				return word
 			except Exception as e:
-				self.baseLogger.log.warning("IOError: {}".format(e))
+				self.baseLogger.log.warning("IOError in readWord: bus {}, device address: {:X}, register: {:X}".format(self.busID, self.address, regAddress))
 				attempts += 1
 
 		self.baseLogger.log.error("Failed to read word from device: \
@@ -134,7 +134,7 @@ class i2c(object):
 						map(hex, byte_list), hex(self.address), hex(regAddress)))
 				return byte_list
 			except IOError as e:
-				self.baseLogger.log.warning("IOError: {}".format(e))
+				self.baseLogger.log.warning("IOError in readBlock: {}".format(e))
 				attempts += 1
 
 		self.baseLogger.log.error("Failed to read bytes from device: \
@@ -156,7 +156,7 @@ class i2c(object):
 						hex(data), hex(self.address), hex(regAddress)))
 				return True
 			except IOError as e:
-				self.baseLogger.log.warning("IOError: {}".format(e))
+				self.baseLogger.log.warning("IOError in writeByte: {}".format(e))
 				attempts += 1
 
 		self.baseLogger.log.error("Failed to write byte: {} to device: \
@@ -178,7 +178,7 @@ class i2c(object):
 						hex(data), hex(self.address), hex(regAddress)))
 				return True
 			except IOError as e:
-				self.baseLogger.log.warning("IOError: {}".format(e))
+				self.baseLogger.log.warning("IOError in writeWord : {}".format(e))
 				attempts += 1
 
 		self.baseLogger.log.error("Failed to write word: {} to device: \
@@ -211,7 +211,7 @@ class i2c(object):
 						map(hex, dataList), hex(self.address), hex(regAddress)))
 				return True
 			except IOError as e:
-				self.baseLogger.log.warning("IOError: {}".format(e))
+				self.baseLogger.log.warning("IOError in writeBlock: {}".format(e))
 				attempts += 1
 
 		self.baseLogger.log.error("Failed to write bytes: {} to device: \
@@ -240,7 +240,7 @@ class i2c(object):
 						hex(byte), hex(self.address)))
 				return byte
 			except IOError as e:
-				self.baseLogger.log.warning("IOError: {}".format(e))
+				self.baseLogger.log.warning("IOError in sendRead: {}".format(e))
 				attempts += 1
 
 		self.baseLogger.log.error("Failed to read byte from device: \
@@ -258,7 +258,7 @@ class i2c(object):
 						hex(self.address), regAddress))
 				return True
 			except IOError as e:
-				self.baseLogger.log.warning("IOError: {}".format(e))
+				self.baseLogger.log.warning("IOError in sendWrite: {}".format(e))
 				attempts += 1
 
 		self.baseLogger.log.error("Failed to write byte: N/A (slave addr + command only) to device: \

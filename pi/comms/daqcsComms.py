@@ -53,7 +53,6 @@ class daqcsComms(object):
 
 		if self.badStateCount > 3:
 			self.logger.log.debug("Got bad state {} times in a row, attempting to clear data stream".format(self.badStateCount))
-			print "Got bad state {} times in a row, attempting to clear data stream".format(self.badStateCount)
 			self.readString()
 
 		# First get the state of daqcs
@@ -104,7 +103,6 @@ class daqcsComms(object):
 					self.logger.log.debug("DAQCS not listening")
 				else:
 					command = self.queue.pop()
-					print "About to send command: {}".format(command)
 					self.logger.log.debug("About to send command: {}".format(command))
 					self.spi.sendString(str(command))
 			else:
