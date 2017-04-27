@@ -22,5 +22,5 @@ sleep 1
 sudo nohup python /home/pi/habip/photo_video_sw/log_photo_video.py &
 sleep 1
 
-#sudo nohup python /home/pi/habip/uart_monitor/uart_monitor.py &
-#sleep 1
+sudo nohup python /home/pi/habip/uart_monitor/uart_monitor.py &
+sleep 1

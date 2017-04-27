@@ -96,7 +96,7 @@ print "Log file index set to: {}".format(log_file_index)
 # 	use the unique log_file_index from the i2c_log_file search
 csv_logfile_name 	= "{}_i2c_sensors_logged.csv".format(log_file_index)
 sample_time_header 	= ["Sample Index", "Elapsed Time (s)", "Sample Time Delta (s)", "Epoch Time (s)", "Date Time Stamp"]
-csv_logfile_header 	= sample_time_header + ["Power0 Shunt Voltage (mV)", "Power0 Bus Voltage (V)", "Power0 Current (mA)", "Power0 Power (mW)", "Temp0 Temp (C)", "Temp0 Temp (F)", "Temp1 Temp (C)", "Temp1 Temp (F)", "Press0 Temp (C)", "Press0 Temp (F)", "Press0 Press (mBar)", "Press0 Press (Pa)", "Press0 Alt (m)", "Press0 Alt (ft)", "Press1 Temp (C)", "Press1 Temp (F)", "Press1 Press (mBar)", "Press1 Press (Pa)", "Press1 Alt (m)", "Press1 Alt (ft)", "Humid0 RH (%%)", "Humid0 Temp (C)", "Humid0 Temp (F)", "ARM0 Core Temp (C)", "ARM0 Core Temp (F)", "ARM0 Core Voltage (V)", "ARM0 SDRAM_c Voltage (V)", "ARM0 SDRAM_i Voltage (V)", "ARM0 SDRAM_p Voltage (V)"]
+csv_logfile_header 	= sample_time_header + ["Power0 Shunt Voltage (mV)", "Power0 Bus Voltage (V)", "Power0 Current (mA)", "Power0 Power (mW)", "Temp0 Temp (C)", "Temp0 Temp (F)", "Temp1 Temp (C)", "Temp1 Temp (F)", "Press0 Temp (C)", "Press0 Temp (F)", "Press0 Press (mBar)", "Press0 Press (Pa)", "Press0 Alt (m)", "Press0 Alt (ft)", "Press1 Temp (C)", "Press1 Temp (F)", "Press1 Press (mBar)", "Press1 Press (Pa)", "Press1 Alt (m)", "Press1 Alt (ft)", "Humid0 RH (%)", "Humid0 Temp (C)", "Humid0 Temp (F)", "ARM0 Core Temp (C)", "ARM0 Core Temp (F)", "ARM0 Core Voltage (V)", "ARM0 SDRAM_c Voltage (V)", "ARM0 SDRAM_i Voltage (V)", "ARM0 SDRAM_p Voltage (V)"]
 csv_log_base_path 	= "/home/pi/habip/sensors_sw/data_i2c/"
 
 # 	sensor headers and sensor log file names
@@ -110,7 +110,7 @@ press0_header 		= ["Press0 Temp (C)", "Press0 Temp (F)", "Press0 Press (mBar)", 
 press0_logfile_name = "{}_press0_sensor_logged.csv".format(log_file_index)
 press1_header 		= ["Press1 Temp (C)", "Press1 Temp (F)", "Press1 Press (mBar)", "Press1 Press (Pa)", "Press1 Alt (m)", "Press1 Alt (ft)"]
 press1_logfile_name = "{}_press1_sensor_logged.csv".format(log_file_index)
-humid0_header 		= ["Humid0 RH (%%)", "Humid0 Temp (C)", "Humid0 Temp (F)"]
+humid0_header 		= ["Humid0 RH (%)", "Humid0 Temp (C)", "Humid0 Temp (F)"]
 humid0_logfile_name = "{}_humid0_sensor_logged.csv".format(log_file_index)
 arm0_header 		= ["ARM0 Core Temp (C)", "ARM0 Core Temp (F)", "ARM0 Core Voltage (V)", "ARM0 SDRAM_c Voltage (V)", "ARM0 SDRAM_i Voltage (V)", "ARM0 SDRAM_p Voltage (V)"]
 arm0_logfile_name 	= "{}_arm0_sensor_logged.csv".format(log_file_index)
