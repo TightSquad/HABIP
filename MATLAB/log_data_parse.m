@@ -1,7 +1,7 @@
 clear all
 %% Initialize variables.
-save_mat_filename = 'ramp_up_test_3.mat'
-filename = 'C:\Users\stevy\OneDrive\Documents\Steven''s Stuff\RIT 5\Senior Design\MATLAB\ramp_up_data\LOG_3.TXT';
+save_mat_filename = 'ramp_dir_change_3.mat'
+filename = 'C:\Users\stevy\OneDrive\Documents\Steven''s Stuff\RIT 5\Senior Design\HABIP_Code\MATLAB\test_data\ramp_dir_change\LOG_2.TXT';
 delimiter = ',';
 
 %% Format for each line of text:
