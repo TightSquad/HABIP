@@ -1,9 +1,14 @@
 clear all
 %% Initialize variables.
-save_mat_filename = 'reaction_wheel_10.mat';
-filename = 'C:\Users\stevy\OneDrive\Documents\Steven''s Stuff\RIT 5\Senior Design\HABIP_Code\MATLAB\test_data\reaction_wheel\LOG_10.TXT';
-delimiter = ',';
+mydir = pwd;
+file_location = '\test_data\reaction_wheel\';
+file_name = 'LOG_10.TXT';
 
+% filename of .mat file that will be saved
+save_mat_filename = 'reaction_wheel_10.mat';
+
+filename = strcat(mydir, file_location, file_name)
+delimiter = ',';
 %% Format for each line of text:
 %   column1: text (%q)
 %	column2: text (%q)
