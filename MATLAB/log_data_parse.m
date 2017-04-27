@@ -1,7 +1,7 @@
 clear all
 %% Initialize variables.
-save_mat_filename = 'ramp_dir_change_3.mat'
-filename = 'C:\Users\stevy\OneDrive\Documents\Steven''s Stuff\RIT 5\Senior Design\HABIP_Code\MATLAB\test_data\ramp_dir_change\LOG_2.TXT';
+save_mat_filename = 'reaction_wheel_10.mat';
+filename = 'C:\Users\stevy\OneDrive\Documents\Steven''s Stuff\RIT 5\Senior Design\HABIP_Code\MATLAB\test_data\reaction_wheel\LOG_10.TXT';
 delimiter = ',';
 
 %% Format for each line of text:
@@ -46,7 +46,31 @@ hour = [];
 min = [];
 sec = [];
 ms = [];
+ms_total_time = [];
+ms_total = [];
 rpm = [];
+
+sec_ms_hex = sec_ms(1);
+sec_ms_bin = hexToBinaryVector(sec_ms_hex, 16, 'MSBFirst');
+sec_bin = sec_ms_bin(1:6);
+sec_temp = bi2de(sec_bin, 'left-msb');
+
+hour_min_hex = hour_min(1);
+hour_min_bin = hexToBinaryVector(hour_min_hex, 16, 'MSBFirst');
+min_bin = hour_min_bin(9:16);
+min_temp = bi2de(min_bin, 'left-msb');
+
+sec_ref = sec_temp;
+sec_counter = 0;
+
+min_ref = min_temp;
+min_counter = min_temp;
+
+ms_counter = 0;
+ms_total_temp = 0;
+
+ms_old = 0;
+ms_time_temp = 0;
 
 for i = 1:size(sec_ms,1)
     hour_min_hex = hour_min(i);
@@ -69,13 +93,42 @@ for i = 1:size(sec_ms,1)
     sec_temp = bi2de(sec_bin, 'left-msb');
     ms_temp = bi2de(ms_bin, 'left-msb');
 
+    if sec_temp ~= sec_ref
+        sec_counter = sec_counter + 1;
+        if sec_counter == 60
+            sec_counter = 0;
+        end
+        sec_ref = sec_temp;
+    end
+    
+    if min_temp ~= min_ref
+        min_counter = min_counter + 1;
+        if min_counter == 60
+            min_counter = 0;
+        end
+        min_ref = min_temp;
+    end
+    
+    if ms_temp < ms_old
+        ms_diff = (1000 - ms_old) + ms_temp;
+    else
+        ms_diff = ms_temp - ms_old;   
+    end
+    ms_time_temp = ms_time_temp + ms_diff;
+    ms_old = ms_temp;
+    
+    % ms over entire sample
+    ms_total_time = [ms_total_time; ms_time_temp];
+            
     hour = [hour; hour_temp];
     min = [min; min_temp];
-    sec = [sec; sec_temp];
+    sec_raw = [sec; sec_temp];
+    sec = [sec; sec_counter];
     ms = [ms; ms_temp];
     rpm = [rpm; motor_speed_rpm];
+    
 end
 
 save(save_mat_filename);
 
-plot(z_gyro)
+plot(ms_total_time, z_gyro)
