@@ -8,8 +8,10 @@ import csv
 import datetime
 import os
 import subprocess
+import os
 
 import board
+import common
 import localCommand
 import logger
 
@@ -19,15 +21,42 @@ class dataManager(object):
 	"""
 
 	LOG_BASE_DIR = "logs"
-	LOG_FILE_NAME = "dataStorage.log"
+	LOG_FILE_NAME = "dataStorage.csv"
 
 	def __init__(self, interfaces):
 		self.logger = logger.logger("dataManager")
+		self.logger.log.info("Started dataManager")
 		self.interfaces = interfaces
 		self.shouldSyncTime = False
 
 		self.sensorOrder = []
+		self.csvWriter = None
 		self.initLog()
+
+		# Number of times to start soundmodem
+		self.soundmodemAttempts = 0
+
+
+	def checkSoundmodem(self):
+		"""
+		Checks to see if soundmodem is running, and restarts it if not
+		"""
+
+		if self.soundmodemAttempts > 10:
+			# Fatal error, quit out
+			self.logger.log.fatal("Could not start soundmodem after {} attempts".format(self.soundmodemAttempts))
+			sys.exit(1)
+
+		if not common.processIsRunning("soundmodem"):
+			self.soundmodemAttempts += 1
+			cmd = ["sudo", "/home/pi/scripts/startsoundmodem.sh"]
+			try:
+				subprocess.Popen(cmd)
+				self.logger.log.debug("Called: $ {}".format(" ".join(cmd)))
+			except Exception as e:
+				self.logger.log.error("Got exception in soundmodem: {} with output: {}".format(e, e.output))
+		else:
+			self.soundmodemAttempts = 0
 
 
 	def initLog(self):
@@ -39,11 +68,13 @@ class dataManager(object):
 			try:
 				os.mkdir(dataManager.LOG_BASE_DIR)
 			except Exception as e:
-				print "ERROR: {}".format(e)
+				self.logger.log.warning("Could not make directory: {}".format(e))
+				return
 
 		logFile = os.path.join(dataManager.LOG_BASE_DIR, dataManager.LOG_FILE_NAME)
 		self.logFileHandle = open(logFile, "a")
 		self.csvWriter = csv.writer(self.logFileHandle)
+		self.logger.log.info("Initialized data logger: {}".format(logFile))
 
 		for boardID in board.board.boardIDs:
 			if boardID in self.interfaces.boards.keys():
@@ -52,7 +83,35 @@ class dataManager(object):
 					self.sensorOrder.append((boardID, sensor))
 
 		header = ["{}:{}".format(boardID,sensor) for boardID,sensor in self.sensorOrder]
-		self.csvWriter.writerow(header)
+		try:
+			self.csvWriter.writerow(header)
+			self.logger.log.info("Wrote csv header")
+		except Exception as e:
+			self.logger.log.warning("Could not write csv header: {}".format(e))
+
+
+	def genFakeData(self):
+		fakeData = 0.0
+
+		for boardID, sensor in self.sensorOrder:
+			data = self.interfaces.boards[boardID].data[sensor]
+			if data is None and boardID != "B5":
+				self.interfaces.boards[boardID].data[sensor] = fakeData
+				fakeData += 1.0
+
+
+	def getTelemetryStream(self):
+		"""
+		Get the string to send all the sensor data
+		"""
+
+		allData = []
+		for boardID, sensor in self.sensorOrder:
+			data = self.interfaces.boards[boardID].data[sensor]
+			if data is not None:
+				allData.append("{}:{}:{}".format(boardID, sensor, data))
+
+		return allData
 
 
 	def log(self):
@@ -60,11 +119,24 @@ class dataManager(object):
 		Log all the data to the log
 		"""
 
-		data = []
-		for boardID, sensor in self.sensorOrder:
-			data.append(self.interfaces.boards[boardID].data[sensor])
+		if self.csvWriter:
+			data = []
+			for boardID, sensor in self.sensorOrder:
+				data.append(self.interfaces.boards[boardID].data[sensor])
 
-		self.csvWriter.writerow(data)
+			try:
+				self.csvWriter.writerow(data)
+				self.logger.log.debug("Logging sensor data to csv")
+			except Exception as e:
+				self.logger.log.warning("Could not log sensor data: {}".format(e))
+
+
+	def setTimeSync(self):
+		"""
+		Sets the option to sync the time next time the GPS is updated
+		"""
+
+		self.shouldSyncTime = True
 
 
 	def update(self):
@@ -74,6 +146,7 @@ class dataManager(object):
 
 		self.updateGps()
 		self.updateComms()
+		self.checkSoundmodem()
 
 
 	def updateGps(self):
@@ -114,14 +187,6 @@ class dataManager(object):
 			self.interfaces.boards["B5"].data["ALT"] = gpsData.alt
 
 
-	def setTimeSync(self):
-		"""
-		Sets the option to sync the time next time the GPS is updated
-		"""
-
-		self.shouldSyncTime = True
-
-
 	def updateComms(self):
 		"""
 		Update the sensors on the Comms board
@@ -147,7 +212,7 @@ class dataManager(object):
 			dieTemp = dieTemp[1].strip("'C")
 			try:
 				dieTemp = float(dieTemp)
-				self.interfaces.boards["B5"].data["TD0"]
+				self.interfaces.boards["B5"].data["TD0"] = dieTemp
 			except Exception as e:
 				self.logger.log.warning("Could not convert die temp to float: {}".format(dieTemp))
 

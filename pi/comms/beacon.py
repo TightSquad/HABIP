@@ -12,6 +12,8 @@ class beacon(object):
 	Send data over the soundmodem beacon interface
 	"""
 
+	MAX_PACKET_LEN = 255
+
 	def __init__(self, interface, source, destination):
 
 		self.logger = logger.logger("beacon")
@@ -22,11 +24,12 @@ class beacon(object):
 
 	def send(self, data):
 		cmd = ["beacon", "-c", self.source, "-d", self.destination, "-s", self.interface, data]
+		
 		try:
-			subprocess.Popen(cmd)
+			resp = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
 			self.logger.log.debug("Called: $ {}".format(" ".join(cmd)))
 		except Exception as e:
-			self.logger.log.error("Got exception in beacon: {}".format(e))
+			self.logger.log.error("Got exception in beacon: {} with output: {}".format(e, e.output))
 
 
 ##### Testing

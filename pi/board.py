@@ -16,6 +16,17 @@ class sensor(object):
     def __str__(self):
         return "{}:{}".format(self.boardID, self.sensorID)
 
+    # Thanks: http://stackoverflow.com/questions/390250/elegant-ways-to-support-equivalence-equality-in-python-classes
+    def __eq__(self, other):
+        """Override the default Equals behavior"""
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        return False
+
+    def __ne__(self, other):
+        """Define a non-equality test"""
+        return not self.__eq__(other)
+
 class board(object):
     """
     Represent a board
@@ -31,6 +42,15 @@ class board(object):
         "B4" : 4, # DAQCS Host
         "B5" : 5  # COMMS Host
     }
+
+    # reverse_num = {
+    #     0 : "B0",
+    #     1 : "B1",
+    #     2 : "B2",
+    #     3 : "B3",
+    #     4 : "B4",
+    #     5 : "B5"
+    # }
 
     sensors = None
 
@@ -51,12 +71,22 @@ class board(object):
 
     @staticmethod
     def getBoard(num):
-        if num in range(0,4):
-            return piHat(num=num)
-        elif num == board.num["B4"]:
-            return daqcsHost(num=num)
-        elif num == board.num["B5"]:
-            return commsHost(num=num)
+        if type(num) is int:
+            if num in range(0,4):
+                return piHat(num=num)
+            elif num == board.num["B4"]:
+                return daqcsHost(num=num)
+            elif num == board.num["B5"]:
+                return commsHost(num=num)
+            else:
+                return None
+
+        elif type(num) is str:
+            if num in board.num.keys():
+                return board.getBoard(num=board.num[num])
+            else:
+                return None
+       
         else:
             return None
 

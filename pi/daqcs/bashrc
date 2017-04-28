@@ -1,0 +1,10 @@
+# HABIP
+# Set python path
+rootPythonPath="/home/pi/habip/python_classes"
+
+for dir in ${rootPythonPath}/*; do
+    if [ -d $dir ]; then
+        rootPythonPath="${rootPythonPath}:${dir}"
+    fi
+done
+export PYTHONPATH="${rootPythonPath}"

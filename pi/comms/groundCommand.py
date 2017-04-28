@@ -136,7 +136,7 @@ class camCommand(groundCommand):
         # Change the camera to the index based on the subCommand
         self.logger.log.info("Executing change camera to: {}".format(self.sub))
         interfaces.cameraMux.selectCamera(camCommand.subCommand[self.sub])
-        interfaces.habip_osd.update_cam_num(cam_num=self.sub)
+        interfaces.habip_osd.update_cam_num(cam_num=camCommand.subCommand[self.sub])
 
 
 class osdCommand(groundCommand):
@@ -400,15 +400,22 @@ class cutdownCommand(groundCommand):
     Class for cutdown commands
     """
 
+    MIN_TIMES_SEEN = 2
+
     def __init__(self, commandString, fields, commsLogger):
         # Call super constructor
         super(self.__class__, self).__init__(logger=commsLogger, commandString=commandString, fields=fields)
         self.valid = True
+        self.cutdownCount = 0
 
     def execute(self, interfaces):
         # Execute cutdown command
-        localCommandID = "FF"
-        lc = localCommand.localCommand(logger=self.logger, commandID=localCommandID)
+        self.cutdownCount += 1
 
-        self.logger.log.info("Queueing SPI command: {}".format(lc))
-        interfaces.daqcs.queueCommand(lc)
+        # Must see the cutdown count
+        if self.cutdownCount >= cutdownCount.MIN_TIMES_SEEN:
+            localCommandID = "FF"
+            lc = localCommand.localCommand(logger=self.logger, commandID=localCommandID)
+
+            self.logger.log.info("Queueing SPI command: {}".format(lc))
+            interfaces.daqcs.queueCommand(lc)

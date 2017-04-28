@@ -15,8 +15,11 @@ class spi(object):
 	Abstract the Pi's SPI interface
 	"""
 
-	def __init__(self, busIndex=0, deviceIndex=0, maxSpeed=150000):
+	def __init__(self, busIndex=0, deviceIndex=0, maxSpeed=150000, logDebug=False):
 		self.logger = logger.logger("spi")
+		if not logDebug:
+			self.logger.changeLevel(logger.logger.INFO) # Don't log DEBUG
+
 		self.busIndex = busIndex
 		self.deviceIndex = deviceIndex
 		self.maxSpeed = maxSpeed

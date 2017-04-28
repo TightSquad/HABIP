@@ -14,13 +14,14 @@ class groundComms(object):
     Handle the 2m communications
     """
 
-    def __init__(self, axLogPath, interfaces):
+    def __init__(self, axLogPath, interfaces, dataManager):
         self.groundCommandList = []
 
         # Create the logger
         self.logger = logger.logger("groundComms")
 
         self.interfaces = interfaces
+        self.dataManager = dataManager
 
         AX_INTERFACES = ["sm0"]
         AX_SOURCES = ["W2RIT"]
@@ -62,3 +63,24 @@ class groundComms(object):
                 self.logger.log.error("Got exception: {} trying to execute command: {}".format(e, command.commandString))
             
             self.logger.log.info("Executed command: {}".format(command.commandString))
+
+
+    def streamTelemetry(self):
+        stream = []
+        data = self.dataManager.getTelemetryStream()
+        tmp = ""
+
+        for item in data:
+            if (len(tmp) + len(item)) > self.interfaces.beacon.MAX_PACKET_LEN:
+                stream.append(tmp)
+                tmp = item + ';'
+            else:
+                tmp += item + ';'
+
+        if tmp:
+            stream.append(tmp)
+
+        for item in stream:
+            item = item.strip(';')
+            self.interfaces.beacon.send(item)
+            common.msleep(100)
