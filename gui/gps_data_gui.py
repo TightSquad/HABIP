@@ -61,14 +61,14 @@ class MapWindow(Frame):
                 # Just continue if there is data present
                 if (lat != "NULL") and (lon != "NULL"):
                     # Change latitude and longitude to be +- instead of direction
-                    if lat[-1] == "N":
-                        lat = lat[:-1]
-                    elif lat[-1] == "S":
-                        lat = "-" + lat[:-1]
-                    if lon[-1] == "E":
-                        lon = lon[:-1]
-                    elif lon[-1] == "W":
-                        lon = "-" + lon[:-1]
+                    #if lat[-1] == "N":
+                    #    lat = lat[:-1]
+                    #elif lat[-1] == "S":
+                    #    lat = "-" + lat[:-1]
+                    #if lon[-1] == "E":
+                    #    lon = lon[:-1]
+                    #elif lon[-1] == "W":
+                    #    lon = "-" + lon[:-1]
 
                     # Add latitude and longitude to lists
                     self.latList.append(lat)

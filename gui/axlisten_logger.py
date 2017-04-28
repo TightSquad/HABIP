@@ -113,6 +113,8 @@ if __name__ == "__main__":
             "B5:TM": 61,
             "B5:SPD": 62,
             "B5:ALT": 63,
+            "B5:TBL": 64,
+            "B5:PBL": 65,
         }
 
         # Loop through newly received packets

@@ -98,6 +98,8 @@ graphTable = {
     "B5:TM": ["GPS - Time","",62],
     "B5:SPD": ["GPS - Speed","Speed (mph)",63],
     "B5:ALT": ["GPS - Altitude","Altitude (meters)",64],
+    "B5:TBL": ["Balloon Temperature (degC", 65],
+    "B5:PBL": ["Ballon Pressure (mBar)", 66],
 }
 
 graphStartTime = None
@@ -234,6 +236,8 @@ class graphGui(tk.Tk):
         tempSensorCommsMenu.add_command(label="BCM Die", command=lambda: self.changeSensor("B5:TD0"))
         tempSensorCommsMenu.add_separator()
         tempSensorCommsMenu.add_command(label="Board #0", command=lambda: self.changeSensor("B5:TB0"))
+        tempSensorCommsMenu.add_separator()
+        tempSensorCommsMenu.add_command(label="Balloon", command=lambda: self.changeSensor("B5:TBL"))
         tempSensorMenu.add_cascade(label="COMMS", menu=tempSensorCommsMenu)
         # Put temperature sensor menu in main menu
         self.menubar.add_cascade(label="Temp Sensors", menu=tempSensorMenu)
@@ -274,6 +278,8 @@ class graphGui(tk.Tk):
         # Submenu for COMMS board
         presSensorCommsMenu = tk.Menu(presSensorMenu, tearoff=0)
         presSensorCommsMenu.add_command(label="Basic", command=lambda: self.changeSensor("B5:P0"))
+        presSensorCommsMenu.add_separator()
+        presSensorCommsMenu.add_command(label="Balloon", command=lambda: self.changeSensor("B5:PBL"))
         presSensorMenu.add_cascade(label="COMMS", menu=presSensorCommsMenu)
         # Put pressure sensor menu in main menu
         self.menubar.add_cascade(label="Pressure Sensors", menu=presSensorMenu)
