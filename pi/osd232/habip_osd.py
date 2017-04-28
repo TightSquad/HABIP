@@ -11,7 +11,7 @@ class habip_osd(object):
 
 	POWER_CONTROL_PIN = 32
 
-	def __init__(self, osd232, gpio, boards):
+	def __init__(self, osd232, gpio, boards, cameraMux):
 		self.osd232 = osd232
 		self.sleeptime = 100
 		self.osd_width = 28
@@ -19,6 +19,7 @@ class habip_osd(object):
 
 		self.gpio = gpio # Used for controlling the power
 		self.boards = boards # Used for getting sensor information
+		self.cameraMux = cameraMux
 
 		# Make sure the power is on
 		self.gpio.setPinMode(habip_osd.POWER_CONTROL_PIN, gpio.OUTPUT)
@@ -26,16 +27,37 @@ class habip_osd(object):
 
 		# Set default sensors
 		self.humiditySensor = board.sensor(boardID="B0", sensorID="H")
+		self.prev_humiditySensor = None
+		
 		self.temperatureSensor = board.sensor(boardID="B5", sensorID="TB0")
+		self.prev_temperatureSensor = None
+		
 		self.pressureSensor = board.sensor(boardID="B5", sensorID="P0")
+		self.prev_pressureSensor = None
+		
 		self.motorSpeed = board.sensor(boardID="B4", sensorID="MS")
-		self.xGyro = board.sensor(boardID="B4", sensorID="XGY")
-		self.yGyro = board.sensor(boardID="B4", sensorID="YGY")
+		self.prev_motorSpeed = None
+		
+		# self.xGyro = board.sensor(boardID="B4", sensorID="XGY")
+		# self.prev_xGyro = None
+		
+		# self.yGyro = board.sensor(boardID="B4", sensorID="YGY")
+		# self.prev_yGyro = None
+		
 		self.zGyro = board.sensor(boardID="B4", sensorID="ZGY")
+		self.prev_zGyro = None
+		
 		self.gpsLat = board.sensor(boardID="B5", sensorID="LAT")
+		self.prev_gpsLat = None
+		
 		self.gpsLon = board.sensor(boardID="B5", sensorID="LON")
+		self.prev_gpsLon = None
+		
 		self.callSign = "W2RIT-11"
+		
 		self.camera = 0
+		self.prev_camera = None
+
 
 	def power_on(self):
 		"""
@@ -51,11 +73,96 @@ class habip_osd(object):
 		self.gpio.setLow(habip_osd.POWER_CONTROL_PIN)
 
 
-	def cycle_sensors(self):
+	@staticmethod
+	def getNextSensor(sensor):
+		"""
+		Returns the next board/sensor combo
+		"""
+		currentBoardNum = board.board.num[sensor.boardID]
+		boardsToCheck = board.board.boardIDs[currentBoardNum+1:] + board.board.boardIDs[:currentBoardNum+1]
+		for nextBoardID in boardsToCheck:
+			if sensor.sensorID in board.board.getBoard(nextBoardID).sensors:
+				return board.sensor(boardID=nextBoardID, sensorID=sensor.sensorID)
+
+		return sensor
+
+
+	def cycle(self):
 		"""
 		Cycle through sensors if they weren't set manually
 		"""
-		pass
+
+		if self.humiditySensor == self.prev_humiditySensor:
+			# Change sensor
+			self.humiditySensor = habip_osd.getNextSensor(sensor=self.humiditySensor)
+		else:
+			# Update previous
+			self.prev_humiditySensor = self.humiditySensor
+
+		if self.temperatureSensor == self.prev_temperatureSensor:
+			# Change the sensor
+			self.temperatureSensor = habip_osd.getNextSensor(sensor=self.temperatureSensor)
+		else:
+			# Update previous
+			self.prev_temperatureSensor = self.temperatureSensor
+
+		if self.pressureSensor == self.prev_pressureSensor:
+			# Change the sensor
+			self.pressureSensor = habip_osd.getNextSensor(sensor=self.pressureSensor)
+		else:
+			# Update previous
+			self.prev_pressureSensor = self.pressureSensor
+
+		if self.motorSpeed == self.prev_motorSpeed:
+			# Change the sensor
+			self.motorSpeed = habip_osd.getNextSensor(sensor=self.motorSpeed)
+		else:
+			# Update previous
+			self.prev_motorSpeed = self.motorSpeed
+
+		# if self.xGyro == self.prev_xGyro:
+		# 	# Change the sensor
+		# 	self.xGyro = habip_osd.getNextSensor(sensor=self.xGyro)
+		# else:
+		# 	# Update previous
+		# 	self.prev_xGyro = self.xGyro
+
+		# if self.yGyro == self.prev_yGyro:
+		# 	# Change the sensor
+		# 	self.yGyro = habip_osd.getNextSensor(sensor=self.yGyro)
+		# else:
+		# 	# Update previous
+		# 	self.prev_yGyro = self.yGyro
+
+		if self.zGyro == self.prev_zGyro:
+			# Change the sensor
+			self.zGyro = habip_osd.getNextSensor(sensor=self.zGyro)
+		else:
+			# Update previous
+			self.prev_zGyro = self.zGyro
+
+		if self.gpsLat == self.prev_gpsLat:
+			# Change the sensor
+			self.gpsLat = habip_osd.getNextSensor(sensor=self.gpsLat)
+		else:
+			# Update previous
+			self.prev_gpsLat = self.gpsLat
+
+		if self.gpsLon == self.prev_gpsLon:
+			# Change the sensor
+			self.gpsLon = habip_osd.getNextSensor(sensor=self.gpsLon)
+		else:
+			# Update previous
+			self.prev_gpsLon = self.gpsLon
+
+		if self.camera == self.prev_camera:
+			# Change the camera
+			self.camera = (self.camera+1) % 4
+			self.cameraMux.selectCamera(self.camera)
+			self.update_cam_num(cam_num=self.camera)
+		else:
+			# Update previous
+			self.prev_camera = self.camera
 
 
 	def update_all(self):
@@ -80,8 +187,8 @@ class habip_osd(object):
 			data_value=self.boards[self.motorSpeed.boardID].data[self.motorSpeed.sensorID])
 
 		# IMU X,Y,Z
-		self.update_accel(x=self.boards[self.xGyro.boardID].data[self.xGyro.sensorID],
-			y=self.boards[self.yGyro.boardID].data[self.yGyro.sensorID],
+		self.update_accel(#x=self.boards[self.xGyro.boardID].data[self.xGyro.sensorID],
+			#y=self.boards[self.yGyro.boardID].data[self.yGyro.sensorID],
 			z=self.boards[self.zGyro.boardID].data[self.zGyro.sensorID])
 
 		# Lat, Lon
@@ -200,7 +307,8 @@ class habip_osd(object):
 		self.update_sensor(row_number, update_string[0:28])
 
 
-	def update_accel(self, x, y, z):
+	# def update_accel(self, x, y, z):
+	def update_accel(self, z):
 		"""
 		Update acceleration rows (3 rows)
 		
@@ -208,20 +316,20 @@ class habip_osd(object):
 		
 		Spacing: source: 1, blank space: 19, data: 8
 		"""
-		x_row_number = 5
-		y_row_number = 6
-		z_row_number = 7
+		# x_row_number = 5
+		# y_row_number = 6
+		z_row_number = 5
 
-		x_formatted = str(x)[0:8].rjust(8)
-		y_formatted = str(y)[0:8].rjust(8)
+		# x_formatted = str(x)[0:8].rjust(8)
+		# y_formatted = str(y)[0:8].rjust(8)
 		z_formatted = str(z)[0:8].rjust(8)
 
-		x_update_string = "X" + " "*19 + x_formatted
-		y_update_string = "Y" + " "*19 + y_formatted
+		# x_update_string = "X" + " "*19 + x_formatted
+		# y_update_string = "Y" + " "*19 + y_formatted
 		z_update_string = "Z" + " "*19 + z_formatted
 
-		self.update_sensor(x_row_number, x_update_string)
-		self.update_sensor(y_row_number, y_update_string)
+		# self.update_sensor(x_row_number, x_update_string)
+		# self.update_sensor(y_row_number, y_update_string)
 		self.update_sensor(z_row_number, z_update_string)
 
 
@@ -233,8 +341,8 @@ class habip_osd(object):
 		
 		Spacing: source: 3, blank space: 16(lat), 15(lon), data: 9(lat), 10(lon)
 		"""
-		lat_row_number = 8
-		lon_row_number = 9
+		lat_row_number = 6
+		lon_row_number = 7
 
 		lat_formatted = str(lat)[0:9].rjust(9)
 		lon_formatted = str(lon)[0:10].rjust(10)
@@ -256,7 +364,7 @@ class habip_osd(object):
 		"""
 		self.callSign = callsign
 
-		row_number = 10
+		row_number = 8
 		data_source_formatted = "CALL"
 
 		data_value_formatted = str(callsign)
@@ -279,7 +387,7 @@ class habip_osd(object):
 		"""
 		self.camera = cam_num
 
-		row_number = 11
+		row_number = 9
 
 		# Truncate the input data
 		data_source_formatted = "CAM"

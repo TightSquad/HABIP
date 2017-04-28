@@ -8,8 +8,10 @@ import csv
 import datetime
 import os
 import subprocess
+import os
 
 import board
+import common
 import localCommand
 import logger
 
@@ -30,6 +32,31 @@ class dataManager(object):
 		self.sensorOrder = []
 		self.csvWriter = None
 		self.initLog()
+
+		# Number of times to start soundmodem
+		self.soundmodemAttempts = 0
+
+
+	def checkSoundmodem(self):
+		"""
+		Checks to see if soundmodem is running, and restarts it if not
+		"""
+
+		if self.soundmodemAttempts > 10:
+			# Fatal error, quit out
+			self.logger.log.fatal("Could not start soundmodem after {} attempts".format(self.soundmodemAttempts))
+			sys.exit(1)
+
+		if not common.processIsRunning("soundmodem"):
+			self.soundmodemAttempts += 1
+			cmd = ["sudo", "/home/pi/scripts/startsoundmodem.sh"]
+			try:
+				subprocess.Popen(cmd)
+				self.logger.log.debug("Called: $ {}".format(" ".join(cmd)))
+			except Exception as e:
+				self.logger.log.error("Got exception in soundmodem: {} with output: {}".format(e, e.output))
+		else:
+			self.soundmodemAttempts = 0
 
 
 	def initLog(self):
@@ -68,7 +95,7 @@ class dataManager(object):
 
 		for boardID, sensor in self.sensorOrder:
 			data = self.interfaces.boards[boardID].data[sensor]
-			if data is None:
+			if data is None and boardID != "B5":
 				self.interfaces.boards[boardID].data[sensor] = fakeData
 				fakeData += 1.0
 
@@ -119,6 +146,7 @@ class dataManager(object):
 
 		self.updateGps()
 		self.updateComms()
+		self.checkSoundmodem()
 
 
 	def updateGps(self):

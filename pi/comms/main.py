@@ -50,6 +50,7 @@ def main():
 	mainScheduler.schedule(callback=mainDataManager.setTimeSync, frequency=20)
 	mainScheduler.schedule(callback=mainDataManager.log, frequency=3)
 	mainScheduler.schedule(callback=ground.streamTelemetry, frequency=10)
+	mainScheduler.schedule(callback=mainInterfaces.habip_osd.cycle, frequency=10)
 
 	run = True
 	while run:

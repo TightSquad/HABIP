@@ -4,10 +4,23 @@ project: High Altitude Balloon Instrumentation Platform
 description: Common functions and values
 """
 
+import subprocess
 import time
 
 msleep = lambda t: time.sleep(t/1000.0)
 usleep = lambda t: time.sleep(t/1000000.0)
+
+
+def processIsRunning(processName):
+	"""
+	Returns True if a processName is running, False otherwise
+	"""
+
+	try:
+		return processName in subprocess.check_output(["ps", "-e"], stderr=subprocess.STDOUT)
+	except Exception as e:
+		# self.logger.log.error("Got exception in beacon: {} with output: {}".format(e, e.output))
+		return False
 
 def flatten(lst):
 	"""

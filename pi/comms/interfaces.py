@@ -82,11 +82,11 @@ class interfaces(object):
 		self.uart = self.osd232.connection
 		self.logger.log.debug("Opened uart")
 
-		if self.gpio is not None:
-			self.habip_osd = habip_osd.habip_osd(osd232=self.osd232, gpio=self.gpio, boards=self.boards)
+		if self.gpio is not None and self.cameraMux is not None:
+			self.habip_osd = habip_osd.habip_osd(osd232=self.osd232, gpio=self.gpio, boards=self.boards, cameraMux=self.cameraMux)
 			self.logger.log.debug("Opened osd232")
 		else:
-			self.logger.log.error("Must open GPIO interface before OSD")
+			self.logger.log.error("Must open GPIO and cameraMux interface before OSD")
 
 	def openspi(self):
 		self.spi = spi.spi()

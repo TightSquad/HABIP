@@ -136,7 +136,7 @@ class camCommand(groundCommand):
         # Change the camera to the index based on the subCommand
         self.logger.log.info("Executing change camera to: {}".format(self.sub))
         interfaces.cameraMux.selectCamera(camCommand.subCommand[self.sub])
-        interfaces.habip_osd.update_cam_num(cam_num=self.sub)
+        interfaces.habip_osd.update_cam_num(cam_num=camCommand.subCommand[self.sub])
 
 
 class osdCommand(groundCommand):
