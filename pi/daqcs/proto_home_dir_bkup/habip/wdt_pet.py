@@ -3,14 +3,8 @@
 ###########################
 # Imports
 ###########################
-# sudo apt-get install python-smbus
-import smbus
 import sys
 import time
-import csv
-import subprocess
-import os
-import glob
 import RPi.GPIO as GPIO
 
 ###########################

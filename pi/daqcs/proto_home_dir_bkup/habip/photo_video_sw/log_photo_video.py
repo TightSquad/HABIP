@@ -29,8 +29,8 @@ import logger
 photo_burst_amount 		= 4			# number of photos to take
 video_capture_time 		= 60 		# length of video to capture
 
-printing_enabled 		= False		# enable printing of log data to terminal
-logging_enabled 		= True		# enable csv logging
+printing_enabled 		= 0			# enable printing of log data to terminal
+logging_enabled 		= 1			# enable csv logging
 
 ###########################
 # GPIO Pins
@@ -208,7 +208,8 @@ while(1):
 		photo_file_index_padded = "{:05d}".format(photo_file_index)
 		photo_file_name = photo_save_base_path + photo_save_file_base + photo_file_index_padded + "_" + time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime()) + ".jpeg"
 		
-		print "capturing photo..."
+		if (printing_enabled):
+			print "capturing photo..."
 		photo_video_logger.log.warning("Capturing photo: {}".format(photo_file_name))
 		# log camera settings
 		if (logging_enabled):
@@ -248,7 +249,8 @@ while(1):
 	video_file_index_padded = "{:05d}".format(video_file_index)
 	video_file_name = video_save_base_path + video_save_file_base + video_file_index_padded + "_" + time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime()) + ".h264"
 	
-	print "capturing video..."
+	if (printing_enabled):
+		print "capturing video..."
 	photo_video_logger.log.warning("Capturing video: {}".format(video_file_name))
 	# log camera settings
 	if (logging_enabled):
@@ -276,9 +278,11 @@ while(1):
 
 	# increment loop counter
 	loop_index = loop_index + 1
-	print "loop index: {}".format(loop_index)
+	if (printing_enabled):
+		print "loop index: {}".format(loop_index)
 	photo_video_logger.log.warning("loop index: {}".format(loop_index))
-	print "elapsed time (s): {}\n".format(time.time() - t_start_rel)
+	if (printing_enabled):
+		print "elapsed time (s): {}\n".format(time.time() - t_start_rel)
 	photo_video_logger.log.warning("elapsed time (s): {}".format(time.time() - t_start_rel))
 
 camera.close()
