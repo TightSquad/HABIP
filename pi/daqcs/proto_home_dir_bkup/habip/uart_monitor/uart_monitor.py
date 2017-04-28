@@ -204,7 +204,8 @@ def get_all_sensor_data():
 	for key, value in sorted(combined_tx_data.iteritems()):
 		tx_string_list = tx_string_list + ['{' + key + ':' + value + '}']
 
-	print tx_string_list
+	if (printing_enabled):
+		print tx_string_list
 	return tx_string_list
 
 ###########################

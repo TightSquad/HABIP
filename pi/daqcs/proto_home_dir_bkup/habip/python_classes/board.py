@@ -21,6 +21,8 @@ class board(object):
     Represent a board
     """
 
+    boardIDs = ["B0", "B1", "B2", "B3", "B4", "B5"]
+
     num = {
         "B0" : 0, # Pi Hat 0
         "B1" : 1, # Pi Hat 1
@@ -43,7 +45,9 @@ class board(object):
     def printAllData(self):
         s = ""
         for sensor in self.sensors:
-            s += "{}: {}".format(sensor, self.data[sensor])
+            s += "{}: {}\n".format(sensor, self.data[sensor])
+
+        print s
 
     @staticmethod
     def getBoard(num):

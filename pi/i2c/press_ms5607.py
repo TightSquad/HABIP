@@ -208,10 +208,6 @@ class pressSensorMS5607(i2c):
 		dT = d2_temp - self.T_REF 							# 25bit value, Difference between actual and reference temperature
 		TEMP = 2000 + ((dT * self.TEMPSENS) >> 23) 			# Actual temperature (-40...85C with 0.01C resolution)
 
-		# convert temp to proper sensor units
-		temp_c = TEMP / 100.0 								# Temperature in C
-		temp_f = temp_c * (9.0/5.0) + 32 					# Temperature in F
-
 		# second order temperature compensation
 		T2 		= 0
 		OFF2 	= 0
@@ -241,6 +237,10 @@ class pressSensorMS5607(i2c):
 
 		# calculate altitude (in meters and feet) from the pressure reading
 		altitude_m, altitude_ft = self.calculate_altitude(press_pa)
+
+		# convert temp to proper sensor units
+		temp_c = TEMP / 100.0 								# Temperature in C
+		temp_f = temp_c * (9.0/5.0) + 32 					# Temperature in F
 
 		self.prev_temp_c = temp_c
 		self.prev_temp_f = temp_f
