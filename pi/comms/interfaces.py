@@ -38,7 +38,9 @@ class interfaces(object):
 		self.habip_osd = None
 		self.spi = None
 		self.temperature = None
+		self.balloonTemperature = None
 		self.pressure = None
+		self.balloonPressure = None
 		self.uart = None
 		self.osd232 = None
 		self.watchdog = None
@@ -50,12 +52,12 @@ class interfaces(object):
 
 	def openbeacon(self):
 		self.beacon = beacon.beacon(interface="sm0", source="W2RIT-11", destination="W2RIT")
-		self.logger.log.debug("Opened beacon interface")
+		self.logger.log.info("Opened beacon interface")
 
 	def opencameramux(self):
 		if self.gpio is not None:
 			self.cameraMux = cameraMux.cameraMux(self.gpio)
-			self.logger.log.debug("Opened camera mux interface")
+			self.logger.log.info("Opened camera mux interface")
 			self.cameraMux.selectCamera(0)
 		else:
 			self.logger.log.error("Cannot open camera mux interface before GPIO")
@@ -63,47 +65,55 @@ class interfaces(object):
 	def opendaqcs(self):
 		if self.spi is not None:
 			self.daqcs = daqcsComms.daqcsComms(spi=self.spi, boards=self.boards)
-			self.logger.log.debug("Opened daqcs interface")
+			self.logger.log.info("Opened daqcs interface")
 		else:
 			self.logger.log.error("Cannot open daqcs interface before SPI")
 
 	def opengpio(self):
 		self.gpio = gpio.gpio()
-		self.logger.log.debug("Opened GPIO interface")
+		self.logger.log.info("Opened GPIO interface")
 
 	def opengps(self):
 		self.gps = gps.gps()
-		self.logger.log.debug("Opened GPS")
+		self.logger.log.info("Opened GPS")
 
 	def openhabiposd(self):
 		self.osd232 = osd232.osd232(port="/dev/ttyAMA0")
-		self.logger.log.debug("Opened osd232")
+		self.logger.log.info("Opened osd232")
 		
 		self.uart = self.osd232.connection
-		self.logger.log.debug("Opened uart")
+		self.logger.log.info("Opened uart")
 
 		if self.gpio is not None and self.cameraMux is not None:
 			self.habip_osd = habip_osd.habip_osd(osd232=self.osd232, gpio=self.gpio, boards=self.boards, cameraMux=self.cameraMux)
-			self.logger.log.debug("Opened osd232")
+			self.logger.log.info("Opened osd232")
 		else:
 			self.logger.log.error("Must open GPIO and cameraMux interface before OSD")
 
 	def openspi(self):
 		self.spi = spi.spi()
-		self.logger.log.debug("Opened SPI interface")
+		self.logger.log.info("Opened SPI interface")
 
 	def opentemperature(self):
 		self.temperature = temp_pct2075.tempSensorPCT2075(address=0x48, busID=0)
-		self.logger.log.debug("Opened temperature interface")
+		self.logger.log.info("Opened temperature interface")
 
 	def openpressure(self):
 		self.pressure = press_ms5607.pressSensorMS5607(address=0x77, busID=0)
-		self.logger.log.debug("Opened pressure interface")
+		self.logger.log.info("Opened pressure interface")
+
+	def openballoontemperature(self):
+		self.balloonTemperature = temp_pct2075.tempSensorPCT2075(address=0x49, busID=0)
+		self.logger.log.info("Opened balloon temperature interface")
+
+	def openballoonpressure(self):
+		self.balloonPressure = press_ms5607.pressSensorMS5607(address=0x76, busID=0)
+		self.logger.log.info("Opened balloon pressure interface")
 
 	def openuart(self, port, baudrate):
 		self.uart = uart.uart(port=port, baudrate=baudrate)
 		if self.uart.open():
-			self.logger.log.debug("Opened UART interface")
+			self.logger.log.info("Opened UART interface")
 			return True
 		else:
 			self.logger.log.error("Could not open UART interface")

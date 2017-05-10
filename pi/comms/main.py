@@ -22,6 +22,8 @@ def openInterfaces(mainInterfaces):
 	mainInterfaces.opengps()
 	mainInterfaces.opentemperature()
 	mainInterfaces.openpressure()
+	# mainInterfaces.openballoontemperature()
+	# mainInterfaces.openballoonpressure()
 	mainInterfaces.opendaqcs()
 
 
@@ -50,7 +52,11 @@ def main():
 	mainScheduler.schedule(callback=mainDataManager.setTimeSync, frequency=20)
 	mainScheduler.schedule(callback=mainDataManager.log, frequency=3)
 	mainScheduler.schedule(callback=ground.streamTelemetry, frequency=10)
-	mainScheduler.schedule(callback=mainInterfaces.habip_osd.cycle, frequency=10)
+	mainScheduler.schedule(callback=mainInterfaces.habip_osd.cycle, frequency=20)
+
+	# Set OSD header because fun
+	header = "{} RIT TEAM HABIP {}".format(mainInterfaces.osd232.symbol["satellite"], mainInterfaces.osd232.symbol["heart"])
+	mainInterfaces.habip_osd.header = header
 
 	run = True
 	while run:
@@ -66,6 +72,8 @@ def main():
 		mainScheduler.update()
 
 		mainInterfaces.habip_osd.update_all() # This takes about a second to process
+
+		# print mainInterfaces.habip_osd.osd232.preview()
 
 		# for name, board in mainInterfaces.boards.iteritems():
 		# 	print "Data for board: {}".format(name)

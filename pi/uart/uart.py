@@ -46,7 +46,7 @@ class uart(object):
                 self.logger.log.error("error in uart.open: {}".format(e))
                 return False
 
-        self.logger.log.debug("Successfully opened serial interface port: {}". \
+        self.logger.log.info("Successfully opened serial interface port: {}". \
             format(self.interface.port))
         self.isOpen = True
         return True
@@ -54,7 +54,7 @@ class uart(object):
     def close(self):
         self.interface.close()
         self.isOpen = False
-        self.logger.log.debug("Successfully closed serial port: {}". \
+        self.logger.log.info("Successfully closed serial port: {}". \
             format(self.interface.port))
 
 

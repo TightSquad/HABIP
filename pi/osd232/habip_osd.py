@@ -23,7 +23,7 @@ class habip_osd(object):
 
 		# Make sure the power is on
 		self.gpio.setPinMode(habip_osd.POWER_CONTROL_PIN, gpio.OUTPUT)
-		self.gpio.setHigh(habip_osd.POWER_CONTROL_PIN)
+		self.power_on()
 
 		# Set default sensors
 		self.humiditySensor = board.sensor(boardID="B0", sensorID="H")
@@ -47,6 +47,10 @@ class habip_osd(object):
 		self.zGyro = board.sensor(boardID="B4", sensorID="ZGY")
 		self.prev_zGyro = None
 		
+		# self.balloonTemperature = board.sensor(boardID="B5", sensorID="TBL")
+
+		# self.balloonPressure = board.sensor(boardID="B5", sensorID="PBL")
+
 		self.gpsLat = board.sensor(boardID="B5", sensorID="LAT")
 		self.prev_gpsLat = None
 		
@@ -58,6 +62,7 @@ class habip_osd(object):
 		self.camera = 0
 		self.prev_camera = None
 
+		self.header = ""
 
 	def power_on(self):
 		"""
@@ -169,37 +174,68 @@ class habip_osd(object):
 		"""
 		Update the entire OSD with the most recent information that we have
 		"""
+		row_counter = 1
+
+		# Header String
+		if self.header:
+			self.update_header(data_value=self.header, row_number=row_counter)
+			row_counter += 1
 
 		# Temperature
 		self.update_temp(data_source=str(self.temperatureSensor), 
-			data_value=self.boards[self.temperatureSensor.boardID].data[self.temperatureSensor.sensorID])
+			data_value=self.boards[self.temperatureSensor.boardID].data[self.temperatureSensor.sensorID],
+			row_number=row_counter)
+		row_counter += 1
 
 		# Pressure
 		self.update_pres(data_source=str(self.pressureSensor), 
-			data_value=self.boards[self.pressureSensor.boardID].data[self.pressureSensor.sensorID])
+			data_value=self.boards[self.pressureSensor.boardID].data[self.pressureSensor.sensorID],
+			row_number=row_counter)
+		row_counter += 1
 
 		# Humidity
 		self.update_humid(data_source=str(self.humiditySensor), 
-			data_value=self.boards[self.humiditySensor.boardID].data[self.humiditySensor.sensorID])
+			data_value=self.boards[self.humiditySensor.boardID].data[self.humiditySensor.sensorID],
+			row_number=row_counter)
+		row_counter += 1
 
 		# Motor Speed
-		self.update_speed(data_source=str(self.motorSpeed), 
-			data_value=self.boards[self.motorSpeed.boardID].data[self.motorSpeed.sensorID])
+		# self.update_speed(data_source=str(self.motorSpeed), 
+		# 	data_value=self.boards[self.motorSpeed.boardID].data[self.motorSpeed.sensorID])
+		# row_counter += 1
 
 		# IMU X,Y,Z
-		self.update_accel(#x=self.boards[self.xGyro.boardID].data[self.xGyro.sensorID],
-			#y=self.boards[self.yGyro.boardID].data[self.yGyro.sensorID],
-			z=self.boards[self.zGyro.boardID].data[self.zGyro.sensorID])
+		# self.update_accel(#x=self.boards[self.xGyro.boardID].data[self.xGyro.sensorID],
+		# 	#y=self.boards[self.yGyro.boardID].data[self.yGyro.sensorID],
+		# 	z=self.boards[self.zGyro.boardID].data[self.zGyro.sensorID])
+		# row_counter += 1
+
+		# Balloon Temperature
+		# self.update_temp(data_source=str(self.balloonTemperature), 
+		# 	data_value=self.boards[self.balloonTemperature.boardID].data[self.balloonTemperature.sensorID],
+		# 	row_number=row_counter)
+		# row_counter += 1
+
+		# # Balloon Pressure
+		# self.update_pres(data_source=str(self.balloonPressure), 
+		# 	data_value=self.boards[self.balloonPressure.boardID].data[self.balloonPressure.sensorID],
+		# 	row_number=row_counter)
+		# row_counter += 1
 
 		# Lat, Lon
 		self.update_gps(lat=self.boards[self.gpsLat.boardID].data[self.gpsLat.sensorID],
-			lon=self.boards[self.gpsLon.boardID].data[self.gpsLon.sensorID])
+			lon=self.boards[self.gpsLon.boardID].data[self.gpsLon.sensorID],
+			lat_row_number=row_counter,
+			lon_row_number=row_counter+1)
+		row_counter += 2
 
 		# Call
-		self.update_callsign(callsign=self.callSign)
+		self.update_callsign(callsign=self.callSign, row_number=row_counter)
+		row_counter += 1
 
 		# Camera
-		self.update_cam_num(cam_num=self.camera)
+		self.update_cam_num(cam_num=self.camera, row_number=row_counter)
+		row_counter += 1
 
 
 	def update_sensor(self, row_number, update_string):
@@ -215,7 +251,12 @@ class habip_osd(object):
 		common.msleep(self.sleeptime)
 
 
-	def update_temp(self, data_source, data_value):
+	def update_header(self, data_value, row_number=1):
+		data_value_formatted = str(data_value)[0:28].center(28)
+		self.update_sensor(row_number, data_value_formatted[0:28])
+
+	
+	def update_temp(self, data_source, data_value, row_number=1):
 		"""
 		Update temperature row
 	
@@ -224,7 +265,6 @@ class habip_osd(object):
 	
 		Spacing: source: 6, blank space: 17, data: 5
 		"""
-		row_number = 1
 
 		# Truncate the input data
 		data_source_formatted = str(data_source)
@@ -238,7 +278,7 @@ class habip_osd(object):
 		self.update_sensor(row_number, update_string[0:28])
 
 
-	def update_pres(self, data_source, data_value):
+	def update_pres(self, data_source, data_value, row_number=2):
 		"""
 		Update pressure row
 		
@@ -247,7 +287,6 @@ class habip_osd(object):
 		
 		Spacing: source: 5, blank space: 17, data: 6
 		"""
-		row_number = 2
 
 		# Truncate the input data
 		data_source_formatted = str(data_source)
@@ -261,7 +300,7 @@ class habip_osd(object):
 		self.update_sensor(row_number, update_string[0:28])
 		
 
-	def update_humid(self, data_source, data_value):
+	def update_humid(self, data_source, data_value, row_number=3):
 		"""
 		Update humidity row
 		
@@ -270,7 +309,6 @@ class habip_osd(object):
 		
 		Spacing: source: 4, blank space: 20, data: 4
 		"""
-		row_number = 3
 
 		# Truncate the input data
 		data_source_formatted = str(data_source)
@@ -284,7 +322,7 @@ class habip_osd(object):
 		self.update_sensor(row_number, update_string[0:28])
 
 	
-	def update_speed(self, data_source, data_value):
+	def update_speed(self, data_source, data_value, row_number=4):
 		"""
 		Update speed row
 		
@@ -292,8 +330,7 @@ class habip_osd(object):
 		       data_value: the actual value (float)
 		
 		Spacing: source: 2, blank space: 18, data: 8
-		"""
-		row_number = 4
+		"""		
 
 		# Truncate the input data
 		data_source_formatted = str(data_source)
@@ -308,7 +345,7 @@ class habip_osd(object):
 
 
 	# def update_accel(self, x, y, z):
-	def update_accel(self, z):
+	def update_accel(self, z, z_row_number=5):
 		"""
 		Update acceleration rows (3 rows)
 		
@@ -318,7 +355,6 @@ class habip_osd(object):
 		"""
 		# x_row_number = 5
 		# y_row_number = 6
-		z_row_number = 5
 
 		# x_formatted = str(x)[0:8].rjust(8)
 		# y_formatted = str(y)[0:8].rjust(8)
@@ -333,7 +369,7 @@ class habip_osd(object):
 		self.update_sensor(z_row_number, z_update_string)
 
 
-	def update_gps(self, lat, lon):
+	def update_gps(self, lat, lon, lat_row_number=6, lon_row_number=7):
 		"""
 		Update latitude/longitude row
 		
@@ -341,8 +377,6 @@ class habip_osd(object):
 		
 		Spacing: source: 3, blank space: 16(lat), 15(lon), data: 9(lat), 10(lon)
 		"""
-		lat_row_number = 6
-		lon_row_number = 7
 
 		lat_formatted = str(lat)[0:9].rjust(9)
 		lon_formatted = str(lon)[0:10].rjust(10)
@@ -354,7 +388,7 @@ class habip_osd(object):
 		self.update_sensor(lon_row_number, lon_update_string)
 
 
-	def update_callsign (self, callsign):
+	def update_callsign (self, callsign, row_number=8):
 		"""
 		Update callsign
 		
@@ -363,8 +397,7 @@ class habip_osd(object):
 		Spacing: source: 4, blank space: 16, data: 8 (typ)
 		"""
 		self.callSign = callsign
-
-		row_number = 8
+		
 		data_source_formatted = "CALL"
 
 		data_value_formatted = str(callsign)
@@ -377,7 +410,7 @@ class habip_osd(object):
 		self.update_sensor(row_number, update_string[0:28])
 
 
-	def update_cam_num(self, cam_num):
+	def update_cam_num(self, cam_num, row_number=5):
 		"""
 		Update Camera number
 		
@@ -385,9 +418,7 @@ class habip_osd(object):
 		
 		Spacing: source: 3, blank space: 24, data: 1
 		"""
-		self.camera = cam_num
-
-		row_number = 9
+		self.camera = cam_num		
 
 		# Truncate the input data
 		data_source_formatted = "CAM"

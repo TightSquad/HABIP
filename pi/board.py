@@ -146,7 +146,9 @@ class commsHost(board):
     sensors = [
         "TD0",  # BCM Die temperature sensor
         "TB0",  # Board temperature sensor
+        "TBL",  # Temp sensor - balloon
         "P0",   # Pressure sensor - basic
+        "PBL",  # Pressure sensor - balloon
         "LAT",  # GPS - latitude
         "LON",  # GPS - longitude
         "TM",   # GPS - time

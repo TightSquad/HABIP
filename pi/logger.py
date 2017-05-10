@@ -21,7 +21,7 @@ class logger(object):
 
 	def __init__(self, loggerName, logFileName=None, logFormat=None,
 			dateFormat=None, logFileHandler=None, baseLogger=True,
-			logErrorToConsole=True, useLogsDirectory=True, fileLevel=logging.DEBUG):
+			logErrorToConsole=True, useLogsDirectory=True, fileLevel=logging.INFO):
 		self.loggerName = loggerName
 		self.logFileName = None
 		self.logFormat = None
@@ -63,7 +63,7 @@ class logger(object):
 	def __create__(self):
 		# Create the logger
 		logger = logging.getLogger(self.loggerName)
-		logger.setLevel(logging.DEBUG)
+		logger.setLevel(self.fileLevel)
 
 		# Create the formatter
 		formatter = logging.Formatter(fmt=self.logFormat,

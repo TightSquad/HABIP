@@ -29,7 +29,7 @@ def main():
 
 	osd.setPosition(row=1, column=8)
 	common.msleep(100)
-	osd.display("{} The HABIP {}".format(osd.symbol["satellite"], osd.symbol["heart"]))
+	osd.display("{} RIT TEAM HABIP {}".format(osd.symbol["satellite"], osd.symbol["heart"]))
 	common.msleep(100)
 
 	osd.setPosition(row=11)

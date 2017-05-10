@@ -8,7 +8,7 @@ import csv
 import datetime
 import os
 import subprocess
-import os
+import sys
 
 import board
 import common
@@ -196,13 +196,21 @@ class dataManager(object):
 		self.interfaces.temperature.readTempCF()
 		self.interfaces.boards["B5"].data["TB0"] = self.interfaces.temperature.prev_temp_c
 
+		# # Balloon Temp sensor
+		# self.interfaces.balloonTemperature.readTempCF()
+		# self.interfaces.boards["B5"].data["TBL"] = self.interfaces.balloonTemperature.prev_temp_c
+
 		# Pressure sensor
 		self.interfaces.pressure.readAll()
 		self.interfaces.boards["B5"].data["P0"] = self.interfaces.pressure.prev_press_mbar
 
+		# # Balloon Pressure sensor
+		# self.interfaces.balloonPressure.readAll()
+		# self.interfaces.boards["B5"].data["PBL"] = self.interfaces.balloonPressure.prev_press_mbar
+
 		# Die temp
 		try:
-			dieTemp = subprocess.check_output(["vcgencmd","measure_temp"])
+			dieTemp = subprocess.check_output(["vcgencmd", "measure_temp"])
 		except Exception as e:
 			self.logger.log.warning("Could not read die temp: {}".format(e))
 			return

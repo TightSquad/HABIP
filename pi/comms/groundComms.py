@@ -46,7 +46,7 @@ class groundComms(object):
                 self.logger.log.error("Could not parse command: {}".format(commandString))
             else:
                 parsedCommand.ack(beacon=self.interfaces.beacon)
-                self.logger.log.debug("Parsed command: {}".format(commandString))
+                self.logger.log.info("Parsed command: {}".format(commandString))
                 if parsedCommand.executed is False:
                     self.groundCommandList.insert(0, parsedCommand)
 

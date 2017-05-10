@@ -52,7 +52,7 @@ class daqcsComms(object):
 		"""
 
 		if self.badStateCount > 3:
-			self.logger.log.debug("Got bad state {} times in a row, attempting to clear data stream".format(self.badStateCount))
+			self.logger.log.warning("Got bad state {} times in a row, attempting to clear data stream".format(self.badStateCount))
 			self.readString()
 
 		# First get the state of daqcs
@@ -103,7 +103,7 @@ class daqcsComms(object):
 					self.logger.log.debug("DAQCS not listening")
 				else:
 					command = self.queue.pop()
-					self.logger.log.debug("About to send command: {}".format(command))
+					self.logger.log.info("About to send command: {}".format(command))
 					self.spi.sendString(str(command))
 			else:
 				self.logger.log.debug("Queue empty")
@@ -172,7 +172,7 @@ class daqcsComms(object):
 		for item in items:
 			pieces = item.split(":")
 			if len(pieces) != 3:
-				self.logger.log.warning("Could not parse data: {}".format(item))
+				self.logger.log.debug("Could not parse data: {}".format(item))
 			else:
 				if pieces[0] in board.board.num.keys():
 					if pieces[1] in self.boards[pieces[0]].sensors:

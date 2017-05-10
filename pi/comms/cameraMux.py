@@ -21,6 +21,7 @@ class cameraMux(object):
 			self.gpio.setPinMode(pin, self.gpio.GPIO.OUT)
 			self.gpio.setLow(pin)
 
+		self.selectCamera(0)
 
 		self.logger.log.info("Opened camera mux interface")
 

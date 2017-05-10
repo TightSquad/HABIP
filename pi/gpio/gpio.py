@@ -39,6 +39,9 @@ class gpio(object):
 	def getMode(self, pin):
 		return lookupModeToString[GPIO.gpio_function(pin)]
 
+	def read(self, pin):
+		return GPIO.input(pin)
+
 	def setPinMode(self, pin, mode):
 		self.logger.log.debug("Set pin {} to {}".format(
 			pin, gpio.lookupModeToString[mode]))

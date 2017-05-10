@@ -100,6 +100,11 @@ class osd232(object):
         else:
         	self.logger.log.info("Opened uart interface for osd")
 
+        self.previewData = [" "*28]*11 # Used for previewing the data
+
+        self.currentRow = 1
+        self.currentColumn = 1
+
 
     def clearScreen(self):
         self.logger.log.info("Clearing screen")
@@ -120,8 +125,14 @@ class osd232(object):
 
 
     def display(self, data):
-        self.logger.log.info("Displaying on osd: {}".format(data))
+        self.logger.log.debug("Displaying on osd: {}".format(data))
+        self.previewData[self.currentRow-1] = (self.previewData[self.currentRow-1][0:self.currentColumn-1] + data)[0:28]
         self.connection.sendRaw(data)
+
+
+    def preview(self):
+        return "\n".join([" "+"-"*28] + ["|" + line + "|" for line in self.previewData] + [" "+"-"*28])
+
 
     def setBackgroundColor(self, backgroundColor):
         """
@@ -187,7 +198,7 @@ class osd232(object):
                 format(row))
             return False
         else:
-            self.logger.log.info("Setting horizontal offset to: {}". \
+            self.logger.log.debug("Setting horizontal offset to: {}". \
                 format(horizontalOffset))
             return self.connection.sendRaw(self.command["setHorizontalOffset"], \
                 chr(horizontalOffset))
@@ -201,7 +212,7 @@ class osd232(object):
             bool - returns True if the data was sent; False if otherwise
         """
         if screenMode in self.screenMode.values():
-            self.logger.log.info("Setting screen mode to: {}". \
+            self.logger.log.debug("Setting screen mode to: {}". \
                 format(self.screenModeName[screenMode]))
             return self.connection.sendRaw(self.command["screenMode"], screenMode)
         else:
@@ -221,7 +232,10 @@ class osd232(object):
         row = row if row > 0 and row < 29 else 1
         column = column if column > 0 and column < 12 else 1
         
-        self.logger.log.info("Moving cursor position to {}, {}".format(row, column))
+        self.currentRow = row
+        self.currentColumn = column
+
+        self.logger.log.debug("Moving cursor position to {}, {}".format(row, column))
         return self.connection.sendRaw(self.command["position"], chr(column), chr(row))
 
 
@@ -233,7 +247,7 @@ class osd232(object):
             bool - returns True if the data was sent; False if otherwise
         """
         if type(shouldShowText) is bool:
-            self.logger.log.info("Setting show text to: {}".format(str(shouldShowText)))
+            self.logger.log.debug("Setting show text to: {}".format(str(shouldShowText)))
             return self.connection.sendRaw(self.command["visable"], chr(shouldShowText))
         else:
             self.logger.log.error("shouldShowText is not bool: {}". \
@@ -271,7 +285,7 @@ class osd232(object):
                 format(row))
             return False
         else:
-            self.logger.log.info("Setting vertical offset to: {}". \
+            self.logger.log.debug("Setting vertical offset to: {}". \
                 format(verticalOffset))
             return self.connection.sendRaw(self.command["setVerticalOffset"], \
                 chr(verticalOffset))

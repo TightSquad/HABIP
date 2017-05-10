@@ -113,7 +113,7 @@ class axreader(object):
 			self.logger.log.error("Invalid type for destinations: {}".format(type(destinations)))
 			self.destinations = None
 
-		self.logger.log.debug("Created axlogger instance with sources whitelist: {} and destinations whitelist: {}".format(sources, destinations))
+		self.logger.log.info("Created axlogger instance with sources whitelist: {} and destinations whitelist: {}".format(sources, destinations))
 
 		self.fileHandle = None
 		self.isOpen = False
@@ -127,7 +127,7 @@ class axreader(object):
 			self.logger.log.error("Could not open file: {}, exception: {}".format(self.filePath, e))
 			return False
 
-		self.logger.log.debug("Opened {}".format(self.filePath))		
+		self.logger.log.info("Opened {}".format(self.filePath))		
 		self.fileHandle.seek(0,2) # Seek to the end of the log file
 		self.isOpen = True
 		return True
