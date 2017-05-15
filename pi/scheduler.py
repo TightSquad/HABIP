@@ -1,7 +1,9 @@
 """
 author: Connor Goldberg
 project: High Altitude Balloon Instrumentation Platform
-description: Schedules tasks to be called every so often
+description: Schedules tasks to be called every so often. Ideally this should
+			 be done based on a timestamp and not some a counter but due to
+			 time constraints this was done and works fine.
 """
 
 import logger
