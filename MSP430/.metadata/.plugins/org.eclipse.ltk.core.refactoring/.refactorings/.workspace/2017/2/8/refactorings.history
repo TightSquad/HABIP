@@ -1,3 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">&#x0A;<refactoring comment="Delete resource &apos;BlinkLED_MSP430FR5994&apos;" deleteContents="false" description="Delete resource &apos;BlinkLED_MSP430FR5994&apos;" element1="/BlinkLED_MSP430FR5994" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1487863813377"/>&#x0A;<refactoring comment="Rename resource &apos;BlinkLED_MSP430FR5994&apos; to &apos;temp_i2c_test_2&apos;" description="Rename resource &apos;BlinkLED_MSP430FR5994&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="/BlinkLED_MSP430FR5994" name="temp_i2c_test_2" stamp="1487863866245" updateReferences="true"/>
-</session>
